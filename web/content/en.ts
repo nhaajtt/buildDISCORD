@@ -102,21 +102,21 @@ const en: Dict = {
       {
         id: "free",
         name: "Free",
-        price: "0",
+        price: "$0",
         blurb: "To see how the contractor works.",
         features: ["1 built-in theme", "1 build", "Review and edit the blueprint", "/nuke to clean up", "No AI"],
       },
       {
         id: "pro",
         name: "Pro",
-        price: "39,000 VND / 30 days",
+        price: "$4.99 / 30 days",
         blurb: "For groups that want a server that fits them.",
         features: ["Mix up to 4 themes", "Unlimited builds", "AI design: 20 per month", "Pick the humor level", "Review and edit the blueprint"],
       },
       {
         id: "plus",
         name: "Plus",
-        price: "79,000 VND / 30 days",
+        price: "$9.99 / 30 days",
         blurb: "For people who build many servers.",
         features: ["Everything in Pro", "AI design: 100 per month"],
       },
@@ -124,7 +124,7 @@ const en: Dict = {
     howTitle: "How to buy",
     how: ["Message the bot owner on Instagram with the plan and number of days you want", "Pay as instructed and receive a code like THAU-XXXX-XXXX-XXXX", "Run /kichhoat ma:<code> in your server. A code works once, and a second code of the same plan adds its days"],
     contact: "Message on Instagram to buy a code",
-    note: "Price per server, per 30 days (about 1.5 US dollars for Pro). Want more days? Message to work it out. There are no automatic payments yet.",
+    note: "Prices are in US dollars, per server, per 30 days. Customers in Vietnam pay the VND equivalent at the exchange rate on the day. Want more days? Message to work it out. There are no automatic payments yet.",
   },
   commands: {
     title: "Seven commands for customers, no more.",

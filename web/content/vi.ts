@@ -102,21 +102,21 @@ const vi: Dict = {
       {
         id: "free",
         name: "Miễn phí",
-        price: "0đ",
+        price: "$0",
         blurb: "Để thử xem thầu làm ăn ra sao.",
         features: ["1 theme có sẵn", "Xây 1 lần", "Xem trước và sửa bản vẽ", "/nuke để dọn lại", "Không có AI"],
       },
       {
         id: "pro",
         name: "Pro",
-        price: "39.000đ / 30 ngày",
+        price: "$4.99 / 30 ngày",
         blurb: "Cho nhóm muốn server hợp với mình.",
         features: ["Trộn tới 4 theme", "Xây không giới hạn", "AI thiết kế: 20 lượt mỗi tháng", "Chọn mức hài", "Xem trước và sửa bản vẽ"],
       },
       {
         id: "plus",
         name: "Plus",
-        price: "79.000đ / 30 ngày",
+        price: "$9.99 / 30 ngày",
         blurb: "Cho người dựng nhiều server.",
         features: ["Mọi thứ của Pro", "AI thiết kế: 100 lượt mỗi tháng"],
       },
@@ -124,7 +124,7 @@ const vi: Dict = {
     howTitle: "Cách mua",
     how: ["Nhắn chủ bot qua Instagram, nói gói và số ngày bạn muốn", "Chuyển khoản theo hướng dẫn, nhận mã dạng THAU-XXXX-XXXX-XXXX", "Gõ /kichhoat ma:<mã> trong server. Mã chỉ dùng một lần, mã thứ hai cùng gói sẽ cộng thêm ngày"],
     contact: "Nhắn Instagram để mua mã",
-    note: "Giá mỗi server, mỗi 30 ngày. Mua nhiều ngày hơn thì nhắn để tính. Chưa có thanh toán tự động.",
+    note: "Giá bằng đô la Mỹ, mỗi server, mỗi 30 ngày. Khách ở Việt Nam trả bằng VND theo tỷ giá ngày mua. Mua nhiều ngày hơn thì nhắn để tính. Chưa có thanh toán tự động.",
   },
   commands: {
     title: "Bảy lệnh cho khách, không hơn.",

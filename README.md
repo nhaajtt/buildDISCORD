@@ -44,7 +44,7 @@ The bot never reads message content and does not use any privileged intent.
 | Themes per build | 1 | up to 4 mixed | up to 4 mixed |
 | Builds | 1 in total | unlimited | unlimited |
 | AI designs per month | 0 | 20 | 100 |
-| Price per server | 0 | 39,000 VND / 30 days | 79,000 VND / 30 days |
+| Price per server | $0 | $4.99 / 30 days | $9.99 / 30 days |
 
 Payment is manual for now: customers message the owner on Instagram and pay by transfer. The owner makes a code with `npm run license -- new pro 30d` (or `/admin taoma`), the customer runs `/kichhoat`, and the plan ends by itself when the days run out. Codes are single use, and a second code of the same plan adds its days after the current expiry.
 
