@@ -271,7 +271,7 @@ Gói miễn phí: lời chào có thêm một dòng nhỏ "Lời chào do Thầu
 
 Bot quét server và cho **điểm từ 0 đến 100**, kèm danh sách vấn đề theo mức độ: ví dụ `@everyone` đang có quyền nguy hiểm, kênh thông báo ai cũng viết được, chưa có luật, mức xác minh quá thấp.
 
-- `/khamsuckhoe kiemtra`: khám ngay. Mỗi server khám một lần mỗi phút.
+- `/khamsuckhoe kiemtra`: khám ngay. Đừng bấm liên tục, mỗi lần khám gọi nhiều lệnh tới Discord.
 - `/khamsuckhoe lichsu`: xem điểm 5 lần khám gần nhất, có biểu đồ xu hướng.
 
 Kết quả có các nút:
@@ -486,7 +486,7 @@ Chỉ người có ID trong `OWNER_IDS` dùng được.
 | `/admin thongke` | Số server theo từng gói |
 | `/admin donhang` | 10 đơn thanh toán gần nhất |
 
-Cách tạo mã bằng dòng lệnh trên Pi: `docker compose run --rm bot node scripts/license.js new pro 30d`. (Nếu báo không tìm thấy lệnh, dùng `/admin taoma` trong Discord.)
+Cách đơn giản nhất để tạo mã là `/admin taoma` trong Discord. Bot trả mã một lần, bạn gửi mã đó cho khách.
 
 ### 12.6. Mở khoá server của bạn
 
@@ -597,7 +597,7 @@ Hướng dẫn gốc của payOS: https://payos.vn/docs/huong-dan-su-dung/tao-ta
 
 ### 15.4. Bước 2: xác thực tổ chức hoặc cá nhân
 
-Ở trang quản lý, làm theo mục **Xác thực tổ chức** (cá nhân cũng đi qua bước này) để khai thông tin và giấy tờ. Chờ payOS duyệt. Chưa duyệt xong thì chưa tạo được kênh thanh toán.
+Ở trang quản lý, làm theo mục **Xác thực tổ chức** (cá nhân hay doanh nghiệp đều được hướng dẫn khai giấy tờ phù hợp) để khai thông tin và giấy tờ. Chờ payOS duyệt. Chưa duyệt xong thì chưa tạo được kênh thanh toán.
 
 ### 15.5. Bước 3: liên kết tài khoản ngân hàng
 
