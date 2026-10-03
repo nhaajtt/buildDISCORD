@@ -28,6 +28,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   const { lang } = await params;
   const d = dicts[lang as "vi" | "en"] ?? vi;
   return {
+    metadataBase: new URL("https://builddiscord.vercel.app"),
     title: d.meta.title,
     description: d.meta.description,
     alternates: { languages: { vi: "/", en: "/en" } },

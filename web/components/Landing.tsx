@@ -15,7 +15,7 @@ import {
   themeRoles,
   type Category,
 } from "@/content/shared";
-import { CONTACT_URL, INVITE_URL, REPO_URL, aiSample } from "@/content/site";
+import { CONTACT_URL, INSTAGRAM_URL, INVITE_URL, PERSONAL_URL, REPO_URL, aiSample } from "@/content/site";
 import SplitText from "./SplitText";
 import ThemeToggle from "./ThemeToggle";
 
@@ -478,6 +478,12 @@ export default function Landing({ dict }: { dict: Dict }) {
           <a href={`${prefix}/terms`}>{dict.footer.terms}</a>
           <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
             {dict.footer.source}
+          </a>
+          <a href={INSTAGRAM_URL} target="_blank" rel="noopener noreferrer">
+            Instagram
+          </a>
+          <a href={PERSONAL_URL} target="_blank" rel="noopener noreferrer">
+            nhaajt.com
           </a>
         </nav>
         <p>{dict.footer.line}</p>

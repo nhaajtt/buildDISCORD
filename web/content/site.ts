@@ -7,8 +7,11 @@ export const INVITE_URL =
 
 export const REPO_URL = "https://github.com/nhaajtt/buildDISCORD";
 
-// Where a customer asks for an activation code. Set NEXT_PUBLIC_CONTACT_URL to a Discord, Zalo or Messenger link.
-export const CONTACT_URL = process.env.NEXT_PUBLIC_CONTACT_URL || "https://github.com/nhaajtt";
+export const INSTAGRAM_URL = "https://www.instagram.com/nhaajt_hehee/";
+export const PERSONAL_URL = "https://www.nhaajt.com/";
+
+// Where a customer asks for an activation code
+export const CONTACT_URL = process.env.NEXT_PUBLIC_CONTACT_URL || INSTAGRAM_URL;
 
 // A real answer from one run of the AI designer (trimmed), shown as an example on the page
 export const aiSample = {

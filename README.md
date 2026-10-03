@@ -4,7 +4,9 @@
 
 A Discord bot nicknamed **Thầu Xây Dựng** ("the contractor"). Invite it to an empty server, run `/build`, and a few minutes later the server has categories, text and voice channels, roles, rules, a welcome message and a role picker. All of it written in Vietnamese meme humor.
 
-Made by [nhaajt](https://github.com/nhaajtt). The story of how it was built, including what went wrong, is in [docs/devlog.md](docs/devlog.md). It is a sibling of [musiDISCORD](https://github.com/nhaajtt/musiDISCORD) and [companionsDISCORD](https://github.com/nhaajtt/companionsDISCORD), and runs next to them on the same Raspberry Pi.
+Website: https://builddiscord.vercel.app (Vietnamese and English).
+
+Made by [nhaajt](https://github.com/nhaajtt) ([website](https://www.nhaajt.com/), [Instagram](https://www.instagram.com/nhaajt_hehee/)). The story of how it was built, including what went wrong, is in [docs/devlog.md](docs/devlog.md). It is a sibling of [musiDISCORD](https://github.com/nhaajtt/musiDISCORD) and [companionsDISCORD](https://github.com/nhaajtt/companionsDISCORD), and runs next to them on the same Raspberry Pi.
 
 **Status: working, still growing.** What exists is listed below. What is planned is under [Roadmap](#roadmap).
 
@@ -42,8 +44,9 @@ The bot never reads message content and does not use any privileged intent.
 | Themes per build | 1 | up to 4 mixed | up to 4 mixed |
 | Builds | 1 in total | unlimited | unlimited |
 | AI designs per month | 0 | 20 | 100 |
+| Price per server | 0 | 39,000 VND / 30 days | 79,000 VND / 30 days |
 
-Payment is manual for now. The owner makes a code with `npm run license -- new pro 30d` (or `/admin taoma`), the customer runs `/kichhoat`, and the plan ends by itself when the days run out. Codes are single use, and a second code of the same plan adds its days after the current expiry.
+Payment is manual for now: customers message the owner on Instagram and pay by transfer. The owner makes a code with `npm run license -- new pro 30d` (or `/admin taoma`), the customer runs `/kichhoat`, and the plan ends by itself when the days run out. Codes are single use, and a second code of the same plan adds its days after the current expiry.
 
 ## Setup
 
