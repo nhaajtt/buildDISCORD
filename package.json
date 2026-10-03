@@ -1,0 +1,21 @@
+{
+  "name": "buildDISCORD",
+  "version": "1.0.0",
+  "description": "Discord bot that builds a full, ridiculous server in one command",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/index.js",
+    "test": "node --disable-warning=ExperimentalWarning --test",
+    "deploy-commands": "node src/deploy-commands.js",
+    "license": "node --disable-warning=ExperimentalWarning scripts/license.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  },
+  "dependencies": {
+    "discord.js": "^14.16.3",
+    "dotenv": "^16.4.5"
+  },
+  "author": "nhaajt"
+}
