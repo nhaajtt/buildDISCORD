@@ -2,7 +2,7 @@
 
 ## 1.1.0
 
-- Website live at builddiscord.vercel.app, with plan prices in US dollars ($4.99 and $9.99 per 30 days), Instagram and website contact links, and a refund rule in the terms.
+- Website live at builddiscord.vercel.app, with plan prices in US dollars ($9.99 and $19.99 per 30 days), Instagram and website contact links, and a refund rule in the terms.
 - Website finished: sections for the AI designer (with a real example answer) and the editable blueprint, a plans section with how to buy a code, all seven customer commands, an updated FAQ, a devlog page in both languages, and a working invite button.
 
 ## 1.0.0

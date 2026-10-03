@@ -109,14 +109,14 @@ const en: Dict = {
       {
         id: "pro",
         name: "Pro",
-        price: "$4.99 / 30 days",
+        price: "$9.99 / 30 days",
         blurb: "For groups that want a server that fits them.",
         features: ["Mix up to 4 themes", "Unlimited builds", "AI design: 20 per month", "Pick the humor level", "Review and edit the blueprint"],
       },
       {
         id: "plus",
         name: "Plus",
-        price: "$9.99 / 30 days",
+        price: "$19.99 / 30 days",
         blurb: "For people who build many servers.",
         features: ["Everything in Pro", "AI design: 100 per month"],
       },

@@ -109,14 +109,14 @@ const vi: Dict = {
       {
         id: "pro",
         name: "Pro",
-        price: "$4.99 / 30 ngày",
+        price: "$9.99 / 30 ngày",
         blurb: "Cho nhóm muốn server hợp với mình.",
         features: ["Trộn tới 4 theme", "Xây không giới hạn", "AI thiết kế: 20 lượt mỗi tháng", "Chọn mức hài", "Xem trước và sửa bản vẽ"],
       },
       {
         id: "plus",
         name: "Plus",
-        price: "$9.99 / 30 ngày",
+        price: "$19.99 / 30 ngày",
         blurb: "Cho người dựng nhiều server.",
         features: ["Mọi thứ của Pro", "AI thiết kế: 100 lượt mỗi tháng"],
       },
