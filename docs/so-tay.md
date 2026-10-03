@@ -16,6 +16,29 @@ Các địa chỉ cần dùng, gom một chỗ:
 | Trang quản lý payOS (QR ngân hàng Việt Nam) | https://my.payos.vn |
 | Hướng dẫn của payOS | https://payos.vn/docs/ |
 
+## Có gì mới ở phiên bản 1.6
+
+Nếu bạn đã dùng bản cũ, đây là những thứ mới và chỗ đọc chúng:
+
+| Mới | Làm gì | Đọc ở |
+| --- | --- | --- |
+| `/batdau` | Dựng server, bật chào mừng, AutoMod, chống raid và bản tin tuần chỉ bằng một lệnh, kèm điểm sức khoẻ trước và sau. Bot cũng hiện nút **Bắt đầu** khi vào server | 2.3 |
+| `/trogiup` | Danh sách lệnh theo nhóm, chỉ hiện việc gói của bạn làm được | 8.12 |
+| Chống raid, `/khoakhan` | Phát hiện nhiều người vào cùng lúc, báo động, nâng mức xác minh hoặc khoá kênh, tự mở khoá | 8.5 |
+| Chống xoá hàng loạt (Pro) | Ngăn một người xoá hàng loạt kênh hoặc role | 8.6 |
+| Nhật ký quản trị | Ghi ban, unban, đổi quyền role, AutoMod chặn (không ghi nội dung tin nhắn) | 8.7 |
+| `/canhcao`, `/timeout`, `/kick`, `/ban`, `/hoso` | Xử lý thành viên và xem lịch sử vi phạm | 8.8 |
+| `/hang` (Pro) | Cấp độ theo hoạt động chat và giọng nói, không đọc tin nhắn | 7.4 |
+| `/vaitro` | Menu nhận role bằng nút | 7.5 |
+| `/quatang` (Pro), `/binhchon` | Giveaway và bình chọn | 7.6, 7.7 |
+| Bản tin tuần, nhắc hết hạn | Báo cáo tuần cho chủ server và nhắc gói sắp hết | 8.9, 8.10 |
+| `/vietgiup` (Pro) | Nhờ trợ lý viết luật, lời chào, thông báo | 8.11 |
+| Bảng điều khiển có thêm tab | Bảo mật, Hoạt động, Bản tin, Nhật ký, Tổng quan hoạt động | 9 |
+| Giá mới | Pro 3,99 đô, Plus 7,99 đô mỗi 30 ngày, mua một năm trả 10 tháng, gói **Dựng giúp** 4,99 đô trả một lần | 10 |
+| Gói Free xây được 2 lần | Chọn nhầm theme vẫn làm lại được | 10.1 |
+| `/xoadulieu` xoá sạch hơn | Xoá luôn điểm, hồ sơ xử lý, giveaway, bình chọn, menu role | 11.2 |
+| Trang trạng thái | Xem bot đang sống hay không | 12.9 |
+
 ## Mục lục
 
 1. Những khái niệm Discord cần biết
@@ -633,6 +656,8 @@ Gõ `/dungthu` (cần quyền Administrator). Server nhận **7 ngày Pro miễn
 
 Mua gia hạn thì số ngày được **cộng nối vào hạn hiện tại**.
 
+**Dựng giúp** chỉ bán cho server **chưa có gói trả phí**. Nếu server đã là Pro hoặc Plus, bot từ chối và bảo bạn chọn Pro hoặc Plus để gia hạn.
+
 Nếu bot nói "Thanh toán tự động chưa được bật": chủ bot chưa cài Stripe hay payOS (xem phụ lục A và B). Dùng mã kích hoạt ở mục dưới.
 
 ### 10.4. Mua bằng mã kích hoạt: `/kichhoat`
@@ -654,7 +679,9 @@ Trước khi bấm, nhớ: xoá kênh thì tin nhắn trong đó **mất vĩnh v
 
 ### 11.2. Xoá dữ liệu của server: `/xoadulieu`
 
-Bot **quên** danh sách đã xây và toàn bộ cài đặt (chào mừng, AutoMod, ticket, bảo vệ, điểm hoạt động, bản tin tuần, nhật ký). **Kênh và role trên Discord vẫn còn**, kể cả luật AutoMod còn trên server (bot sẽ gỡ luật do nó tạo và nhắn nếu còn sót). Gói trả phí, số lần dùng và dấu "đã dùng thử" vẫn được giữ để giới hạn gói còn đúng. Điểm hoạt động, hồ sơ xử lý thành viên, giveaway và bình chọn **chưa bị xoá** bởi lệnh này. Muốn xoá hẳn những thứ đó, nhờ chủ bot.
+Bot **quên** toàn bộ những gì nó lưu về server: danh sách đã xây, mọi cài đặt (chào mừng, AutoMod, ticket, bảo vệ, điểm hoạt động, bản tin tuần, nhật ký), điểm hoạt động và điểm danh của thành viên, hồ sơ xử lý, giveaway và người tham gia, bình chọn, menu role, ticket, bản sao lưu và theme riêng. Nếu server đang bị khoá khẩn cấp, bot **mở khoá trước** rồi mới xoá, để kênh không bị kẹt ở trạng thái khoá.
+
+**Kênh và role trên Discord vẫn còn**, kể cả luật AutoMod còn trên server (bot sẽ gỡ luật do nó tạo và nhắn nếu còn sót). **Gói trả phí, số lần dùng, dấu "đã dùng thử" và đơn thanh toán vẫn được giữ** để giới hạn gói còn đúng và để đối chiếu tiền. Phễu thống kê của chủ bot chỉ giữ ID server và thời điểm, không có người dùng hay nội dung nào.
 
 Khi cần: bạn muốn bot không còn lưu gì về server, hoặc đuổi bot ra khỏi server.
 
@@ -731,7 +758,7 @@ Chỉ người có ID trong `OWNER_IDS` dùng được.
 | `/admin cap server:<ID> goi:<pro/plus> ngay:<số>` | Cấp gói thẳng cho một server, không cần mã |
 | `/admin thuhoi server:<ID>` | Chấm dứt gói trả phí của một server |
 | `/admin thongke` | Số server theo từng gói, và **phễu 30 ngày**: bao nhiêu server được mời, chạy xong `/batdau`, dựng xong, dùng thử Pro, trả tiền (kèm phần trăm so với số server được mời) |
-| `/admin donhang` | 10 đơn thanh toán gần nhất |
+| `/admin donhang` | 10 đơn thanh toán gần nhất (đơn Stripe hiện bằng đô, đơn payOS bằng đồng) |
 
 Phễu chỉ đếm **số server** đi qua từng bước, không lưu tên người hay nội dung nào. Dùng nó để biết khách rớt ở bước nào: nếu nhiều server được mời mà ít server chạy `/batdau` thì tin chào có nút Bắt đầu chưa đủ nổi, nếu nhiều server dựng xong mà ít server dùng thử thì cần nhắc họ `/dungthu`.
 
@@ -762,6 +789,12 @@ Nếu bạn đổi địa chỉ, cập nhật cả Redirects và `DASHBOARD_URL`
 - Sao lưu tự động nằm trong `~/buildDISCORD/data/backups`, mỗi ngày một bản, giữ 7 bản gần nhất.
 - Muốn khôi phục: dừng bot (`docker compose down`), chép đè bản sao lưu lên `data/thauxaydung.db`, rồi `docker compose up -d`.
 - Nên chép thư mục `data/backups` sang máy khác thỉnh thoảng, vì nếu thẻ nhớ Pi hỏng thì mất cả bản sao.
+
+### 12.9. Kiểm tra bot có đang sống không: trang trạng thái
+
+- Trang web: https://builddiscord.vercel.app/status. Trang đọc địa chỉ `https://nhaajt.tailc4c5ef.ts.net:10000/status` ngay trong trình duyệt và hiện bot còn sống không, bao lâu rồi, phiên bản nào. Không đọc được thì trang ghi "không kiểm tra được", đừng hoảng ngay: có thể Funnel đang tắt chứ bot vẫn chạy.
+- Kiểm tra bằng tay trên Pi: `curl http://127.0.0.1:8788/status`. Kết quả mẫu: `{"ok":true,"uptimeSec":3600,"version":"1.6.0","guilds":0,"lastHeartbeatAgeSec":4}`. `lastHeartbeatAgeSec` lớn hơn vài chục giây nghĩa là bot đang treo.
+- Số server được làm tròn xuống chục để không lộ số liệu chính xác.
 
 ## 13. Chuyện gì xảy ra khi có sự cố
 
@@ -795,6 +828,19 @@ Nếu bạn đổi địa chỉ, cập nhật cả Redirects và `DASHBOARD_URL`
 | Đăng nhập web xong không thấy server nào | Bạn không phải Administrator, hoặc bot chưa ở trong server đó | Kiểm tra quyền, mời bot |
 | `/thietke` báo AI chưa bật | Chưa có `GEMINI_API_KEY` | Chủ bot thêm khoá |
 | Mọi thứ hỏng không rõ lý do | Nhiều | `docker logs thauxaydung --tail 100`, gửi nguyên văn lỗi cho người hỗ trợ |
+
+### Một số tình huống thường gặp với tính năng mới
+
+| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+| --- | --- | --- |
+| `/mua goi:Dựng giúp` bị từ chối | Server đã có gói trả phí | Chọn Pro hoặc Plus để gia hạn |
+| `/dungthu` báo đã dùng | Mỗi server chỉ dùng thử một lần, kể cả sau khi xoá dữ liệu | Mua gói hoặc Dựng giúp |
+| `/khoakhan bat` báo thiếu quyền | Khoá kênh cần cả Manage Channels và Manage Roles | Mời lại bot với quyền Administrator |
+| Raid mà không có báo động | Server tắt thông báo "đã vào server" ở kênh hệ thống | Cài đặt máy chủ, Tổng quan, bật lại thông báo chào mừng |
+| Bản tin tuần không tới | Chưa chọn kênh nhận, hoặc thiếu quyền gửi vào kênh đó | Chọn kênh trong tab Bản tin của bảng điều khiển |
+| `/hang` không thấy điểm tăng | Tính năng điểm hoạt động chưa bật, hoặc chưa qua thời gian chờ giữa hai lần cộng | Bật trong tab Hoạt động, đợi theo thời gian chờ đã cài |
+| Nút role không cấp role | Role nằm cao hơn role bot, hoặc đã mang quyền nguy hiểm | Kéo role bot lên trên, bỏ quyền nguy hiểm khỏi role |
+| Giveaway không chốt đúng giờ | Bot chạy lại giữa chừng | Bot tự chốt ở lần kiểm tra kế tiếp, mỗi giveaway chốt đúng một lần |
 
 ## 14. Bảng tất cả các lệnh
 
