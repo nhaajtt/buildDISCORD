@@ -28,11 +28,18 @@ export default {
     try {
       if (interaction.isChatInputCommand()) {
         await client.commands.get(interaction.commandName)?.execute(interaction);
+      } else if (interaction.isAutocomplete()) {
+        await client.commands.get(interaction.commandName)?.autocomplete?.(interaction);
       } else if (interaction.isButton() || interaction.isStringSelectMenu() || interaction.isModalSubmit()) {
         const [scope, ...rest] = interaction.customId.split(":");
         if (scope === "bp") await handleBlueprint(interaction, rest);
         else if (interaction.isButton() && scope === "pickrole") await toggleRole(interaction, rest[0]);
-        else if (interaction.isButton()) await client.commands.get(scope)?.handleButton?.(interaction, rest);
+        else {
+          // A command owns every component whose id starts with its name: handleComponent for buttons, menus and modals, or the older handleButton
+          const owner = client.commands.get(scope);
+          const handler = owner?.handleComponent ?? (interaction.isButton() ? owner?.handleButton : undefined);
+          await handler?.call(owner, interaction, rest);
+        }
       }
     } catch (error) {
       await reportError(interaction, error);

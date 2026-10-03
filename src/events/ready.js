@@ -5,6 +5,7 @@ import { alert } from "../alerts.js";
 import { backupDb } from "../backup.js";
 import { config } from "../config.js";
 import { getDb } from "../db.js";
+import { startJobs } from "../jobs.js";
 
 export default {
   name: Events.ClientReady,
@@ -29,6 +30,8 @@ export default {
     };
     backup();
     setInterval(backup, 6 * 60 * 60 * 1000).unref();
+
+    startJobs(client).then((names) => console.log(`Jobs: ${names.join(", ") || "none"}`));
 
     alert(`Thầu online: ${client.guilds.cache.size} server`);
   },

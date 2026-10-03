@@ -5,9 +5,9 @@ const DAY = 24 * 60 * 60 * 1000;
 
 // What each plan allows. Infinity means no cap.
 export const PLANS = {
-  free: { label: "Miễn phí", rank: 0, mix: false, buildsTotal: 1, aiPerMonth: 0, backups: 0, games: false, events: false },
-  pro: { label: "Pro", rank: 1, mix: true, buildsTotal: Infinity, aiPerMonth: 20, backups: 3, games: true, events: true },
-  plus: { label: "Plus", rank: 2, mix: true, buildsTotal: Infinity, aiPerMonth: 100, backups: 10, games: true, events: true },
+  free: { label: "Miễn phí", rank: 0, mix: false, humor: false, buildsTotal: 1, aiPerMonth: 0, backups: 0, customThemes: 0, recurringEvents: 0, games: false, events: false },
+  pro: { label: "Pro", rank: 1, mix: true, humor: true, buildsTotal: Infinity, aiPerMonth: 20, backups: 3, customThemes: 3, recurringEvents: 3, games: true, events: true },
+  plus: { label: "Plus", rank: 2, mix: true, humor: true, buildsTotal: Infinity, aiPerMonth: 100, backups: 10, customThemes: 10, recurringEvents: 10, games: true, events: true },
 };
 
 // No 0/O/1/I so a code read out loud or typed from a screenshot is hard to get wrong
