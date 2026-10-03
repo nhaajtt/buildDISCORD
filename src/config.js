@@ -15,6 +15,13 @@ export const config = {
   ttsInviteUrl: process.env.TTS_BOT_INVITE_URL || null,
   // Where the record of what was built per server is stored (mount as a volume)
   dataDir: process.env.DATA_DIR || "data",
+  // The web dashboard: needs the OAuth client secret and a session secret to switch on, and the public address it is reached at
+  dashboard: {
+    port: Number(process.env.DASHBOARD_PORT) > 0 ? Number(process.env.DASHBOARD_PORT) : 8788,
+    publicUrl: (process.env.DASHBOARD_URL || "").replace(/\/+$/, ""),
+    clientSecret: process.env.DISCORD_CLIENT_SECRET || null,
+    sessionSecret: process.env.SESSION_SECRET || null,
+  },
   // The time zone people schedule events in
   timezone: process.env.TIMEZONE || "Asia/Ho_Chi_Minh",
   // Automatic payments through payOS (all three are needed to switch them on) and the rate used to turn dollars into dong

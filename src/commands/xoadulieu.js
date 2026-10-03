@@ -1,5 +1,7 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { clearRecord } from "../store.js";
+import { clearSettings } from "../settings.js";
+import { removeAutomod } from "../automod/index.js";
 import { isAdmin } from "../utils/guards.js";
 import * as humor from "../humor/lines.js";
 
@@ -34,7 +36,11 @@ export default {
     if (!isAdmin(interaction.member)) {
       return interaction.update({ content: humor.pick(humor.noPermissionLines), components: [] });
     }
+    // The AutoMod rules the bot made are removed first, because clearing the settings drops the ids that say which rules are its own
+    const automod = await removeAutomod(interaction.guild);
+    clearSettings(interaction.guildId);
     clearRecord(interaction.guildId);
-    await interaction.update({ content: "Đã quên sạch. Thầu giờ không biết gì về server này nữa.", components: [] });
+    const leftover = automod.left > 0 ? ` Còn ${automod.left} luật AutoMod chưa xoá được, vào cài đặt server để xoá tay.` : "";
+    await interaction.update({ content: `Đã quên sạch. Thầu giờ không biết gì về server này nữa.${leftover}`, components: [] });
   },
 };
