@@ -6,6 +6,7 @@ import { backupDb } from "../backup.js";
 import { config } from "../config.js";
 import { getDb } from "../db.js";
 import { startJobs } from "../jobs.js";
+import { startDashboard } from "../web/server.js";
 
 export default {
   name: Events.ClientReady,
@@ -32,6 +33,11 @@ export default {
     setInterval(backup, 6 * 60 * 60 * 1000).unref();
 
     startJobs(client).then((names) => console.log(`Jobs: ${names.join(", ") || "none"}`));
+
+    startDashboard(client).catch((error) => {
+      console.error("Dashboard failed to start:", error);
+      alert(`Dashboard không khởi động được: ${error.message}`);
+    });
 
     alert(`Thầu online: ${client.guilds.cache.size} server`);
   },

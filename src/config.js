@@ -18,6 +18,8 @@ export const config = {
   // The web dashboard: needs the OAuth client secret and a session secret to switch on, and the public address it is reached at
   dashboard: {
     port: Number(process.env.DASHBOARD_PORT) > 0 ? Number(process.env.DASHBOARD_PORT) : 8788,
+    // 127.0.0.1 outside Docker; the compose file sets 0.0.0.0 inside the container and only publishes the port on the host's loopback
+    host: process.env.DASHBOARD_HOST || "127.0.0.1",
     publicUrl: (process.env.DASHBOARD_URL || "").replace(/\/+$/, ""),
     clientSecret: process.env.DISCORD_CLIENT_SECRET || null,
     sessionSecret: process.env.SESSION_SECRET || null,

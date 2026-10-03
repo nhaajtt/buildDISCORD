@@ -347,7 +347,7 @@ export function createDashboard(client, options = {}) {
     listen: () =>
       new Promise((resolve, reject) => {
         server.once("error", reject);
-        server.listen(Number(dash.port) || 0, options.host ?? "127.0.0.1", () => resolve(server.address().port));
+        server.listen(Number(dash.port) || 0, options.host ?? dash.host ?? "127.0.0.1", () => resolve(server.address().port));
       }),
     close: () =>
       new Promise((resolve) => {

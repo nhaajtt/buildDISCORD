@@ -4,6 +4,7 @@ import path from "node:path";
 import { Client, Collection, GatewayIntentBits } from "discord.js";
 import { config } from "./config.js";
 import { alert } from "./alerts.js";
+import { stopDashboard } from "./web/server.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -29,6 +30,7 @@ process.on("unhandledRejection", (error) => {
 
 async function shutdown(signal) {
   console.log(`Received ${signal}, shutting down...`);
+  await stopDashboard();
   await client.destroy();
   process.exit(0);
 }
