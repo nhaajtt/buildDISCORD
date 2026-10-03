@@ -180,7 +180,7 @@ export function createDashboard(client, options = {}) {
       throw new HttpError(403, MESSAGES.forbidden);
     }
     const p = member?.permissions;
-    if (!p || !(p.has(PermissionFlagsBits.Administrator) || p.has(PermissionFlagsBits.ManageGuild))) {
+    if (!p || !p.has(PermissionFlagsBits.Administrator)) {
       throw new HttpError(403, MESSAGES.forbidden);
     }
     return guild;

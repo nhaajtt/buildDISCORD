@@ -4,7 +4,6 @@ import { isSnowflake } from "./validate.js";
 // Sessions, signed cookies and the Discord OAuth2 code flow. Sessions live in memory: a restart logs everyone out, which is fine for an admin tool.
 
 const ADMINISTRATOR = 0x8n;
-const MANAGE_GUILD = 0x20n;
 const DAY = 24 * 60 * 60 * 1000;
 
 export const SESSION_TTL_MS = 7 * DAY;
@@ -145,7 +144,7 @@ export function createAuth({ secret, publicUrl, clientId, clientSecret, fetchFn,
       } catch {
         continue;
       }
-      if (g.owner === true || (bits & (ADMINISTRATOR | MANAGE_GUILD)) !== 0n) out.push(g.id);
+      if (g.owner === true || (bits & ADMINISTRATOR) !== 0n) out.push(g.id);
     }
     return out;
   }

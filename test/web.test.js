@@ -138,7 +138,7 @@ guilds.get(G3).channels.cache = { get: () => undefined, values: () => { throw ne
 const client = { guilds: { cache: guilds } };
 
 grantAccess(G1, ADMIN, P.Administrator);
-grantAccess(G2, ADMIN, P.ManageGuild);
+grantAccess(G2, ADMIN, P.Administrator);
 grantAccess(G3, ADMIN, P.Administrator);
 grantAccess(G5, ADMIN, P.SendMessages);
 grantAccess(G1, ADMIN2, P.Administrator);
@@ -151,10 +151,10 @@ const USERS = {
     profile: { id: ADMIN, username: "thaunho", global_name: "Anh Thầu", avatar: "abc123" },
     guilds: [
       { id: G1, name: "x", owner: false, permissions: "8" },
-      { id: G2, name: "x", owner: false, permissions: "32" },
+      { id: G2, name: "x", owner: false, permissions: "8" },
       { id: G3, name: "x", owner: false, permissions: "8" },
       { id: G4, name: "x", owner: true, permissions: "8" },
-      { id: G5, name: "x", owner: false, permissions: "2048" },
+      { id: G5, name: "x", owner: false, permissions: "32" },
       { id: "not-an-id", name: "x", owner: false, permissions: "8" },
     ],
   },
