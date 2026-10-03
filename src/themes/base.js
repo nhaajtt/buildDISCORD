@@ -18,7 +18,8 @@ export const baseRules = [
   "Đọc hết luật rồi mà vẫn vi phạm thì bạn không ngu, bạn chỉ đang thử bản lĩnh của mod.",
 ];
 
-// kind marks channels the builder fills with content: rules, welcome, roles, dj, tts
+// kind marks channels the builder fills with content: rules, welcome, roles, dj, tts.
+// modlog and alerts are tags only: the builder reports which channel carries them so the setup wizard can point log settings there.
 export const infoCategory = {
   name: "📌 Khu Hành Chính",
   channels: [
@@ -44,8 +45,8 @@ export const staffCategory = {
   name: "🔒 Hậu Trường Của Mod",
   staff: true,
   channels: [
-    { name: "🕵️・mod-bàn-chuyện", type: "text", topic: "Nơi mod nói xấu thành viên một cách có tổ chức." },
-    { name: "📋・nhật-ký-phạt", type: "text", topic: "Ghi lại ai bị phạt vì cái gì. Đọc để cười." },
+    { kind: "alerts", name: "🕵️・mod-bàn-chuyện", type: "text", topic: "Nơi mod nói xấu thành viên một cách có tổ chức." },
+    { kind: "modlog", name: "📋・nhật-ký-phạt", type: "text", topic: "Ghi lại ai bị phạt vì cái gì. Đọc để cười." },
     { name: "☕ Phòng Họp Mod", type: "voice" },
   ],
 };

@@ -1,7 +1,12 @@
 import { ChannelType } from "discord.js";
 import { config } from "../config.js";
 import { PLANS, getPlan, getUsage } from "../license.js";
+import { countEvents } from "../analytics.js";
+import { getDb } from "../db.js";
 import { getSection, patchSection } from "../settings.js";
+import { sendDigest } from "../digest/index.js";
+import { ticketCounts } from "../digest/stats.js";
+import { WEEK } from "../digest/schedule.js";
 import { gateFeature } from "../utils/gate.js";
 import { applyFix, fixIdsOf, getFix, latestReport, reports, runAudit } from "../audit/index.js";
 import { gateAutomod, removeAutomod, syncAutomod } from "../automod/index.js";
@@ -16,7 +21,8 @@ import { TEXT_TYPES, VOICE_TYPES, validateSection } from "./validate.js";
 // What each route does once the caller is known to be allowed. Discord-facing effects go through the same modules the slash commands use.
 
 export const AUDIT_COOLDOWN_MS = 60_000;
-export const SECTION_LIST = ["welcome", "automod", "tickets"];
+export const SECTION_LIST = ["welcome", "automod", "tickets", "security", "activity", "digest", "modlog"];
+export const PREVIEW_COOLDOWN_MS = 60_000;
 
 const planSummary = (guildId) => {
   const plan = getPlan(guildId);
@@ -59,6 +65,30 @@ function auditView(guild) {
     .map((id) => ({ id, title: getFix(id).title, change: getFix(id).describe(guild) }))
     .filter((f) => f.change);
   return { latest, fixes, history: reports(guild.id, 20).map((r) => ({ score: r.score, createdAt: r.createdAt })) };
+}
+
+// Read-only numbers for the "Hoạt động" tab. Counts and ids only, never anything a member wrote.
+function activityOverview(guild, now = Date.now()) {
+  const since = now - WEEK;
+  const tickets = ticketCounts(guild.id, since, now + 1);
+  const db = getDb();
+  const totals = db.prepare("SELECT COUNT(*) AS members, COALESCE(SUM(msgs), 0) AS msgs, COALESCE(SUM(voice_min), 0) AS voice FROM xp WHERE guild_id = ?").get(guild.id);
+  const top = db
+    .prepare("SELECT user_id AS userId, xp, msgs, voice_min AS voiceMin FROM xp WHERE guild_id = ? ORDER BY xp DESC LIMIT 5")
+    .all(guild.id)
+    .map((r) => ({ userId: r.userId, name: guild.members?.cache?.get?.(r.userId)?.displayName ?? null, xp: Number(r.xp), msgs: Number(r.msgs), voiceMin: Number(r.voiceMin) }));
+  const lock = getSection(guild.id, "security").lockdown;
+  return {
+    week: {
+      joins: countEvents(guild.id, "join", since, now + 1),
+      automodBlocks: countEvents(guild.id, "automod_block", since, now + 1),
+      ticketsOpened: tickets.opened,
+      ticketsClosed: tickets.closed,
+    },
+    members: { tracked: Number(totals.members), messages: Number(totals.msgs), voiceMinutes: Number(totals.voice) },
+    top,
+    lockdown: { active: lock.active, since: lock.since, channels: lock.channels.length },
+  };
 }
 
 function ticketsView(guild, settings) {
@@ -108,6 +138,7 @@ export function guildDetail(guild) {
     ...pickers(guild),
     audit: auditView(guild),
     tickets: ticketsView(guild, settings.tickets),
+    overview: activityOverview(guild),
     orders: ordersOf(guild.id, 5),
     buy: buyInfo(),
   };
@@ -181,7 +212,10 @@ export async function putSettings(guild, section, body) {
   // A lapsed plan can still switch tickets off, and nothing else.
   const ticketsBlocked = section === "tickets" ? gateFeature(guild.id, "tickets") : null;
   if (ticketsBlocked && body?.enabled !== false) throw new HttpError(403, ticketsBlocked);
-  const checked = validateSection(section, ticketsBlocked ? { enabled: false } : body, guild, before);
+  // Same rule for the activity system: a lapsed plan can switch it off and nothing else
+  const activityBlocked = section === "activity" ? gateFeature(guild.id, "activity") : null;
+  if (activityBlocked && body?.enabled !== false) throw new HttpError(403, activityBlocked);
+  const checked = validateSection(section, ticketsBlocked || activityBlocked ? { enabled: false } : body, guild, before);
   if (checked.error) throw new HttpError(400, checked.error);
   const patch = checked.patch;
   const merged = { ...before, ...patch };
@@ -193,6 +227,19 @@ export async function putSettings(guild, section, body) {
     if (blocked) throw new HttpError(403, blocked);
   }
 
+  if (section === "security") {
+    // Turning the nuke guard on, or tuning it while it is on, is judged on the plan. Switching it off is always allowed.
+    const touchesNuke = patch.nukeEnabled === true || (merged.nukeEnabled && ("nukeThreshold" in patch || "nukeWindowSec" in patch));
+    const blocked = touchesNuke ? gateFeature(guild.id, "nukeGuard") : null;
+    if (blocked) throw new HttpError(403, blocked);
+    const basic = patch.raidEnabled === true || patch.nukeEnabled === true ? gateFeature(guild.id, "security") : null;
+    if (basic) throw new HttpError(403, basic);
+  }
+  if (section === "digest" && patch.enabled === true) {
+    const blocked = gateFeature(guild.id, "digest");
+    if (blocked) throw new HttpError(403, blocked);
+  }
+
   // An old panel in another channel is not this panel any more
   if (section === "tickets" && patch.panelChannelId && patch.panelChannelId !== before.panelChannelId) {
     await retirePanel(guild, before.panelChannelId, before.panelMessageId);
@@ -201,6 +248,10 @@ export async function putSettings(guild, section, body) {
 
   const stored = patchSection(guild.id, section, patch);
   if (section === "welcome") return { value: stored, applied: true, notice: "Đã lưu lời chào." };
+  if (section === "security") return { value: stored, applied: true, notice: "Đã lưu cài đặt bảo vệ." };
+  if (section === "activity") return { value: stored, applied: true, notice: "Đã lưu cài đặt điểm hoạt động." };
+  if (section === "digest") return { value: stored, applied: true, notice: "Đã lưu lịch báo cáo tuần." };
+  if (section === "modlog") return { value: stored, applied: true, notice: "Đã lưu nhật ký quản trị." };
   const effect = section === "automod" ? await applyAutomod(guild, before) : await applyTickets(guild, before, stored);
   return { value: getSection(guild.id, section), ...effect };
 }
@@ -243,4 +294,60 @@ export async function fix(guild, body) {
     if (error?.code === 50013 || error?.status === 403) throw new HttpError(502, "Thầu thiếu quyền để sửa việc này. Cấp quyền rồi thử lại.");
     throw error;
   }
+}
+
+// Puts back exactly what the bot recorded when it started the lockdown: the verification level and each channel's SendMessages
+// overwrite for @everyone. It never touches a channel or a level the lockdown record does not name.
+export async function unlockLockdown(guild) {
+  const lock = getSection(guild.id, "security").lockdown;
+  if (!lock.active) throw new HttpError(409, "Server không đang trong chế độ khoá. Khỏi mở gì hết.");
+  const everyone = guild.roles?.everyone ?? guild.roles?.cache?.get(guild.id);
+  let failed = 0;
+  if (lock.prevVerification !== null && typeof guild.setVerificationLevel === "function") {
+    try {
+      await guild.setVerificationLevel(lock.prevVerification, "Mở khoá server");
+    } catch {
+      failed += 1;
+    }
+  }
+  const state = { neutral: null, allow: true, deny: false };
+  for (const entry of lock.channels) {
+    const channel = guild.channels.cache.get(entry.id);
+    if (!channel?.permissionOverwrites?.edit || !everyone) continue;
+    try {
+      await channel.permissionOverwrites.edit(everyone, { SendMessages: state[entry.sendMessages] ?? null }, { reason: "Mở khoá server" });
+    } catch {
+      failed += 1;
+    }
+  }
+  patchSection(guild.id, "security", { lockdown: { active: false, since: 0, prevVerification: null, channels: [] } });
+  return {
+    value: getSection(guild.id, "security"),
+    applied: failed === 0,
+    notice: failed ? `Đã mở khoá nhưng ${failed} chỗ không khôi phục được (thiếu quyền Quản lý kênh hoặc Quản lý server). Kiểm tra lại bằng tay nhé.` : "Đã mở khoá, mọi thứ về như trước lúc khoá.",
+  };
+}
+
+// Posts a preview of the weekly report right now to the saved channel. It uses the latest stored health check, so it is quick,
+// and it never touches the weekly schedule.
+export async function previewDigest(guild, ctx) {
+  const last = ctx.previewRuns.get(guild.id);
+  const t = ctx.now();
+  if (last !== undefined && t - last < PREVIEW_COOLDOWN_MS) {
+    const wait = Math.ceil((PREVIEW_COOLDOWN_MS - (t - last)) / 1000);
+    const error = new HttpError(429, `Vừa gửi thử xong, đợi ${wait} giây nữa nhé.`);
+    error.retryAfter = wait;
+    throw error;
+  }
+  const settings = getSection(guild.id, "digest");
+  if (!settings.channelId) throw new HttpError(400, "Chưa chọn kênh báo cáo. Chọn kênh và lưu trước đã.");
+  ctx.previewRuns.set(guild.id, t);
+  const result = await sendDigest(guild, { settings, preview: true, now: t });
+  if (!result.ok) {
+    ctx.previewRuns.delete(guild.id);
+    if (result.reason === "channel") throw new HttpError(400, "Thầu không thấy kênh báo cáo nữa. Chọn lại kênh rồi lưu.");
+    if (result.reason === "perms") throw new HttpError(502, `Thầu thiếu quyền ở kênh đó: ${result.missing.join(", ")}. Cấp quyền rồi gửi thử lại.`);
+    throw new HttpError(502, "Thầu không gửi được vào kênh đó. Kiểm tra quyền của bot.");
+  }
+  return { ok: true, notice: "Đã gửi bản thử vào kênh báo cáo." };
 }

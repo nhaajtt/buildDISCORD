@@ -49,6 +49,9 @@ const PATHS = {
   out: "M9 4H4v16h5M16 8l4 4-4 4M20 12H9",
   plus: "M12 5v14M5 12h14",
   trash: "M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14",
+  chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
+  clock: "M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2",
+  log: "M6 3h9l4 4v14H6zM9 12h7M9 16h7M9 8h3",
 };
 
 export function icon(name, size = 20) {

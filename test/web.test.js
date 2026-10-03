@@ -485,7 +485,7 @@ test("the guild view lists pickers, plan, usage, settings, health, tickets and o
   assert.equal(g.plan.limits.tickets, false);
   assert.equal(g.plan.limits.buildsTotal, 2);
   assert.equal(g.usage.builds, 0);
-  assert.deepEqual(Object.keys(g.settings).sort(), ["automod", "tickets", "welcome"]);
+  assert.deepEqual(Object.keys(g.settings).sort(), ["activity", "automod", "digest", "modlog", "security", "tickets", "welcome"]);
   assert.deepEqual(g.texts.map((c) => c.name).sort(), ["chung", "log", "tin-tuc"]);
   assert.deepEqual(g.voices.map((c) => c.name), ["phong-voice"]);
   assert.deepEqual(g.categories.map((c) => c.name), ["ticket-khu"]);
@@ -1109,6 +1109,265 @@ test("the dashboard stays off without its secrets and starts and stops cleanly w
   await stopDashboard();
   await assert.rejects(() => send(started, { path: "/" }));
   await stopDashboard();
+});
+
+// ---------------------------------------------------------------- security, activity, digest and modlog sections
+
+const textId = (guildId, suffix) => text(guildId, suffix);
+
+test("the new sections are listed in the guild view with their defaults and a read-only overview", async () => {
+  const b = await loggedIn("admin");
+  const g = (await b.req("GET", guildUrl(G1))).json();
+  assert.equal(g.settings.security.raidEnabled, false);
+  assert.equal(g.settings.security.lockdown.active, false);
+  assert.equal(g.settings.digest.weekday, 1);
+  assert.equal(g.settings.modlog.logBans, true);
+  assert.equal(g.settings.activity.xpPerMessage, 5);
+  assert.deepEqual(Object.keys(g.overview.week).sort(), ["automodBlocks", "joins", "ticketsClosed", "ticketsOpened"]);
+  assert.ok(Array.isArray(g.overview.top));
+  assert.equal(g.overview.lockdown.active, false);
+});
+
+test("security settings are validated field by field and the lockdown record cannot be written from outside", async () => {
+  const b = await loggedIn("admin");
+  const url = guildUrl(G1, "/settings/security");
+  for (const body of [
+    { raidJoins: 2 },
+    { raidJoins: "8" },
+    { raidWindowSec: 301 },
+    { raidAction: "ban" },
+    { lockMinutes: 0 },
+    { raidEnabled: "yes" },
+    { alertChannelId: "not-an-id" },
+    { alertChannelId: textId(G1, "400000000000000003") },
+    { alertChannelId: "999999999999999999" },
+  ]) {
+    const res = await b.api("PUT", url, body);
+    assert.equal(res.status, 400, JSON.stringify(body));
+  }
+  const ok = await b.api("PUT", url, { raidEnabled: true, raidJoins: 6, raidWindowSec: 20, raidAction: "alert", lockMinutes: 5, alertChannelId: textId(G1, "400000000000000005") });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.json().value.raidJoins, 6);
+  assert.equal(getSection(G1, "security").raidAction, "alert");
+
+  // unknown fields, including the lockdown record, are ignored and never stored
+  const sneaky = await b.api("PUT", url, { raidJoins: 7, lockdown: { active: true, since: 5, prevVerification: 4, channels: [{ id: textId(G1, "400000000000000001"), sendMessages: "deny" }] } });
+  assert.equal(sneaky.status, 200);
+  assert.equal(getSection(G1, "security").lockdown.active, false);
+  assert.equal(getSection(G1, "security").raidJoins, 7);
+});
+
+test("the nuke guard is a Pro feature in the dashboard, switching it off is always allowed", async () => {
+  const free = await loggedIn("admin");
+  const url1 = guildUrl(G1, "/settings/security");
+  const blocked = await free.api("PUT", url1, { nukeEnabled: true });
+  assert.equal(blocked.status, 403);
+  assert.match(blocked.json().error, /Pro/);
+  assert.equal(getSection(G1, "security").nukeEnabled, false);
+  assert.equal((await free.api("PUT", url1, { nukeEnabled: false, raidEnabled: true })).status, 200);
+
+  const pro = await loggedIn("admin");
+  const url2 = guildUrl(G2, "/settings/security");
+  const on = await pro.api("PUT", url2, { nukeEnabled: true, nukeThreshold: 4, nukeWindowSec: 90 });
+  assert.equal(on.status, 200);
+  assert.equal(getSection(G2, "security").nukeEnabled, true);
+  assert.equal((await pro.api("PUT", url2, { nukeEnabled: false })).status, 200);
+});
+
+test("activity settings need Pro to turn on, a lapsed plan can still switch them off", async () => {
+  const free = await loggedIn("admin");
+  const url1 = guildUrl(G1, "/settings/activity");
+  const blocked = await free.api("PUT", url1, { enabled: true, xpPerMessage: 10 });
+  assert.equal(blocked.status, 403);
+  assert.match(blocked.json().error, /Pro/);
+  assert.equal(getSection(G1, "activity").enabled, false);
+  assert.equal(getSection(G1, "activity").xpPerMessage, 5);
+  assert.equal((await free.api("PUT", url1, { enabled: false })).status, 200);
+
+  const pro = await loggedIn("admin");
+  const url2 = guildUrl(G2, "/settings/activity");
+  assert.equal((await pro.api("PUT", url2, { enabled: true, xpPerMessage: 51 })).status, 400);
+  assert.equal((await pro.api("PUT", url2, { enabled: true, dailyCap: 10 })).status, 400);
+  assert.equal((await pro.api("PUT", url2, { enabled: true, announceChannelId: textId(G2, "400000000000000003") })).status, 400);
+  const ok = await pro.api("PUT", url2, { enabled: true, xpPerMessage: 8, cooldownSec: 30, dailyCap: 400, voiceEnabled: false, voiceXpPerMin: 0, announceChannelId: textId(G2, "400000000000000001") });
+  assert.equal(ok.status, 200);
+  assert.deepEqual(
+    { ...getSection(G2, "activity") },
+    { enabled: true, xpPerMessage: 8, cooldownSec: 30, dailyCap: 400, voiceEnabled: false, voiceXpPerMin: 0, announceChannelId: textId(G2, "400000000000000001") },
+  );
+});
+
+test("digest settings need a channel to be switched on and never accept the schedule marks", async () => {
+  const b = await loggedIn("admin");
+  const url = guildUrl(G1, "/settings/digest");
+  const noChannel = await b.api("PUT", url, { enabled: true });
+  assert.equal(noChannel.status, 400);
+  assert.match(noChannel.json().error, /kênh/);
+  for (const body of [{ weekday: 7 }, { hour: 24 }, { hour: 1.5 }, { auditWeekly: 1 }, { channelId: textId(G1, "400000000000000003") }]) {
+    assert.equal((await b.api("PUT", url, body)).status, 400, JSON.stringify(body));
+  }
+  const ok = await b.api("PUT", url, { enabled: true, channelId: textId(G1, "400000000000000005"), weekday: 5, hour: 20, auditWeekly: false, lastSentAt: 99, lastAuditAt: 99, lastScore: 3 });
+  assert.equal(ok.status, 200);
+  const stored = getSection(G1, "digest");
+  assert.equal(stored.weekday, 5);
+  assert.equal(stored.hour, 20);
+  assert.equal(stored.lastSentAt, 0);
+  assert.equal(stored.lastAuditAt, 0);
+  assert.equal(stored.lastScore, null);
+});
+
+test("the digest preview posts one embed with no mentions, keeps the schedule untouched and is rate limited", async () => {
+  const b = await loggedIn("admin");
+  const guild = guilds.get(G2);
+  const channelId = textId(G2, "400000000000000005");
+  const url = guildUrl(G2, "/digest/preview");
+
+  const none = await b.api("POST", url, {});
+  assert.equal(none.status, 400, "no channel saved yet");
+
+  assert.equal((await b.api("PUT", guildUrl(G2, "/settings/digest"), { enabled: true, channelId })).status, 200);
+  const res = await b.api("POST", url, {});
+  assert.equal(res.status, 200);
+  const posted = [...guild.channels.cache.get(channelId).store.values()];
+  assert.equal(posted.length, 1);
+  assert.deepEqual(posted[0].payload.allowedMentions, { parse: [] });
+  assert.match(posted[0].payload.embeds[0].data.title, /gửi thử/);
+  assert.equal(getSection(G2, "digest").lastSentAt, 0, "a preview is not the weekly report");
+
+  const again = await b.api("POST", url, {});
+  assert.equal(again.status, 429);
+  assert.ok(again.headers["retry-after"]);
+  assert.equal(posted.length, 1);
+
+  assert.equal((await new Browser().api("POST", url, {})).status, 401);
+});
+
+test("the digest preview says so when the channel is gone or the bot cannot post", async () => {
+  const b = await loggedIn("admin");
+  const guild = guilds.get(G1);
+  const channelId = textId(G1, "400000000000000005");
+  assert.equal((await b.api("PUT", guildUrl(G1, "/settings/digest"), { enabled: true, channelId })).status, 200);
+  const channel = guild.channels.cache.get(channelId);
+  channel.permissionsFor = () => ({ has: () => false });
+  const denied = await b.api("POST", guildUrl(G1, "/digest/preview"), {});
+  assert.equal(denied.status, 502);
+  assert.match(denied.json().error, /thiếu quyền/);
+  delete channel.permissionsFor;
+  guild.channels.cache.delete(channelId);
+  clock += 120_000;
+  const gone = await b.api("POST", guildUrl(G1, "/digest/preview"), {});
+  assert.equal(gone.status, 400);
+  guild.channels.cache.set(channelId, channel);
+});
+
+test("modlog settings are validated and need a channel to be switched on", async () => {
+  const b = await loggedIn("admin");
+  const url = guildUrl(G1, "/settings/modlog");
+  assert.equal((await b.api("PUT", url, { enabled: true })).status, 400);
+  assert.equal((await b.api("PUT", url, { logBans: "no" })).status, 400);
+  assert.equal((await b.api("PUT", url, { channelId: textId(G1, "400000000000000004") })).status, 400);
+  const ok = await b.api("PUT", url, { enabled: true, channelId: textId(G1, "400000000000000005"), logTimeouts: false });
+  assert.equal(ok.status, 200);
+  assert.equal(getSection(G1, "modlog").logTimeouts, false);
+  assert.equal(getSection(G1, "modlog").logBans, true);
+});
+
+test("the new settings routes need a login, an admin, and the CSRF ingredients", async () => {
+  const anon = new Browser();
+  assert.equal((await anon.api("PUT", guildUrl(G1, "/settings/security"), { raidEnabled: true }, { csrf: "x" })).status, 401);
+  const plain = new Browser();
+  await plain.login("plain");
+  assert.equal((await plain.api("PUT", guildUrl(G1, "/settings/modlog"), { enabled: false })).status, 403);
+  const b = await loggedIn("admin");
+  assert.equal((await b.api("PUT", guildUrl(G1, "/settings/digest"), { hour: 3 }, { csrf: "wrong" })).status, 403);
+  assert.equal((await b.api("PUT", guildUrl(G1, "/settings/digest"), { hour: 3 }, { origin: "https://evil.example" })).status, 403);
+  assert.equal((await b.api("POST", guildUrl(G1, "/security/unlock"), {}, { csrf: null })).status, 403);
+  assert.equal((await b.api("PUT", guildUrl(G1, "/settings/nonsense"), {})).status, 404);
+});
+
+test("unlock puts back exactly what the lockdown record names, and refuses when there is no lockdown", async () => {
+  const b = await loggedIn("admin");
+  const guild = guilds.get(G2);
+  const url = guildUrl(G2, "/security/unlock");
+  assert.equal((await b.api("POST", url, {})).status, 409);
+
+  const calls = [];
+  const a = guild.channels.cache.get(textId(G2, "400000000000000001"));
+  const other = guild.channels.cache.get(textId(G2, "400000000000000002"));
+  const untouched = guild.channels.cache.get(textId(G2, "400000000000000005"));
+  for (const c of [a, other, untouched]) c.permissionOverwrites = { edit: async (role, perms) => void calls.push({ channel: c.id, role: role.id, perms }) };
+  guild.verificationLevel = 4;
+  setSection(G2, "security", {
+    ...getSection(G2, "security"),
+    lockdown: { active: true, since: 5, prevVerification: 1, channels: [{ id: a.id, sendMessages: "neutral" }, { id: other.id, sendMessages: "allow" }, { id: "999999999999999999", sendMessages: "deny" }] },
+  });
+  const res = await b.api("POST", url, {});
+  assert.equal(res.status, 200);
+  assert.equal(res.json().applied, true);
+  assert.deepEqual(guild.verificationCalls.at(-1), 1);
+  assert.equal(guild.verificationLevel, 1);
+  assert.deepEqual(calls, [
+    { channel: a.id, role: G2, perms: { SendMessages: null } },
+    { channel: other.id, role: G2, perms: { SendMessages: true } },
+  ]);
+  assert.equal(getSection(G2, "security").lockdown.active, false);
+  assert.deepEqual(getSection(G2, "security").lockdown.channels, []);
+  assert.equal((await b.api("POST", url, {})).status, 409, "a second unlock does nothing");
+  assert.equal(calls.length, 2);
+});
+
+test("unlock still clears the record and says what it could not restore when a permission is missing", async () => {
+  const b = await loggedIn("admin");
+  const guild = guilds.get(G2);
+  const a = guild.channels.cache.get(textId(G2, "400000000000000001"));
+  a.permissionOverwrites = { edit: async () => { throw new Error("Missing Permissions"); } };
+  setSection(G2, "security", { ...getSection(G2, "security"), lockdown: { active: true, since: 5, prevVerification: null, channels: [{ id: a.id, sendMessages: "deny" }] } });
+  const res = await b.api("POST", guildUrl(G2, "/security/unlock"), {});
+  assert.equal(res.status, 200);
+  assert.equal(res.json().applied, false);
+  assert.match(res.json().notice, /1 chỗ/);
+  assert.equal(getSection(G2, "security").lockdown.active, false);
+});
+
+// ---------------------------------------------------------------- the public status route
+
+test("GET /status is public, shows only five harmless fields and rounds the server count down", async () => {
+  writeFileSync(path.join(process.env.DATA_DIR, "heartbeat"), String(clock - 5_000));
+  const res = await new Browser().req("GET", "/status");
+  assert.equal(res.status, 200);
+  assert.match(res.headers["content-type"], /application\/json/);
+  assert.equal(res.headers["access-control-allow-origin"], "*");
+  assert.ok(!res.headers["set-cookie"], "no session is created");
+  const body = res.json();
+  assert.deepEqual(Object.keys(body).sort(), ["guilds", "lastHeartbeatAgeSec", "ok", "uptimeSec", "version"]);
+  assert.equal(body.ok, true);
+  assert.equal(body.version, JSON.parse(readFileSync(path.join(here, "..", "package.json"), "utf8")).version);
+  assert.equal(body.guilds, 0, "four servers round down to zero");
+  assert.equal(body.lastHeartbeatAgeSec, 5);
+  assert.ok(Number.isInteger(body.uptimeSec) && body.uptimeSec >= 0);
+  const raw = res.text;
+  for (const secret of ["cs", "ss-ss-ss", "x", PUBLIC].filter((s) => s.length > 3)) assert.ok(!raw.includes(secret), `status leaks ${secret}`);
+  for (const id of [G1, G2, ADMIN]) assert.ok(!raw.includes(id));
+  assert.doesNotMatch(raw, /token|secret|guildId|userId|@/i);
+});
+
+test("GET /status reports a stale or missing heartbeat as not ok, takes no other method and is rate limited", async () => {
+  writeFileSync(path.join(process.env.DATA_DIR, "heartbeat"), String(clock - 300_000));
+  const stale = (await new Browser().req("GET", "/status")).json();
+  assert.equal(stale.ok, false);
+  assert.equal(stale.lastHeartbeatAgeSec, 300);
+
+  const post = await new Browser().req("POST", "/status");
+  assert.equal(post.status, 405);
+  const head = await new Browser().req("HEAD", "/status");
+  assert.equal(head.status, 200);
+  assert.equal(head.text, "");
+
+  const limited = new Browser();
+  let last = 0;
+  for (let i = 0; i < 40; i += 1) last = (await limited.req("GET", "/status")).status;
+  assert.equal(last, 429);
+  assert.ok((await new Browser().req("GET", "/status")).status === 200, "another address is not affected");
 });
 
 // ---------------------------------------------------------------- the dashboard sources

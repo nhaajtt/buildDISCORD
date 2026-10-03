@@ -1,9 +1,14 @@
 import { h, icon, toast } from "../dom.js";
 import { get, post, put } from "../api.js";
+import { activityTab } from "./activity.js";
 import { automodTab } from "./automod.js";
+import { digestTab } from "./digest.js";
 import { healthTab } from "./health.js";
+import { hoatdongTab } from "./hoatdong.js";
+import { modlogTab } from "./modlog.js";
 import { overviewTab } from "./overview.js";
 import { planTab } from "./plan.js";
+import { securityTab } from "./security.js";
 import { ticketsTab } from "./tickets.js";
 import { welcomeTab } from "./welcome.js";
 
@@ -12,6 +17,11 @@ export const TABS = [
   { id: "chao-mung", name: "Chào mừng", icon: "hand", render: welcomeTab },
   { id: "automod", name: "AutoMod", icon: "shield", render: automodTab },
   { id: "ticket", name: "Ticket", icon: "ticket", render: ticketsTab },
+  { id: "bao-ve", name: "Bảo vệ", icon: "lock", render: securityTab },
+  { id: "hoat-dong", name: "Điểm hoạt động", icon: "chart", render: activityTab },
+  { id: "bao-cao", name: "Báo cáo tuần", icon: "clock", render: digestTab },
+  { id: "nhat-ky", name: "Nhật ký quản trị", icon: "log", render: modlogTab },
+  { id: "thong-ke", name: "Hoạt động", icon: "pulse", render: hoatdongTab },
   { id: "suc-khoe", name: "Khám sức khoẻ", icon: "pulse", render: healthTab },
   { id: "goi", name: "Gói và thanh toán", icon: "card", render: planTab },
 ];
@@ -56,6 +66,19 @@ export function guildView(id, tabId, detail, redraw) {
         toast(result.notice);
         redraw();
         return result;
+      }),
+    unlock: () =>
+      run(async () => {
+        const result = await post(`${base}/security/unlock`);
+        detail.settings.security = result.value;
+        toast(result.notice, result.applied === false ? "warn" : "ok");
+        Object.assign(detail, await loadGuild(id, { force: true }));
+        redraw();
+      }),
+    previewDigest: () =>
+      run(async () => {
+        const result = await post(`${base}/digest/preview`);
+        toast(result.notice);
       }),
     reload: () =>
       run(async () => {

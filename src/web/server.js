@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { createServer } from "node:http";
+import { readFileSync } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { PermissionFlagsBits } from "discord.js";
@@ -74,7 +75,19 @@ const ROUTES = [
   { method: "POST", re: /^\/api\/guilds\/([^/]+)\/audit\/fix$/, name: "fix", guild: true, body: true },
   { method: "POST", re: /^\/api\/guilds\/([^/]+)\/tickets\/panel$/, name: "panel", guild: true, body: true },
   { method: "GET", re: /^\/api\/guilds\/([^/]+)\/orders$/, name: "orders", guild: true },
+  { method: "POST", re: /^\/api\/guilds\/([^/]+)\/security\/unlock$/, name: "unlock", guild: true, body: true },
+  { method: "POST", re: /^\/api\/guilds\/([^/]+)\/digest\/preview$/, name: "preview", guild: true, body: true },
 ];
+
+// What the public status page may learn: no ids, no names, no settings. The server count is rounded down so it never reads as a precise figure.
+const PACKAGE = (() => {
+  try {
+    return JSON.parse(readFileSync(path.resolve(import.meta.dirname, "../../package.json"), "utf8"));
+  } catch {
+    return {};
+  }
+})();
+const HEARTBEAT_OK_SEC = 90;
 
 const page = (message) =>
   `<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Thầu xây dựng</title><body><p>${message.replace(/[<>&]/g, "")}</p><p><a href="/">Về trang chủ</a></p></body></html>`;
@@ -86,7 +99,7 @@ export function createDashboard(client, options = {}) {
   const now = options.now ?? Date.now;
   const random = options.random ?? randomBytes;
   const staticRoot = options.staticRoot ? path.resolve(options.staticRoot) : STATIC_ROOT;
-  const limits = { anonymous: 20, session: 120, assets: 600, ...(options.limits ?? {}) };
+  const limits = { anonymous: 20, session: 120, assets: 600, status: 30, ...(options.limits ?? {}) };
 
   const auth = createAuth({
     secret: dash.sessionSecret,
@@ -100,7 +113,7 @@ export function createDashboard(client, options = {}) {
     maxSessions: options.maxSessions,
   });
   const limiter = createLimiter(now);
-  const ctx = { client, auth, now, auditRuns: new Map() };
+  const ctx = { client, auth, now, auditRuns: new Map(), previewRuns: new Map() };
   const busy = new Set();
 
   // Behind the proxy the socket peer is always loopback, so the address that matters is the one the proxy appended last
@@ -240,6 +253,8 @@ export function createDashboard(client, options = {}) {
       if (route.name === "settings") return send(res, 200, await api.putSettings(guild, match[2], body));
       if (route.name === "audit") return send(res, 200, await api.runHealthCheck(guild, ctx));
       if (route.name === "fix") return send(res, 200, await api.fix(guild, body));
+      if (route.name === "unlock") return send(res, 200, await api.unlockLockdown(guild));
+      if (route.name === "preview") return send(res, 200, await api.previewDigest(guild, ctx));
       return send(res, 200, await api.postPanel(guild));
     } finally {
       busy.delete(guildId);
@@ -277,6 +292,33 @@ export function createDashboard(client, options = {}) {
     res.end(req.method === "HEAD" ? undefined : data);
   }
 
+  // Public, no login, read only. Anyone may read it from a status page on another site, so it carries nothing worth hiding.
+  function statusRoute(req, res, ip) {
+    if (req.method !== "GET" && req.method !== "HEAD") return fail(res, 405, MESSAGES.method, { Allow: "GET, HEAD" });
+    const wait = limiter.hit(`st:${ip}`, limits.status);
+    if (wait) return fail(res, 429, MESSAGES.tooMany, { "Retry-After": String(wait) });
+    let age = null;
+    try {
+      const beat = Number(readFileSync(path.join(options.dataDir ?? config.dataDir, "heartbeat"), "utf8"));
+      if (Number.isFinite(beat) && beat > 0) age = Math.max(0, Math.floor((now() - beat) / 1000));
+    } catch {
+      // no heartbeat file yet means the bot has not finished starting
+    }
+    const guilds = Number(client.guilds?.cache?.size ?? 0);
+    return send(
+      res,
+      200,
+      {
+        ok: age !== null && age <= HEARTBEAT_OK_SEC,
+        uptimeSec: Math.floor(process.uptime()),
+        version: String(PACKAGE.version ?? "unknown"),
+        guilds: Math.floor(guilds / 10) * 10,
+        lastHeartbeatAgeSec: age,
+      },
+      { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=15" },
+    );
+  }
+
   async function handle(req, res) {
     securityHeaders(res);
     const target = String(req.url ?? "");
@@ -284,6 +326,8 @@ export function createDashboard(client, options = {}) {
     const queryAt = target.indexOf("?");
     const rawPath = queryAt < 0 ? target : target.slice(0, queryAt);
     const ip = clientIp(req);
+
+    if (rawPath === "/status") return statusRoute(req, res, ip);
 
     const isApi = rawPath.startsWith("/api/") || rawPath.startsWith("/auth/");
     if (!isApi) {

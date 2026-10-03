@@ -27,6 +27,8 @@ const featureMessages = {
   events: `Sự kiện định kỳ là của gói Pro trở lên. ${UPGRADE}`,
   tickets: `Hệ thống ticket là của gói Pro trở lên. ${UPGRADE}`,
   automodFull: `AutoMod mức gắt, chặn link và tuỳ chỉnh sâu là của gói Pro trở lên. ${UPGRADE}`,
+  security: `Chống raid là của gói Pro trở lên. ${UPGRADE}`,
+  digest: `Bản tin tuần là của gói Pro trở lên. ${UPGRADE}`,
   nukeGuard: `Chống xoá hàng loạt là của gói Pro trở lên. ${UPGRADE}`,
   activity: `Điểm hoạt động, cấp độ theo chat và giọng nói là của gói Pro trở lên. ${UPGRADE}`,
   giveaways: `Giveaway là của gói Pro trở lên. ${UPGRADE}`,

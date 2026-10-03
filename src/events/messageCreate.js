@@ -1,5 +1,6 @@
 import { Events, MessageType } from "discord.js";
 import { welcomeMember } from "../onboarding/index.js";
+import { handleRaidJoin } from "../security/guard.js";
 
 // Discord posts a "member joined" notice for every join, so a raid would turn into a flood of welcomes.
 // This keeps the ids it has seen and caps how many welcomes one server gets per window.
@@ -46,6 +47,8 @@ const filter = createJoinFilter();
 export default {
   name: Events.MessageCreate,
   async execute(client, message) {
+    // The raid counter sees every join, while the welcome filter caps how many welcomes go out
+    await handleRaidJoin(message);
     await handleJoinMessage(message, filter);
   },
 };

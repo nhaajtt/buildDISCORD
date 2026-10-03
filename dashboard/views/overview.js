@@ -35,7 +35,7 @@ export function overviewTab({ detail }) {
         latest ? [scoreRing(latest.score), h("p", { class: "hint", text: `${latest.grade}, khám lúc ${fmtDate(latest.createdAt)}` })] : h("p", { text: "Chưa khám lần nào. Qua tab Khám sức khoẻ bấm một cái là có." }),
       ),
     ),
-    h("article", { class: "card" }, h("h3", { text: "Tính năng" }), h("ul", { class: "chips plain" }, chip("Chào mừng", settings.welcome.enabled), chip("AutoMod", settings.automod.enabled), chip("Ticket", settings.tickets.enabled))),
+    h("article", { class: "card" }, h("h3", { text: "Tính năng" }), h("ul", { class: "chips plain" }, chip("Chào mừng", settings.welcome.enabled), chip("AutoMod", settings.automod.enabled), chip("Ticket", settings.tickets.enabled), chip("Chống raid", settings.security.raidEnabled), chip("Chống nuke", settings.security.nukeEnabled), chip("Điểm hoạt động", settings.activity.enabled), chip("Báo cáo tuần", settings.digest.enabled), chip("Nhật ký quản trị", settings.modlog.enabled))),
     h(
       "article",
       { class: "card" },

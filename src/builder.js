@@ -100,6 +100,9 @@ function inviteRow(entries) {
   return buttons.length ? [new ActionRowBuilder().addComponents(buttons)] : [];
 }
 
+// Kinds that mean "post content here". Other kinds (modlog, alerts) only tag a channel.
+const FILL_KINDS = new Set(["rules", "welcome", "roles", "dj", "tts"]);
+
 const embed = (title, description, color = 0xf5c518) => new EmbedBuilder().setTitle(title).setDescription(description).setColor(color);
 
 async function fillChannel(kind, channel, plan, roleByKey, record) {
@@ -158,6 +161,8 @@ export async function buildServer(guild, planOrThemeIds, onProgress = async () =
 
   const roleByKey = {};
   const toFill = [];
+  // kind to channel id, for every tagged channel in the plan, whether it was created now or already existed
+  const channelsByKind = {};
   try {
     for (const def of plan.roles) {
       const role = await ensureRole(guild, def, record);
@@ -172,7 +177,8 @@ export async function buildServer(guild, planOrThemeIds, onProgress = async () =
       for (const channelDef of categoryDef.channels) {
         const { channel, created } = await ensureChannel(guild, channelDef, category, record, roleByKey);
         // Only newly made channels get content, so re-running /build never posts duplicates
-        if (channelDef.kind && created) toFill.push({ kind: channelDef.kind, channel });
+        if (channelDef.kind && FILL_KINDS.has(channelDef.kind) && created) toFill.push({ kind: channelDef.kind, channel });
+        if (channelDef.kind && !(channelDef.kind in channelsByKind)) channelsByKind[channelDef.kind] = channel.id;
         await step();
       }
     }
@@ -188,7 +194,7 @@ export async function buildServer(guild, planOrThemeIds, onProgress = async () =
   const welcomeChannel = toFill.find((f) => f.kind === "welcome")?.channel;
   if (welcomeChannel) await guild.setSystemChannel(welcomeChannel).catch(() => {});
 
-  return { counts: countPlan(plan), record };
+  return { counts: countPlan(plan), record, channelsByKind };
 }
 
 // Deletes everything the bot recorded for this server. skipChannelId is left alone (the channel the command ran in).

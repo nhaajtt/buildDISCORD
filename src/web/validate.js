@@ -57,6 +57,42 @@ const FIELDS = {
     autoCloseHours: kinds.int(0, 720),
     types: (v) => v,
   },
+  // lockdown is state the bot keeps, never something a request can set
+  security: {
+    raidEnabled: kinds.bool,
+    raidJoins: kinds.int(3, 50),
+    raidWindowSec: kinds.int(10, 300),
+    raidAction: kinds.oneOf(["alert", "verify", "lock"]),
+    lockMinutes: kinds.int(1, 120),
+    alertChannelId: kinds.id,
+    nukeEnabled: kinds.bool,
+    nukeThreshold: kinds.int(2, 10),
+    nukeWindowSec: kinds.int(10, 600),
+  },
+  activity: {
+    enabled: kinds.bool,
+    xpPerMessage: kinds.int(1, 50),
+    cooldownSec: kinds.int(10, 600),
+    dailyCap: kinds.int(50, 5000),
+    voiceEnabled: kinds.bool,
+    voiceXpPerMin: kinds.int(0, 20),
+    announceChannelId: kinds.id,
+  },
+  digest: {
+    enabled: kinds.bool,
+    channelId: kinds.id,
+    weekday: kinds.int(0, 6),
+    hour: kinds.int(0, 23),
+    auditWeekly: kinds.bool,
+  },
+  modlog: {
+    enabled: kinds.bool,
+    channelId: kinds.id,
+    logBans: kinds.bool,
+    logTimeouts: kinds.bool,
+    logRoles: kinds.bool,
+    logAutomod: kinds.bool,
+  },
 };
 
 function pick(section, body) {
@@ -136,6 +172,16 @@ export function validateSection(section, body, guild, current) {
       if (Object.hasOwn(patch, "types")) patch.types = checkTypes(patch.types, current);
       const full = { ...current, ...patch };
       if (full.enabled && (!full.panelChannelId || !full.staffRoleId)) bad("Chưa đủ cài đặt: cần kênh đăng bảng và role staff.");
+    }
+    if (section === "security" && patch.alertChannelId) channelOf(guild, patch.alertChannelId, TEXT_TYPES, "cảnh báo");
+    if (section === "activity" && patch.announceChannelId) channelOf(guild, patch.announceChannelId, TEXT_TYPES, "thông báo lên cấp");
+    if (section === "digest") {
+      if (patch.channelId) channelOf(guild, patch.channelId, TEXT_TYPES, "báo cáo tuần");
+      if (merged.enabled && !merged.channelId) bad("Bật báo cáo tuần thì phải chọn kênh để thầu gửi.");
+    }
+    if (section === "modlog") {
+      if (patch.channelId) channelOf(guild, patch.channelId, TEXT_TYPES, "nhật ký");
+      if (merged.enabled && !merged.channelId) bad("Bật nhật ký quản trị thì phải chọn kênh để thầu ghi.");
     }
     return { patch };
   } catch (error) {

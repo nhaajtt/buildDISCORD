@@ -1,0 +1,68 @@
+// Every line giveaways (/quatang) and polls (/binhchon) say, in one place so the voice is easy to adjust.
+
+export const lines = {
+  notAdmin: "Giveaway là việc của quản lý server. Bạn muốn rinh quà thì cứ bấm nút Tham gia thôi.",
+  badPrize: "Phần thưởng trống trơn hoặc toàn ký tự lạ. Thầu không phát không khí được.",
+  tooMany: (max) => `Đang có ${max} giveaway chạy cùng lúc rồi. Đợi bớt kết thúc hoặc huỷ một cái đã.`,
+  badTime: "Thời gian này thầu không nhận. Chọn trong danh sách có sẵn.",
+  missingPerms: (names) => `Thầu thiếu quyền ${names.join(", ")} ở kênh này nên không đăng giveaway được. Cấp quyền hoặc chạy lệnh ở kênh khác.`,
+  postFailed: "Discord không cho thầu đăng giveaway lúc này. Thử lại sau chút.",
+  created: (id, channelId) => `✅ Giveaway #${id} đã lên sàn ở <#${channelId}>. Chờ thiên hạ ùa vô.`,
+  missing: "Không thấy giveaway số đó trong server này. Gõ `/quatang danhsach` để xem.",
+  notActive: "Giveaway này kết thúc hoặc bị huỷ rồi, đừng đụng vô nữa.",
+  cancelled: (id) => `🛑 Đã huỷ giveaway #${id}. Không ai trúng, quà về lại kho.`,
+  notEnded: "Giveaway này chưa kết thúc, chỉ giveaway đã kết thúc mới chọn lại được. Muốn dừng sớm thì `/quatang huy`.",
+  nobodyLeft: "Hết người để chọn lại rồi, ai tham gia đều trúng hết trơn.",
+  rerolled: (prize, ids) => `🎲 Chọn lại cho **${prize}**: chúc mừng ${ids.map((id) => `<@${id}>`).join(", ")}, bạn là người may mắn mới!`,
+  rerollDone: (id) => `✅ Đã chọn lại cho giveaway #${id}.`,
+  listEmpty: "Chưa có giveaway nào. Gõ `/quatang tao` để mở màn.",
+  listTitle: "🎁 Giveaway của server",
+  embedTitle: (prize) => `🎁 ${prize}`.slice(0, 250),
+  embedBody: (hostId, winners, endsAtSec, roleId) =>
+    [
+      `Người tổ chức: <@${hostId}>`,
+      `Số giải: **${winners}**`,
+      `Kết thúc: <t:${endsAtSec}:R> (<t:${endsAtSec}:f>)`,
+      roleId ? `Điều kiện: phải có role <@&${roleId}>` : null,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  footer: "Bấm Tham gia để dự, bấm lần nữa để rút.",
+  buttonJoin: "Tham gia",
+  endedTitle: (prize) => `🎁 ${prize} (đã kết thúc)`.slice(0, 250),
+  endedWinners: (ids) => `Người trúng: ${ids.map((id) => `<@${id}>`).join(", ")}`,
+  endedNobody: "Không ai tham gia nên không ai trúng. Thầu cất quà lại.",
+  announce: (prize, ids) => `🎉 Chúc mừng ${ids.map((id) => `<@${id}>`).join(", ")}! Bạn trúng **${prize}**. Nhắn người tổ chức để nhận quà nha.`,
+  announceNobody: (prize) => `Giveaway **${prize}** kết thúc mà không ai tham gia. Buồn thiu.`,
+  cancelledTitle: (prize) => `🎁 ${prize} (đã huỷ)`.slice(0, 250),
+  // Pressing the button
+  pressGone: "Giveaway này không còn nữa.",
+  pressEnded: "Giveaway này đã kết thúc, đến trễ rồi đại ca.",
+  pressBot: "Bot không được tham gia giveaway, đừng giành quà của người thật.",
+  pressNeedRole: (roleId) => `Giveaway này chỉ dành cho người có role <@&${roleId}>. Xin role rồi quay lại.`,
+  joined: (count) => `✅ Đã ghi tên bạn vào danh sách (hiện có ${count} người). Bấm lần nữa nếu muốn rút.`,
+  left: (count) => `Đã rút tên bạn khỏi danh sách (còn ${count} người).`,
+};
+
+export const pollLines = {
+  notStaff: "Mở bình chọn là việc của người có quyền Quản lý tin nhắn. Bạn cứ bấm vote thôi.",
+  badQuestion: "Câu hỏi trống trơn hoặc toàn ký tự lạ. Hỏi cho đàng hoàng.",
+  badOptions: "Cần ít nhất 2 lựa chọn khác nhau, không trống. Lựa chọn trùng nhau thầu gộp luôn.",
+  tooMany: (max) => `Đang có ${max} bình chọn mở cùng lúc rồi. Đóng bớt một cái đã.`,
+  missingPerms: (names) => `Thầu thiếu quyền ${names.join(", ")} ở kênh này nên không đăng bình chọn được.`,
+  postFailed: "Discord không cho thầu đăng bình chọn lúc này. Thử lại sau chút.",
+  created: (id) => `✅ Bình chọn #${id} đã mở. Mời bà con vote, ẩn danh hết.`,
+  title: (question) => `📊 ${question}`.slice(0, 250),
+  closedTitle: (question) => `📊 ${question} (đã đóng)`.slice(0, 250),
+  footer: (total) => `${total} phiếu. Ẩn danh, mỗi người một phiếu, được đổi ý.`,
+  footerClosed: (total) => `Kết quả chung cuộc, ${total} phiếu. Ẩn danh.`,
+  endsLine: (endsAtSec) => `Kết thúc: <t:${endsAtSec}:R>`,
+  noEnd: "Kết thúc: khi người tổ chức bấm Đóng bình chọn",
+  closeButton: "Đóng bình chọn",
+  gone: "Bình chọn này không còn nữa.",
+  closed: "Bình chọn này đóng rồi, phiếu không nhận nữa.",
+  badChoice: "Lựa chọn này không có trong bình chọn.",
+  same: "Bạn đã chọn đúng cái này rồi, bấm nữa cũng không thành hai phiếu đâu.",
+  noBots: "Bot không được bầu bán gì hết.",
+  closeNotAllowed: "Chỉ người mở bình chọn hoặc người có quyền Quản lý tin nhắn mới đóng được.",
+};
