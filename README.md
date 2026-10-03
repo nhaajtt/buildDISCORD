@@ -65,6 +65,7 @@ The bot never reads message content and uses no privileged intent. Discord does 
 | `/ticket caidat, loai, ...` | Administrators, Pro | Private support tickets |
 | `/nuke` | Administrators | Removes what the bot built, after confirmation |
 | `/mua goi [ngay]` | Administrators | Buy or renew a plan, paid by bank transfer |
+| `/dungthu` | Administrators | Seven days of Pro, free, once per server |
 | `/kichhoat ma` | Administrators | Activates a plan with a code |
 | `/goi` | Everyone | The server's plan and how to upgrade |
 | `/xoadulieu` | Administrators | Makes the bot forget what it built (channels and roles on Discord stay) |

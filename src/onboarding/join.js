@@ -1,4 +1,5 @@
 import { MessageFlags, PermissionFlagsBits as P } from "discord.js";
+import { getPlan } from "../license.js";
 import { getSection } from "../settings.js";
 import { onboardingLines } from "../humor/onboarding.js";
 import { buildWelcomePost, wantsVerify } from "./format.js";
@@ -66,7 +67,7 @@ export async function welcomeMember(guild, userId, { settings = getSection(guild
   if (!channel) return { ...result, status: "no-channel" };
 
   try {
-    await channel.send(buildWelcomePost(settings, { userId, serverName: guild.name, rng }));
+    await channel.send(buildWelcomePost(settings, { userId, serverName: guild.name, rng, credit: getPlan(guild.id).rank === 0 }));
     result.channelId = channel.id;
   } catch {
     return { ...result, status: "send-failed" };

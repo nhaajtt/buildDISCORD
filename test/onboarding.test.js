@@ -148,7 +148,9 @@ test("a join with the welcome flow on gives the newbie role and posts the welcom
   assert.equal(result.role, "given");
   assert.ok(member.roles.cache.has(role.id));
   assert.equal(guild.sent.length, 1);
-  assert.equal(guild.sent[0].content, `Chào <@${member.id}>`);
+  // a free server also gets the credit line under the message
+  assert.equal(guild.sent[0].content, `Chào <@${member.id}>
+-# Lời chào do Thầu Xây Dựng lo`);
 });
 
 test("a second welcome for the same member does not add the role again", async () => {

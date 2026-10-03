@@ -12,7 +12,7 @@ process.env.DATA_DIR = dataDir;
 // A first-version JSON record that must be imported into SQLite on first open
 writeFileSync(path.join(dataDir, "777.json"), JSON.stringify({ theme: "gaming", roles: ["r1"], pickRoles: [], categories: [], channels: ["c1"] }));
 
-const { createLicense, getPlan, redeem, revoke, grant, getUsage, addUsage, normalizeCode } = await import("../src/license.js");
+const { startTrial, createLicense, getPlan, redeem, revoke, grant, getUsage, addUsage, normalizeCode } = await import("../src/license.js");
 const { gateBuild, recordBuild } = await import("../src/utils/gate.js");
 const { loadRecord } = await import("../src/store.js");
 
@@ -115,4 +115,20 @@ test("database backup writes one copy per day and keeps the last seven", async (
   const kept = readdirSync(path.join(dataDir, "backups")).sort();
   assert.equal(kept.length, 7);
   assert.equal(kept[0], "thauxaydung-2026-02-04.db");
+});
+
+test("a trial gives one week of Pro, once per server", () => {
+  const first = startTrial("trial-1", NOW);
+  assert.equal(first.ok, true);
+  assert.equal(first.plan, "pro");
+  assert.equal(first.expiresAt, NOW + 7 * DAY);
+  assert.equal(getPlan("trial-1", NOW + DAY).plan, "pro");
+  assert.equal(getPlan("trial-1", NOW + 8 * DAY).plan, "free");
+  assert.deepEqual(startTrial("trial-1", NOW + 9 * DAY), { ok: false, reason: "used" });
+});
+
+test("a server that already pays does not start a trial and keeps its chance", () => {
+  grant("trial-2", "plus", 30, NOW);
+  assert.deepEqual(startTrial("trial-2", NOW), { ok: false, reason: "paid" });
+  assert.equal(getUsage("trial-2", "trial", { lifetime: true }), 0);
 });

@@ -171,6 +171,16 @@ A snapshot is validated JSON (roles, categories, text and voice channels, role o
 | The database file is damaged or deleted | Restore the latest of the seven daily copies from `data/backups` | `backup.js` |
 | An error happens inside a handler | It is logged, alerted, and the user gets a friendly private message instead of an unhandled rejection | `events/interactionCreate.js` |
 
+## Admin tools and the dashboard
+
+`src/settings.js` stores one JSON document per server with a section each for the welcome flow, AutoMod and tickets; every section has a normalizer that rebuilds the value field by field. The tools read their section on each use, so a change from a command or from the dashboard applies immediately.
+
+- **Welcome:** `src/events/messageCreate.js` ignores everything except Discord's join notice, then `src/onboarding` fetches that member and acts. Roles are only given after a safety check.
+- **Audit:** `src/audit` is rules (pure), facts (the guild snapshot), score and fixes. A fix describes its change before it applies it.
+- **AutoMod:** `src/automod` creates and updates native rules and records their IDs by purpose; removal deletes only those IDs.
+- **Tickets:** `src/tickets` holds the logic (pure), the store and the Discord side. `src/jobs/tickets.js` closes quiet tickets using the snowflake time of the last message.
+- **Dashboard:** `src/web` (server, auth, api, validate) and `dashboard/` (static front end). Started from the ready event only when the client secret, the session secret and the public URL are all set.
+
 ## Security model
 
 **Who is trusted.** Only the bot owner, identified by `OWNER_IDS`, can use `/admin`. Within a server, only members with the Administrator permission can build, nuke, activate a plan or erase data. Everyone else can only use `/goi` and `/roast` and press the role buttons.
@@ -181,7 +191,9 @@ A snapshot is validated JSON (roles, categories, text and voice channels, role o
 
 **What is validated.** All AI output goes through `sanitizeDesign`: mentions are stripped, text is capped, a blocked-word list is applied, counts are bounded, colors are parsed with a fallback, and an empty result is an error. The description a person types is limited to 400 characters and is only ever placed in the user message. Plan limits are enforced in `gateBuild` when a blueprint opens and again when build is pressed.
 
-**What the bot refuses to do.** It does not read message content and uses only the `Guilds` intent. It deletes only IDs it recorded, never by name. It does not remove the admin area from a blueprint. It does not create anything from an AI answer without a person pressing build. It does not log or return the Gemini key, which is sent in a header.
+**The dashboard.** Discord OAuth2 with the token revoked straight after use, signed session cookies, a CSRF header plus an Origin check on every write, an administrator re-check against Discord on every request, rate limits, a strict CSP and no `innerHTML`. It binds to loopback; the Pi exposes it through a Tailscale Funnel.
+
+**What the bot refuses to do.** It does not read message content and uses only the `Guilds` and `GuildMessages` intents (the second only to see Discord's own join notice, never to read what people wrote). It deletes only IDs it recorded, never by name. It does not remove the admin area from a blueprint. It does not create anything from an AI answer without a person pressing build. It does not log or return the Gemini key, which is sent in a header.
 
 **Secrets and data.** The Discord token and the Gemini key live only in `.env`, which is ignored by Git (the whole `data/` folder is too). The database stores guild IDs, IDs of what the bot created, licenses and counters, and no message content. `/xoadulieu` erases a server's record while keeping its license and counters so plan limits still apply.
 

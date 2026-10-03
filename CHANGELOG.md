@@ -7,6 +7,7 @@
 - **AutoMod** through Discord's native rules, three levels. `/automod`.
 - **Tickets** as private channels with automatic closing. `/ticket`.
 - **Web dashboard** with Discord sign-in, running inside the bot.
+- **Trial**: `/dungthu` gives a server seven days of Pro, once. Free-plan welcomes carry a small credit line.
 - **Unlocked servers**: `UNLOCKED_GUILD_IDS` gives chosen servers every feature without a license.
 
 ## 1.4.0

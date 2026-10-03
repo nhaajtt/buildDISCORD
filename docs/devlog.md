@@ -16,20 +16,20 @@ These were measured on the repository, not estimated.
 
 | What | Value |
 | --- | --- |
-| Bot source (`src/`, JavaScript) | about 4,600 lines in 73 files |
-| Tests | 128 tests in 11 files (about 2,500 lines), run with `node --test` |
+| Bot source (`src/`, JavaScript) | about 8,100 lines in 100 files, plus about 1,700 lines of dashboard front end |
+| Tests | 289 tests in 18 files (about 6,000 lines), run with `node --test` |
 | Scripts (`scripts/`) | about 370 lines (license CLI, Pi installer, updater, website data export, sample generator) |
 | Website source (`web/`, TypeScript, TSX, CSS) | about 4,200 lines |
-| Slash commands | 17 (16 for customers, 1 owner-only) |
-| Database tables | 8 (`guilds`, `licenses`, `usage`, `custom_themes`, `backups`, `scores`, `recurring_events`, `orders`) |
-| Background jobs | 2 (payment polling, recurring events) |
+| Slash commands | 22 (21 for customers, 1 owner-only) |
+| Database tables | 11 (the eight above plus `guild_settings`, `tickets`, `audit_reports`) |
+| Background jobs | 3 (payment polling, recurring events, ticket inactivity) |
 | Built-in themes | 11, which give 561 mixes of up to four |
 | One theme builds | 8 to 10 roles, 4 to 7 categories, 19 to 26 channels, 10 rules |
 | Largest mix of four themes | 22 roles, 13 categories, 54 channels (duplicates merged) |
 | Runtime dependencies of the bot | 2 (`discord.js`, `dotenv`) |
 | Docker image on the Pi (arm64) | 186 MB at the first deploy, 187 MB with every feature |
 | CI | 3 jobs (tests and syntax, website build, image build); every run so far passed |
-| Test suite wall time | about 9 s for 128 tests (it was about 38 s for 29 until the builder's pause became configurable, see Bugs) |
+| Test suite wall time | about 12 s for 289 tests (it was about 38 s for 29 until the builder's pause became configurable, see Bugs) |
 | Website first load JS | 165 kB for the landing page, 155 kB for the devlog page (Next.js build output) |
 
 ### What this project demonstrates
@@ -358,6 +358,24 @@ The website had been deployed from the command line. Making a push deploy it mea
 
 Polish for people who find the repository: screenshots of the real site in the README, a social preview image, a tagged release with notes, and the repository description and topics. I also noticed a TypeScript build cache file had been committed by accident, untracked it and ignored the pattern.
 
+### Phase 22: looking after a running server
+
+A server that has been built still needs looking after, and that work is where a bot either earns its permissions or loses them. The constraint I set first was the same as before: no privileged intent, so nothing that reads what people write. That decided most of the designs.
+
+- **Welcome flow.** With only the `Guilds` and `GuildMessages` intents the bot does not receive member-join events. Discord does post a system "joined" message in the system channel, and a message of type `UserJoin` carries the new member's ID without carrying any text someone typed. The bot reacts to that, fetches that one member over REST, and posts the welcome, gives a starter role and offers a verify button. The template substitutes `{user}` and `{server}` in a single pass, so a server name containing `{user}` is never expanded twice, and only the new member can be pinged. A role is only handed out when it is safe: not managed, below the bot, and without any of a list of dangerous permissions.
+- **Health check.** A pure set of rules runs over a snapshot of the guild (permissions of `@everyone`, whether the rules and announcement channels are writable, verification level, the bot's own role position) and produces a score and findings with a severity. Fixes are separate objects that describe exactly what they would change, so the preview is the diff and the button applies only that. Scores are stored so `/khamsuckhoe lichsu` can show a trend.
+- **AutoMod.** The bot creates Discord's native AutoMod rules (spam, mention spam, invite links, and keyword presets at higher levels) rather than watching messages itself. Discord does the blocking, so no message content ever reaches the bot. The ID of every rule it created is stored by purpose, so turning AutoMod off removes exactly those rules and leaves the administrator's own rules alone. The level maps to a fixed rule set, and the free plan gets the gentle level with invite blocking.
+- **Tickets.** A panel message with buttons opens a private channel for the member and the staff role. Inactivity is computed from the timestamp inside the last message's snowflake ID, so the bot never reads a message to know the channel is quiet. Closing logs who opened and closed it and when, not what was said, and no transcript is kept.
+- **Per-server settings.** One JSON document per server with a section per tool. Each section has defaults and a normalizer that rebuilds every field from scratch, so the same cleaning applies whether the value arrives from a command, a modal or the dashboard.
+
+### Phase 23: the web dashboard
+
+Everything above can be set with commands, but an administrator expects a page. The dashboard runs inside the bot process, so it sees the same database and the same Discord client and needs no second service. Sign-in is Discord OAuth2: the access token is used once to learn who the person is and then revoked, and the session is an HMAC-signed cookie. A server appears only for someone who is an administrator of it right now, which the dashboard re-checks against Discord (`members.fetch` with `force`) on every request, so removing a role takes effect immediately. Writes need a CSRF header and a same-origin check, requests are rate limited, the page runs under a strict Content Security Policy, and the front end never uses `innerHTML`.
+
+The Pi sits behind a home router, so the page is exposed through a Tailscale Funnel to the loopback port that Docker publishes, with no router port opened. The dashboard stays off until three variables are set, so a bot without them behaves exactly as before. I drove it in a headless browser against a fake Discord (a real OAuth round trip against stubs, then the screens) to check the login, the server picker, each tab and the phone layout.
+
+The same phase added two growth features: a one-time seven day Pro trial (`/dungthu`, remembered in the lifetime usage counters, which `/xoadulieu` does not clear, so it cannot be farmed) and a small credit line under free-plan welcomes. Servers listed in `UNLOCKED_GUILD_IDS` get every feature with no limit, which is how I test new work on my own server.
+
 ## Bugs and what they taught me
 
 | Symptom | Root cause | Fix | Guard now |
@@ -404,6 +422,7 @@ Polish for people who find the repository: screenshots of the real site in the R
 
 ## What I would do next and known limitations
 
+- **The admin tools and the dashboard were checked against fakes, not a real login.** The welcome flow relies on Discord's join notice appearing in the system channel; a server with that notice switched off gets no automatic welcome.
 - **No end-to-end run against a real gateway.** Command handlers and the editor are driven in tests with minimal fake interactions (for example `/build`, `/mua`, the backup and theme commands and the editor's save button), and everything that decides something is a pure module. But nothing in CI talks to Discord, so the exact shape of a few discord.js calls (scheduled events, the role `colors` option, autocomplete, permission bigints) is checked against fakes only. A shared fake-gateway harness would close that gap.
 - **Blueprints are lost on restart,** by design (see Phase 11).
 - **The payment integration was written against payOS's documentation and tested against a stub, not a live account.** It needs one real small payment before it is trusted. It polls every 30 seconds instead of receiving a webhook, does not verify the signature on payOS's responses, and relies on a dollar-to-dong rate I update by hand. There is no reminder when a plan is about to expire.

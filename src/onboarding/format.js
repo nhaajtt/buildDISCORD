@@ -23,13 +23,17 @@ export function verifyRow(userId) {
 }
 
 // The message posted for a new member. Only that member can be pinged, whatever the template says.
-export function buildWelcomePost(settings, { userId, serverName, rng }) {
+// On the free plan a small line under the message says who set the welcome up
+export const CREDIT_LINE = "-# Lời chào do Thầu Xây Dựng lo";
+
+export function buildWelcomePost(settings, { userId, serverName, rng, credit = false }) {
   let content = formatWelcome(settings.message, { userId, serverName, rng });
   const payload = { allowedMentions: { parse: [], users: [userId] } };
   if (wantsVerify(settings)) {
     content = `${content}\n\n${onboardingLines.verifyHint}`.slice(0, 2000);
     payload.components = [verifyRow(userId)];
   }
-  payload.content = content;
+  payload.content = credit ? `${content}
+${CREDIT_LINE}`.slice(0, 2000) : content;
   return payload;
 }

@@ -77,6 +77,17 @@ export function grant(guildId, plan, days, now = Date.now()) {
   return redeem(code, guildId, now);
 }
 
+export const TRIAL_DAYS = 7;
+
+// One free week of Pro per server, ever. The mark lives in the lifetime usage counters, which /xoadulieu does not clear.
+export function startTrial(guildId, now = Date.now()) {
+  if (isUnlocked(guildId)) return { ok: false, reason: "unlocked" };
+  if (getUsage(guildId, "trial", { lifetime: true }) > 0) return { ok: false, reason: "used" };
+  if (getPlan(guildId, now).rank > 0) return { ok: false, reason: "paid" };
+  addUsage(guildId, "trial", { lifetime: true, now });
+  return grant(guildId, "pro", TRIAL_DAYS, now);
+}
+
 export function revoke(guildId, now = Date.now()) {
   return Number(
     getDb().prepare("UPDATE licenses SET expires_at = ? WHERE guild_id = ? AND expires_at > ?").run(now, guildId, now).changes,

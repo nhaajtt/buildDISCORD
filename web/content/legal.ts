@@ -1,7 +1,7 @@
 export type Doc = { title: string; updated: string; back: string; sections: { h: string; p: string[] }[] };
 type Pair = { vi: Doc; en: Doc };
 
-const updated = { vi: "Cập nhật lần cuối: 02/10/2026", en: "Last updated: 2 October 2026" };
+const updated = { vi: "Cập nhật lần cuối: 03/10/2026", en: "Last updated: 3 October 2026" };
 
 export const privacy: Pair = {
   vi: {
@@ -10,6 +10,7 @@ export const privacy: Pair = {
     back: "Về trang chủ",
     sections: [
       { h: "Bot lưu gì", p: ["Với mỗi server, bot lưu ID server, tên theme đã dùng, ID của các kênh, danh mục và role mà bot đã tạo, giấy phép đang dùng (gói, ngày hết hạn) và số lần dùng một số tính năng để tính hạn mức gói.", "Khi bạn dùng các tính năng khác, bot còn lưu: theme riêng đã lưu, bản sao lưu cấu trúc server (tên và quyền của role, kênh, danh mục, không có nội dung tin nhắn), lịch sự kiện định kỳ, và điểm, chuỗi điểm danh cùng ngày điểm danh gần nhất của từng thành viên theo ID Discord. Khi mua gói bằng /mua, bot lưu đơn hàng gồm gói, số ngày, số tiền, trạng thái và ID Discord của server và người gõ lệnh."] },
+      { h: "Công cụ quản trị và bảng điều khiển", p: ["Khi bạn dùng chào người mới, AutoMod và ticket, bot lưu cài đặt của từng công cụ (ID kênh và role bạn chọn, lời chào bạn viết), ID kênh ticket cùng ID người mở và người đóng, thời điểm mở và đóng, và các điểm sức khoẻ server của những lần khám gần đây. Bot không lưu nội dung ticket hay tin nhắn nào. Luật AutoMod do chính Discord thực thi.", "Nếu bạn đăng nhập bảng điều khiển trên web, bot dùng đăng nhập Discord để biết bạn là ai và bạn quản trị những server nào, rồi thu hồi ngay mã truy cập đó. Bot chỉ giữ một cookie phiên có chữ ký trong trình duyệt của bạn, không lưu mật khẩu hay mã truy cập của bạn."] },
       { h: "Thiết kế bằng AI", p: ["Khi bạn dùng /thietke, đoạn mô tả bạn gõ được gửi tới dịch vụ Gemini của Google để tạo bản thiết kế. Chỉ đoạn mô tả đó được gửi, không kèm tên người dùng hay nội dung tin nhắn. Bot đang dùng gói miễn phí của Google, nên Google có thể dùng nội dung gửi qua gói này để cải thiện sản phẩm của họ. Đừng nhập thông tin cá nhân hay bí mật vào phần mô tả."] },
       { h: "Thanh toán", p: ["Thanh toán tự động đi qua payOS (payos.vn). Bạn nhập thông tin ngân hàng trên trang của payOS và ngân hàng, không bao giờ trên Discord hay trên bot. Bot không thấy và không lưu số tài khoản hay thẻ của bạn, chỉ biết đơn đã thanh toán hay chưa."] },
       { h: "Bot không làm gì", p: ["Bot không đọc, không lưu nội dung tin nhắn, và không yêu cầu quyền Message Content. Bot không bán hay chia sẻ dữ liệu cho bên thứ ba."] },
@@ -24,6 +25,7 @@ export const privacy: Pair = {
     back: "Back to home",
     sections: [
       { h: "What the bot stores", p: ["For each server the bot stores the server ID, the theme used, the IDs of the channels, categories and roles it created, the active license (plan and expiry date) and how many times some features were used, to apply plan limits.", "When you use the other features the bot also stores: saved themes, backups of the server layout (names and permissions of roles, channels and categories, never message content), recurring event schedules, and each member's points, check-in streak and last check-in day, by Discord ID. When you buy a plan with /mua the bot stores the order: the plan, days, amount, status and the Discord IDs of the server and the person who ran the command."] },
+      { h: "Admin tools and the dashboard", p: ["When you use the welcome flow, AutoMod and tickets, the bot stores each tool's settings (the channel and role IDs you pick, the welcome text you write), the ID of each ticket channel with the IDs of who opened and closed it and when, and the health scores of recent checks. It stores no ticket content and no messages. AutoMod rules are enforced by Discord itself.", "If you sign in to the web dashboard, the bot uses Discord sign-in to learn who you are and which servers you administer, then revokes that access token straight away. It keeps only a signed session cookie in your browser, never your password or your access token."] },
       { h: "AI design", p: ["When you use /thietke, the description you type is sent to Google's Gemini service to create the design. Only that description is sent, with no usernames or message content. The bot currently uses Google's free tier, so Google may use content sent through it to improve its products. Do not enter personal or secret information in the description."] },
       { h: "Payments", p: ["Automatic payments go through payOS (payos.vn). You enter your bank details on the pages of payOS and your bank, never on Discord or in the bot. The bot does not see or store your account or card number, only whether the order has been paid."] },
       { h: "What the bot does not do", p: ["The bot does not read or store message content and does not ask for the Message Content permission. It does not sell or share data with third parties."] },
