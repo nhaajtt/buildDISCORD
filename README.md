@@ -68,6 +68,14 @@ curl -fsSL https://raw.githubusercontent.com/nhaajtt/buildDISCORD/main/scripts/i
 
 The installer installs Docker and git, fetches the project into `~/buildDISCORD`, asks for the token and the Application ID, starts the container and optionally installs a daily self-update timer. It never overwrites an existing `.env` and is safe to run again. It shares nothing with musiDISCORD or companionsDISCORD at runtime, so all three can run on one machine.
 
+To install the daily self-update by hand later (it needs sudo):
+
+```bash
+cd ~/buildDISCORD
+for ext in service timer; do sed "s#__USER__#$USER#g; s#__DIR__#$PWD#g" deploy/pi/thauxaydung-update.$ext | sudo tee /etc/systemd/system/thauxaydung-update.$ext >/dev/null; done
+sudo systemctl daemon-reload && sudo systemctl enable --now thauxaydung-update.timer
+```
+
 The update script fetches new commits, accepts fast-forwards only, rebuilds, waits for the container's health check to pass and rolls back to the previous version if it does not.
 
 ## Configuration

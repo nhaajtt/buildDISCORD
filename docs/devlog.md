@@ -43,3 +43,10 @@ Every new Discord server starts the same way: an empty list with one channel cal
 - **Alerts that cannot flood.** Errors go to a webhook, but the same message is sent at most once every five minutes, so a crash loop cannot bury the channel.
 - **A health check that means something.** The bot writes a heartbeat file every 30 seconds and the container's health check reads its age. The update script waits for "healthy", not just "running", and rolls back if it never gets there.
 - **Daily copies of the database**, seven kept, written with `VACUUM INTO` so the copy is consistent while the bot is running.
+
+## On the Raspberry Pi
+
+- **One more container, nothing shared.** It went next to the music bot and the companions on the same Pi 5 (Kali, 8 GB). Separate folder, separate compose project, separate container, so each can be updated or rolled back alone. The first build took a few minutes, and the container reported healthy about a minute after it started.
+- **Secrets travel over SSH, not through Git.** The repository is public, so the token and the Gemini key never leave `.env`, which is ignored. The file was copied to the Pi with `scp` and set to mode 600, and the deploy checks only list which keys are set, never their values.
+- **The data folder belongs to root.** The container runs as root, so `data/` on the host ends up owned by root. It is ignored by Git, so the self-update's "no uncommitted changes" check is not bothered by it.
+- **The timer needs a human.** Installing the systemd timer needs sudo, which asks for a password, so that last step is left to be run by hand (commands are in the README's Pi section).
