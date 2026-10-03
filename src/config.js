@@ -22,6 +22,8 @@ export const config = {
     clientSecret: process.env.DISCORD_CLIENT_SECRET || null,
     sessionSecret: process.env.SESSION_SECRET || null,
   },
+  // Servers that get every feature with no license (the owner's own and test servers), comma separated server IDs
+  unlockedGuildIds: (process.env.UNLOCKED_GUILD_IDS || "").split(",").map((id) => id.trim()).filter(Boolean),
   // The time zone people schedule events in
   timezone: process.env.TIMEZONE || "Asia/Ho_Chi_Minh",
   // Automatic payments through payOS (all three are needed to switch them on) and the rate used to turn dollars into dong

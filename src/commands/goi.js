@@ -12,7 +12,7 @@ export default {
     const plan = getPlan(interaction.guildId);
     const built = getUsage(interaction.guildId, "build", { lifetime: true });
     const lines = [
-      `Gói hiện tại: **${plan.label}**${plan.expiresAt ? `, hạn đến <t:${Math.floor(plan.expiresAt / 1000)}:D>` : ""}`,
+      `Gói hiện tại: **${plan.label}**${plan.expiresAt ? `, hạn đến <t:${Math.floor(plan.expiresAt / 1000)}:D>` : plan.unlocked ? ", mở hết mọi tính năng, không giới hạn thời gian" : ""}`,
       `Đã xây: ${built} lần${plan.buildsTotal === Infinity ? "" : ` trên ${plan.buildsTotal}`}`,
     ];
     const table = Object.values(PLANS)

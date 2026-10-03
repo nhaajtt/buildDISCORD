@@ -1,4 +1,5 @@
 import { randomBytes } from "node:crypto";
+import { config } from "./config.js";
 import { getDb } from "./db.js";
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -32,7 +33,14 @@ export function createLicense(plan, days, now = Date.now()) {
 }
 
 // Active plan of a server: the highest-ranked license that has not expired, else free
+// Servers the owner lists in UNLOCKED_GUILD_IDS (their own and their test servers) get everything, with no license and no expiry.
+// The limits are lifted far above anything a paid plan has, so new features can be tried without hitting a quota.
+const UNLOCKED = { ...PLANS.plus, label: "Mở khoá (chủ bot)", rank: 3, aiPerMonth: 1000, backups: 50, customThemes: 50, recurringEvents: 25 };
+
+export const isUnlocked = (guildId) => config.unlockedGuildIds.includes(String(guildId));
+
 export function getPlan(guildId, now = Date.now()) {
+  if (isUnlocked(guildId)) return { plan: "plus", ...UNLOCKED, expiresAt: null, unlocked: true };
   const rows = getDb()
     .prepare("SELECT plan, expires_at FROM licenses WHERE guild_id = ? AND expires_at > ?")
     .all(guildId, now);

@@ -63,3 +63,39 @@ test("the admin tools are on the plans: onboarding and the audit are free, ticke
   assert.equal(gateFeature("g-paid", "tickets"), null);
   assert.equal(gateFeature("g-paid", "automodFull"), null);
 });
+
+test("servers listed as unlocked get every feature without a license, and nothing else does", async () => {
+  // config is read once at start, so the list is set in a fresh process
+  const { spawnSync } = await import("node:child_process");
+  const script = `
+    const { getPlan, revoke, isUnlocked } = await import("./src/license.js");
+    const { gateFeature, gateLimit } = await import("./src/utils/gate.js");
+    const plan = getPlan("111111111111111111");
+    const other = getPlan("222222222222222222");
+    revoke("111111111111111111");
+    console.log(JSON.stringify({
+      plan: plan.plan, unlocked: plan.unlocked, expires: plan.expiresAt, tickets: gateFeature("111111111111111111", "tickets"),
+      games: gateFeature("111111111111111111", "games"), humor: gateFeature("111111111111111111", "humor"),
+      backups: gateLimit("111111111111111111", "backups", 49, "bản sao lưu"), manyBackups: gateLimit("111111111111111111", "backups", 50, "bản sao lưu"),
+      afterRevoke: getPlan("111111111111111111").plan, otherPlan: other.plan, otherUnlocked: Boolean(other.unlocked), isUnlocked: isUnlocked("111111111111111111"),
+    }));`;
+  const dir = mkdtempSync(path.join(tmpdir(), "unlock-test-"));
+  const run = spawnSync(process.execPath, ["--disable-warning=ExperimentalWarning", "--input-type=module", "-e", script], {
+    cwd: path.join(path.dirname(new URL(import.meta.url).pathname.replace(/^\/(\w:)/, "$1")), ".."),
+    env: { ...process.env, DISCORD_TOKEN: "x", CLIENT_ID: "1", DATA_DIR: dir, UNLOCKED_GUILD_IDS: "111111111111111111, 333333333333333333" },
+    encoding: "utf8",
+  });
+  const out = JSON.parse(run.stdout.trim().split("\n").pop());
+  assert.equal(out.plan, "plus");
+  assert.equal(out.unlocked, true);
+  assert.equal(out.expires, null);
+  assert.equal(out.tickets, null);
+  assert.equal(out.games, null);
+  assert.equal(out.humor, null);
+  assert.equal(out.backups, null, "49 of 50 is still allowed");
+  assert.match(out.manyBackups, /50/, "the limit exists but is far above a paid plan");
+  assert.equal(out.afterRevoke, "plus", "revoking a license cannot take the unlock away");
+  assert.equal(out.otherPlan, "free");
+  assert.equal(out.otherUnlocked, false);
+  assert.equal(out.isUnlocked, true);
+});
