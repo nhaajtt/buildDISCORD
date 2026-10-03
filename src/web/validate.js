@@ -1,5 +1,5 @@
 import { ChannelType } from "discord.js";
-import { AUTOMOD_LEVELS } from "../settings.js";
+import { AUTOMOD_LEVELS, SNOWFLAKE } from "../settings.js";
 import { roleProblem } from "../onboarding/safety.js";
 import { chaomungLines, permLabels } from "../humor/onboarding.js";
 import { checkStaffRole, typeKey, validEmoji } from "../tickets/logic.js";
@@ -7,8 +7,6 @@ import { checkStaffRole, typeKey, validEmoji } from "../tickets/logic.js";
 // Turns a request body into a clean patch for one settings section, or says why it cannot. Types are checked strictly here so a wrong
 // type is a 400 instead of being silently turned into a default by the section normalizer.
 
-// The same pattern settings.js uses to accept an id
-export const SNOWFLAKE = /^\d{17,20}$/;
 export const isSnowflake = (value) => typeof value === "string" && SNOWFLAKE.test(value);
 
 export const TEXT_TYPES = [ChannelType.GuildText, ChannelType.GuildAnnouncement];

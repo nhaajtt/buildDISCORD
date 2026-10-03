@@ -4,7 +4,7 @@ import { getDb } from "./db.js";
 // Every section has defaults and a normalizer that rebuilds the value field by field, so whatever arrives from a command, a modal or
 // the dashboard is cleaned the same way before it is stored or used.
 
-const SNOWFLAKE = /^\d{17,20}$/;
+export const SNOWFLAKE = /^\d{17,20}$/;
 const id = (value) => (typeof value === "string" && SNOWFLAKE.test(value) ? value : null);
 const flag = (value, fallback) => (typeof value === "boolean" ? value : fallback);
 const text = (value, max) => (typeof value === "string" ? value.replace(/\r/g, "").trim().slice(0, max) : "");

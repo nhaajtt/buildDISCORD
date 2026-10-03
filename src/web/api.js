@@ -1,16 +1,14 @@
-import { ChannelType, EmbedBuilder } from "discord.js";
+import { ChannelType } from "discord.js";
 import { config } from "../config.js";
-import { getDb } from "../db.js";
 import { PLANS, getPlan, getUsage } from "../license.js";
 import { getSection, patchSection } from "../settings.js";
 import { gateFeature } from "../utils/gate.js";
 import { applyFix, fixIdsOf, getFix, latestReport, reports, runAudit } from "../audit/index.js";
 import { gateAutomod, removeAutomod, syncAutomod } from "../automod/index.js";
 import { ruleLabels } from "../humor/automod.js";
-import { ticketLines } from "../humor/tickets.js";
 import { roleProblem } from "../onboarding/safety.js";
-import { PRICES_USD, DAY_CHOICES, amountVnd, describeOrder } from "../pay/orders.js";
-import { panelRows } from "../tickets/logic.js";
+import { PRICES_USD, DAY_CHOICES, amountVnd, describeOrder, recentOrders } from "../pay/orders.js";
+import { panelPayload, postTicketPanel } from "../tickets/panel.js";
 import { listOpen } from "../tickets/store.js";
 import { HttpError, avatarUrl, iconUrl } from "./auth.js";
 import { TEXT_TYPES, VOICE_TYPES, validateSection } from "./validate.js";
@@ -33,10 +31,7 @@ const planSummary = (guildId) => {
 
 // Never selects the checkout link, the buyer or the channel: a page that lists orders has no use for them
 const ordersOf = (guildId, limit) =>
-  getDb()
-    .prepare("SELECT order_code, plan, days, amount, status, created_at, paid_at FROM orders WHERE guild_id = ? ORDER BY created_at DESC LIMIT ?")
-    .all(guildId, limit)
-    .map((o) => ({ code: describeOrder(o.order_code), plan: o.plan, days: o.days, amount: o.amount, status: o.status, createdAt: o.created_at, paidAt: o.paid_at ?? null }));
+  recentOrders(limit, guildId).map((o) => ({ code: describeOrder(o.order_code), plan: o.plan, days: o.days, amount: o.amount, status: o.status, createdAt: o.created_at, paidAt: o.paid_at ?? null }));
 
 function pickers(guild) {
   const top = guild.members?.me?.roles?.highest?.position ?? -1;
@@ -131,11 +126,6 @@ function describeSync(result) {
   return parts.length ? parts.join(" ") : "Mọi luật đã đúng ý, thầu khỏi làm gì thêm.";
 }
 
-const panelPayload = (settings) => ({
-  embeds: [new EmbedBuilder().setColor(0x3498db).setTitle(ticketLines.panelTitle).setDescription(ticketLines.panelBody)],
-  components: panelRows(settings.types),
-});
-
 // Takes the buttons off a panel that no longer counts, like /ticket tat does
 async function retirePanel(guild, channelId, messageId) {
   if (!channelId || !messageId) return;
@@ -217,21 +207,11 @@ export async function putSettings(guild, section, body) {
 export async function postPanel(guild) {
   const blocked = gateFeature(guild.id, "tickets");
   if (blocked) throw new HttpError(403, blocked);
-  const settings = getSection(guild.id, "tickets");
-  if (!settings.panelChannelId || !settings.staffRoleId) throw new HttpError(400, "Chưa đủ cài đặt: cần kênh đăng bảng và role staff. Lưu cài đặt trước đã.");
-  const channel = guild.channels.cache.get(settings.panelChannelId);
-  if (!channel) throw new HttpError(400, "Thầu không thấy kênh bảng ticket nữa. Chọn lại kênh rồi lưu.");
-  try {
-    let message = null;
-    if (settings.panelMessageId) message = await channel.messages.fetch(settings.panelMessageId).catch(() => null);
-    if (message) await message.edit(panelPayload(settings));
-    else message = await channel.send(panelPayload(settings));
-    const stored = patchSection(guild.id, "tickets", { enabled: true, panelMessageId: message.id });
-    return { value: stored, applied: true, notice: "Bảng ticket đã sẵn trên kênh. Mở quán thôi." };
-  } catch (error) {
-    console.error(`Dashboard: ticket panel failed in ${guild.id}:`, error.message);
-    throw new HttpError(502, "Thầu không đăng được bảng ở kênh đó. Kiểm tra quyền xem, gửi tin và nhúng link của bot.");
-  }
+  const posted = await postTicketPanel(guild);
+  if (posted.reason === "setup") throw new HttpError(400, "Chưa đủ cài đặt: cần kênh đăng bảng và role staff. Lưu cài đặt trước đã.");
+  if (posted.reason === "channel") throw new HttpError(400, "Thầu không thấy kênh bảng ticket nữa. Chọn lại kênh rồi lưu.");
+  if (!posted.ok) throw new HttpError(502, "Thầu không đăng được bảng ở kênh đó. Kiểm tra quyền xem, gửi tin và nhúng link của bot.");
+  return { value: posted.settings, applied: true, notice: "Bảng ticket đã sẵn trên kênh. Mở quán thôi." };
 }
 
 export async function runHealthCheck(guild, ctx) {

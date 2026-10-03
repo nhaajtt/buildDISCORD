@@ -41,8 +41,11 @@ export function pendingOrders(now = Date.now()) {
   return getDb().prepare("SELECT * FROM orders WHERE status = 'PENDING' AND created_at > ? ORDER BY created_at").all(now - ORDER_TTL_MS);
 }
 
-export function recentOrders(limit = 10) {
-  return getDb().prepare("SELECT order_code, guild_id, plan, days, amount, status, created_at FROM orders ORDER BY created_at DESC LIMIT ?").all(limit);
+// Newest first. With a guild id only that server's orders come back; without one, every server's (for the bot owner).
+export function recentOrders(limit = 10, guildId = undefined) {
+  const columns = "order_code, guild_id, plan, days, amount, status, created_at, paid_at";
+  if (guildId === undefined) return getDb().prepare(`SELECT ${columns} FROM orders ORDER BY created_at DESC LIMIT ?`).all(limit);
+  return getDb().prepare(`SELECT ${columns} FROM orders WHERE guild_id = ? ORDER BY created_at DESC LIMIT ?`).all(guildId, limit);
 }
 
 export function closeOrder(orderCode, status) {

@@ -4,6 +4,16 @@ import { closeTicket, cleanPending } from "../tickets/index.js";
 import { selectStale, snowflakeTime } from "../tickets/logic.js";
 import { closeRow, listAllOpen } from "../tickets/store.js";
 
+// "found", "gone" (Discord says it does not exist) or "unknown" (the lookup failed, so nothing is decided)
+async function channelState(guild, channelId) {
+  if (typeof guild.channels.fetch !== "function") return "gone";
+  try {
+    return (await guild.channels.fetch(channelId)) ? "found" : "gone";
+  } catch (error) {
+    return error?.code === 10003 || error?.status === 404 ? "gone" : "unknown";
+  }
+}
+
 // Closes open tickets nobody has written in for autoCloseHours. Activity is read from the id of the channel's last message,
 // a snowflake that carries its own time, so no message content is ever fetched.
 export async function runTickets(client, { now = Date.now() } = {}) {
@@ -22,12 +32,19 @@ export async function runTickets(client, { now = Date.now() } = {}) {
       const guild = client.guilds.cache.get(guildId);
       if (!guild) continue;
       const settings = getSection(guildId, "tickets");
-      // A channel an admin deleted by hand leaves no one to close it, so the row is closed here
-      const alive = rows.filter((t) => {
-        if (guild.channels.cache.has(t.channel_id)) return true;
-        closeRow(t.id, now, "Kênh đã bị xoá");
-        return false;
-      });
+      // A server that is down right now has an empty cache, which says nothing about its channels
+      if (guild.available === false) continue;
+      // A channel an admin deleted by hand leaves no one to close it, so the row is closed here, but only once Discord confirms it is gone
+      const alive = [];
+      for (const t of rows) {
+        if (guild.channels.cache.has(t.channel_id)) {
+          alive.push(t);
+          continue;
+        }
+        const state = await channelState(guild, t.channel_id);
+        if (state === "found") alive.push(t);
+        else if (state === "gone") closeRow(t.id, now, "Kênh đã bị xoá");
+      }
       const lastActivityOf = (t) => {
         try {
           const last = guild.channels.cache.get(t.channel_id)?.lastMessageId;

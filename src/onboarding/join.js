@@ -90,6 +90,7 @@ export async function verifyMember(interaction, userId) {
   if (given === "missing" || given === "unsafe") return refuse(onboardingLines.verifyRoleGone);
   if (given === "failed") return refuse(onboardingLines.verifyFailed);
 
-  if (settings.newbieRoleId) await takeRole(guild, member, settings.newbieRoleId);
+  // One role used for both steps must not be taken straight back
+  if (settings.newbieRoleId && settings.newbieRoleId !== settings.verifyRoleId) await takeRole(guild, member, settings.newbieRoleId);
   return interaction.update({ content: onboardingLines.verified(userId), components: [] });
 }

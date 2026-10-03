@@ -2,10 +2,11 @@ import { ChannelType, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashComm
 import { getSection, patchSection } from "../settings.js";
 import { gateFeature } from "../utils/gate.js";
 import { isAdmin } from "../utils/guards.js";
-import { ticketCommandLines as lines, ticketLines } from "../humor/tickets.js";
+import { ticketCommandLines as lines } from "../humor/tickets.js";
 import * as humor from "../humor/lines.js";
 import { askCloseReason, claim, closeNow, deleteChannel, reopen, startOpen, submitClose, submitOpen } from "../tickets/index.js";
-import { checkStaffRole, panelRows, typeKey, validEmoji } from "../tickets/logic.js";
+import { checkStaffRole, typeKey, validEmoji } from "../tickets/logic.js";
+import { postTicketPanel } from "../tickets/panel.js";
 import { listOpen } from "../tickets/store.js";
 
 const ephemeral = (content) => ({ content, flags: MessageFlags.Ephemeral });
@@ -128,24 +129,9 @@ export default {
     }
 
     if (sub === "dang") {
-      if (!settings.panelChannelId || !settings.staffRoleId) return reply(lines.needSetup);
-      const channel = guild.channels.cache.get(settings.panelChannelId);
-      if (!channel) return reply(lines.panelFailed);
-      const payload = {
-        embeds: [new EmbedBuilder().setColor(0x3498db).setTitle(ticketLines.panelTitle).setDescription(ticketLines.panelBody)],
-        components: panelRows(settings.types),
-      };
-      try {
-        let message = null;
-        if (settings.panelMessageId) message = await channel.messages.fetch(settings.panelMessageId).catch(() => null);
-        if (message) await message.edit(payload);
-        else message = await channel.send(payload);
-        patchSection(guildId, "tickets", { enabled: true, panelMessageId: message.id });
-      } catch (error) {
-        console.error(`Ticket panel failed in ${guildId}:`, error.message);
-        return reply(lines.panelFailed);
-      }
-      return reply(lines.panelPosted(channel.id));
+      const posted = await postTicketPanel(guild, settings);
+      if (!posted.ok) return reply(posted.reason === "setup" ? lines.needSetup : lines.panelFailed);
+      return reply(lines.panelPosted(posted.channel.id));
     }
 
     // danhsach
