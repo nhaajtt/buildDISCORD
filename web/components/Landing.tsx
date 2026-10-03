@@ -26,6 +26,7 @@ export default function Landing({ dict }: { dict: Dict }) {
     { id: "how", label: dict.nav.how },
     { id: "ai", label: dict.ai.label },
     { id: "editor", label: dict.editor.label },
+    { id: "features", label: dict.features.label },
     { id: "themes", label: dict.nav.themes },
     { id: "pricing", label: dict.nav.pricing },
     { id: "commands", label: dict.nav.commands },
@@ -105,6 +106,18 @@ export default function Landing({ dict }: { dict: Dict }) {
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+
+        <section className="block" id="features" aria-labelledby="features-title">
+          <SectionHead id="features-title" title={dict.features.title} lede={dict.features.sub} label={dict.features.label} />
+          <div className="feature-grid">
+            {dict.features.items.map((f) => (
+              <article key={f.t} className="feature-card" data-in>
+                <h3>{f.t}</h3>
+                <p>{f.d}</p>
+              </article>
+            ))}
           </div>
         </section>
 

@@ -20,7 +20,7 @@ const text = (value, max) =>
         .slice(0, max)
     : "";
 
-const clean = (value, max) => {
+export const clean = (value, max) => {
   const out = text(value, max);
   return out && !BLOCKED.test(out) ? out : "";
 };
@@ -28,7 +28,7 @@ const clean = (value, max) => {
 // Discord lowercases text channel names and swaps spaces for dashes
 export const textChannelName = (name) => name.toLowerCase().replace(/\s+/g, "-").replace(/-{2,}/g, "-");
 
-function parseColor(value, index) {
+export function parseColor(value, index) {
   const match = typeof value === "string" ? value.trim().match(/^#?([0-9a-f]{6})$/i) : null;
   const color = match ? Number.parseInt(match[1], 16) : PALETTE[index % PALETTE.length];
   return color === 0 ? PALETTE[index % PALETTE.length] : color;

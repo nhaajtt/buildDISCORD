@@ -1,6 +1,7 @@
 import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import { config } from "../config.js";
 import { createLicense, grant, planCounts, revoke, PLANS } from "../license.js";
+import { recentOrders } from "../pay/orders.js";
 
 const planOption = (option) =>
   option
@@ -23,7 +24,8 @@ export default {
       sub.setName("cap").setDescription("Cấp gói thẳng cho một server").addStringOption(guildOption).addStringOption(planOption).addIntegerOption(daysOption),
     )
     .addSubcommand((sub) => sub.setName("thuhoi").setDescription("Kết thúc gói trả phí của một server").addStringOption(guildOption))
-    .addSubcommand((sub) => sub.setName("thongke").setDescription("Số server theo từng gói")),
+    .addSubcommand((sub) => sub.setName("thongke").setDescription("Số server theo từng gói"))
+    .addSubcommand((sub) => sub.setName("donhang").setDescription("10 đơn thanh toán gần nhất")),
 
   async execute(interaction) {
     const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
@@ -40,6 +42,11 @@ export default {
     }
     if (sub === "thuhoi") {
       return reply(`Đã kết thúc ${revoke(interaction.options.getString("server"))} giấy phép.`);
+    }
+    if (sub === "donhang") {
+      const rows = recentOrders(10);
+      if (!rows.length) return reply("Chưa có đơn thanh toán nào.");
+      return reply(rows.map((o) => `\`${o.order_code}\` ${o.plan} ${o.days} ngày, ${o.amount.toLocaleString("vi-VN")}đ, ${o.status}, server ${o.guild_id}, <t:${Math.floor(o.created_at / 1000)}:R>`).join("\n"));
     }
     const counts = planCounts(interaction.client.guilds.cache.keys());
     return reply(`Bot đang ở ${interaction.client.guilds.cache.size} server: ${counts.free} miễn phí, ${counts.pro} Pro, ${counts.plus} Plus.`);

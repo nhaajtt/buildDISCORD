@@ -844,6 +844,38 @@ a {
   box-shadow: 4px 4px 0 var(--shadow);
 }
 
+/* ---------- after the build ---------- */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: clamp(12px, 2vw, 20px);
+  margin-top: 40px;
+}
+.feature-card {
+  padding: 20px;
+  background: var(--card);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 4px 4px 0 var(--shadow);
+  transition: translate 0.2s, box-shadow 0.2s;
+}
+.feature-card:hover {
+  translate: 0 -4px;
+  box-shadow: 6px 6px 0 var(--mint);
+}
+.feature-card h3 {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 900;
+  font-size: 1.5rem;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.feature-card p {
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
 /* ---------- themes ---------- */
 .theme-cards {
   display: grid;
@@ -1353,6 +1385,7 @@ a {
   .btn,
   .chip-btn,
   .theme-card,
+  .feature-card,
   .rule-list li,
   .tilt-inner {
     transition: none;

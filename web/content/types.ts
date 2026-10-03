@@ -85,6 +85,7 @@ export type Dict = {
     sharedLabel: string;
     mixNote: string;
   };
+  features: { title: string; label: string; sub: string; items: { t: string; d: string }[] };
   rules: { title: string; label: string; sub: string };
   music: { title: string; label: string; body: string; points: string[] };
   pricing: {

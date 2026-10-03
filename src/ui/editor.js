@@ -12,7 +12,10 @@ import {
 import { addChannel, createBlueprint, dropBlueprint, getBlueprint, removeCategory, renameCategory } from "../blueprints.js";
 import { buildServer } from "../builder.js";
 import { countPlan } from "../themes/index.js";
-import { gateBuild, recordBuild } from "../utils/gate.js";
+import { gateBuild, gateLimit, recordBuild } from "../utils/gate.js";
+import { DesignError } from "../ai/validate.js";
+import { NAME_MAX, extractCustomTheme, gateSave, normalizeThemeName, saveCustomTheme } from "../themes/custom.js";
+import { themeLines } from "../humor/backup.js";
 import { isAdmin, lock } from "../utils/guards.js";
 import * as humor from "../humor/lines.js";
 
@@ -62,6 +65,7 @@ export function editorView(entry, note = "") {
     ),
     new ActionRowBuilder().addComponents(
       new ButtonBuilder().setCustomId(`bp:add:${id}`).setLabel("Thêm kênh").setStyle(ButtonStyle.Secondary).setEmoji("➕"),
+      new ButtonBuilder().setCustomId(`bp:save:${id}`).setLabel("Lưu thành theme riêng").setStyle(ButtonStyle.Secondary).setEmoji("💾"),
       new ButtonBuilder().setCustomId(`bp:go:${id}`).setLabel("Xây luôn đại ca").setStyle(ButtonStyle.Success).setEmoji("🏗️"),
       new ButtonBuilder().setCustomId(`bp:no:${id}`).setLabel("Để tui nghĩ lại").setStyle(ButtonStyle.Secondary),
     ),
@@ -150,6 +154,33 @@ export async function handleBlueprint(interaction, [action, id, extra]) {
       ),
     );
     return interaction.showModal(modal);
+  }
+  if (action === "save") {
+    // A server whose plan has no saved themes hears it right away; the exact slot check happens once the name is known
+    const blocked = gateLimit(interaction.guildId, "customThemes", 0, "theme riêng");
+    if (blocked) return interaction.reply(ephemeral(blocked));
+    const modal = new ModalBuilder().setCustomId(`bp:savem:${id}`).setTitle("Lưu thành theme riêng");
+    modal.addComponents(
+      new ActionRowBuilder().addComponents(
+        new TextInputBuilder().setCustomId("name").setLabel(`Tên theme (1 đến ${NAME_MAX} ký tự)`).setStyle(TextInputStyle.Short).setMaxLength(NAME_MAX).setRequired(true),
+      ),
+    );
+    return interaction.showModal(modal);
+  }
+  if (action === "savem") {
+    const name = normalizeThemeName(interaction.fields.getTextInputValue("name"));
+    if (!name) return respond(interaction, editorView(entry, themeLines.badName));
+    const blocked = gateSave(interaction.guildId, name);
+    if (blocked) return respond(interaction, editorView(entry, blocked));
+    let theme;
+    try {
+      theme = extractCustomTheme(entry.plan);
+    } catch (error) {
+      if (error instanceof DesignError) return respond(interaction, editorView(entry, themeLines.nothingToSave));
+      throw error;
+    }
+    const { replaced } = saveCustomTheme(interaction.guildId, name, theme);
+    return respond(interaction, editorView(entry, themeLines.saved(name, replaced)));
   }
   if (action === "addm") {
     const type = interaction.fields.getTextInputValue("type").trim().toLowerCase() === "voice" ? "voice" : "text";

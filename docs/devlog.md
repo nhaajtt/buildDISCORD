@@ -16,20 +16,21 @@ These were measured on the repository, not estimated.
 
 | What | Value |
 | --- | --- |
-| Bot source (`src/`, JavaScript) | about 1,850 lines in 35 files |
-| Tests | 40 tests in 5 files (about 580 lines), run with `node --test` |
-| Scripts (`scripts/`) | about 360 lines (license CLI, Pi installer, updater, website data export, sample generator) |
-| Website source (`web/`, TypeScript, TSX, CSS) | about 4,000 lines |
-| Slash commands | 8 (7 for customers, 1 owner-only) |
-| Database tables | 3 (`guilds`, `licenses`, `usage`) |
+| Bot source (`src/`, JavaScript) | about 4,600 lines in 73 files |
+| Tests | 128 tests in 11 files (about 2,500 lines), run with `node --test` |
+| Scripts (`scripts/`) | about 370 lines (license CLI, Pi installer, updater, website data export, sample generator) |
+| Website source (`web/`, TypeScript, TSX, CSS) | about 4,200 lines |
+| Slash commands | 17 (16 for customers, 1 owner-only) |
+| Database tables | 8 (`guilds`, `licenses`, `usage`, `custom_themes`, `backups`, `scores`, `recurring_events`, `orders`) |
+| Background jobs | 2 (payment polling, recurring events) |
 | Built-in themes | 11, which give 561 mixes of up to four |
-| One theme builds | 8 roles, 5 categories, 21 or 22 channels, 10 rules |
+| One theme builds | 8 to 10 roles, 4 to 7 categories, 19 to 26 channels, 10 rules |
 | Largest mix of four themes | 22 roles, 13 categories, 54 channels (duplicates merged) |
 | Runtime dependencies of the bot | 2 (`discord.js`, `dotenv`) |
-| Docker image on the Pi (arm64) | 186 MB at the first deploy |
+| Docker image on the Pi (arm64) | 186 MB at the first deploy (re-measured below) |
 | CI | 3 jobs (tests and syntax, website build, image build); every run so far passed |
-| Test suite wall time | about 3 s (it was about 38 s until the builder's pause became configurable, see Bugs) |
-| Website first load JS | 163 kB for the landing page, 155 kB for the devlog page (Next.js build output) |
+| Test suite wall time | about 9 s for 128 tests (it was about 38 s for 29 until the builder's pause became configurable, see Bugs) |
+| Website first load JS | 165 kB for the landing page, 155 kB for the devlog page (Next.js build output) |
 
 ### What this project demonstrates
 
@@ -45,6 +46,9 @@ These were measured on the repository, not estimated.
 | Packaging and delivery: Docker, systemd, CI, a public repository without secrets | `Dockerfile`, `docker-compose.yml`, `scripts/install-pi.sh`, `.github/workflows/ci.yml` |
 | Front end: i18n routing, server and client components, scroll-driven and pointer-driven animation with accessibility fallbacks | `web/app/[lang]/`, `web/components/Motion.tsx`, `web/components/Plotter.tsx`, `web/components/EditorDemo.tsx` |
 | One source of truth between the bot and the website, enforced by a test | `scripts/export-web-data.js`, `test/webdata.test.js` |
+| Payment integration without a public endpoint, exactly-once settlement | `src/pay/payos.js`, `src/pay/orders.js`, `src/jobs/payments.js`, `test/payments.test.js` |
+| Handling untrusted files and privilege boundaries (backup import and restore) | `src/backups/restore.js`, `src/backups/attachment.js`, `test/backup.test.js` |
+| Scheduling with time zones and no libraries | `src/games/schedule.js`, `src/jobs/events.js`, `test/events.test.js` |
 | Testing without the network | fake guild in `test/builder.test.js`, stubbed `fetch` in `test/ai.test.js` |
 
 ## Timeline
@@ -318,6 +322,42 @@ Four themes were enough to prove the idea but not to be useful. I added seven: *
 
 **Keeping the website honest with eleven themes.** With four themes the exporter could precompute every combination. With eleven, 561 precomputed plans would be far too much for a page's JavaScript. So the website now receives the raw theme data (about the size of the themes themselves) and merges it in the browser with `web/lib/compose.mjs`, a 40-line port of `composePlan`. It is plain JavaScript with a `.d.mts` file for types, so the bot's test suite can import it. `test/webdata.test.js` compares the port with the bot's own `buildPlan` for all 561 mixes (labels, role names, rule counts, category and channel names, staff flags and counts), and the exported data is checked against the theme files. If I change the bot's merge and forget the port, the suite fails.
 
+### Phase 18: humor levels
+
+The three humor levels (gentle, troll, absurd) were a plan item for a long time, and the design question was what a "level" is. The answer that kept the system simple: a level changes words, never structure. `src/themes/humor.js` holds three versions of the eight shared rules and, for every built-in theme, a gentle and an absurd welcome (the troll welcome stays in the theme file). `composePlan(picked, { humor })` swaps those in and records the level on the plan; roles, categories and channels are untouched. That matters because the builder is idempotent by name: rebuild a server at another level and it recognises everything that exists, so only the words that were never posted differ.
+
+Tests pin that down: every level has the same number of rules, every theme has welcomes for every level and each contains `{user}`, an unknown level throws, and for several mixes the structure (roles and categories) is deeply equal across levels while the welcome and the first eight rules differ. Free servers keep troll, and choosing another level is a Pro feature checked by `gateFeature`. Saved and AI themes have no per-level welcome, so they keep the one they were written with and only the shared rules change.
+
+**A bug that no test could have caught until one existed.** In `/build` I named the chosen level `humor`, which shadowed the imported module of the bot's lines that the same function used a few lines earlier. The result was a temporal-dead-zone error the moment anyone ran the command. The unit tests did not notice because they never ran the handler. I renamed the variable and added `test/commands.test.js`, which runs `/build` with a minimal fake interaction (free server, mixing refused, humor refused, Pro server allowed, non-admin refused). That was the start of driving handlers directly in tests.
+
+### Phase 19: automatic payments
+
+Manual codes were the right first step, but selling means someone has to be awake. The target was `/mua goi:pro`, a QR code, and a plan that switches on by itself. I chose payOS because it takes Vietnamese bank transfers (QR through VietQR), has no monthly fee, and its API is small. The constraints shaped the design:
+
+- **No public address.** The bot runs on a Raspberry Pi behind a home network, and payOS's normal way to report a payment is a webhook. Instead of putting a public endpoint (and a shared secret) on a serverless function, the bot polls: a job asks payOS about its own open orders every 30 seconds. All secrets stay on one machine, and there is no endpoint to attack or to keep available. The cost is up to 30 seconds of latency and a limit on how many orders can be open at once, both fine at this size.
+- **Exactly-once.** An order row goes `PENDING` to `PAID` with `UPDATE ... WHERE status = 'PENDING'`; only the call that actually changed a row grants the license. Polling the same paid order twice, or two overlapping rounds, cannot grant it twice. A test polls a paid order twice and asserts the expiry did not move.
+- **Signing.** payOS signs a payment request with HMAC-SHA256 over five fields in alphabetical order (`amount`, `cancelUrl`, `description`, `orderCode`, `returnUrl`) using the channel's checksum key. A test recomputes the documented string independently and compares.
+- **A description limit I would have missed.** For accounts not linked through payOS the description can be at most 9 characters, so it is `THAU` plus the last five digits of the order code, and a test asserts the length.
+- **Dollars in, dong out.** Prices are in dollars; the amount charged is the dollar price times days over 30 times `USD_VND_RATE`, rounded to a thousand with a 2,000 minimum. I update the rate by hand, and the amount is shown before anyone pays.
+- **Failure paths.** A gateway error marks the order failed and tells the customer plainly; one unreadable order never stops the others in a round; an order still pending after 35 minutes expires; cancelled and expired answers close the order without granting anything.
+
+I could not test this against a live account, and the devlog says so under limitations: it is written against the documentation and a stub, and it needs one real small payment before I trust it.
+
+### Phase 20: keeping a server alive
+
+Building a server is day one. This phase added the things that keep a group there. To let the features be written without touching the same files, I first laid shared groundwork: all new tables in one schema, the new plan limits in the plan table, `gateFeature` and `gateLimit` helpers, a router that lets a command own every component whose id starts with its name (buttons, menus, modals and autocomplete), and a job registry (`src/jobs.js`) that runs every file in `src/jobs` on its own timer without overlapping itself. After that each feature was a handful of new files.
+
+- **Saved themes.** The editor gets a "save as my theme" button. `extractCustomTheme` keeps only the custom part of a blueprint (categories that are not the three base ones, roles that are not base roles, extra rules, welcome, label), and `sanitizeCustomTheme` rebuilds every field from scratch when a theme is loaded or imported, so a saved theme can never carry permissions and an imported file cannot smuggle anything in. A round-trip test builds a mix, edits it, extracts, composes, and compares.
+- **Backup and restore.** A snapshot holds roles, categories, text and voice channels and role overwrites (referenced by role name). Restore plans first (a pure function lists what is missing by name and parent), shows exactly what it will create, and then only creates, never deletes or edits. Administrator is never restored, and a file whose source server differs from the target also loses ManageGuild, ManageRoles, ManageChannels, ManageWebhooks, BanMembers, KickMembers and MentionEveryone. Imports come only from Discord's own HTTPS hosts with redirects refused, the real bytes are measured as well as the reported size, and the JSON is rebuilt field by field with hard caps. Everything restore creates is recorded, in a `finally`, so `/nuke` can undo it.
+- **Check-in, levels and mini-games.** A daily check-in keyed by the calendar day in the configured time zone (a pure function tested across midnight, a missed day and a zone boundary), streak bonuses, level roles created lazily and recorded for `/nuke` (never self-assignable), and three games with injectable randomness and clocks: guess the number, rock paper scissors duels with private choices, and trivia with a checked question bank. A per-person daily cap on game points stops farming.
+- **Recurring events.** A weekly definition stores a weekday and a time; `nextOccurrence` computes the next start in the configured time zone with `Intl` and no library, and a job every five minutes creates the Discord scheduled event when the next start is under 24 hours away, announcing it once and never creating a duplicate.
+
+### Phase 21: deploying the website from Git, and polishing the repository
+
+The website had been deployed from the command line. Making a push deploy it meant connecting the project to GitHub, and the first thing I found was that it was already connected (creating the project had done it) and had been failing silently: every push triggered a production build with the repository root as the project root, where there is no Next.js app, so each Git deployment ended in an error while the command-line deployments kept succeeding. I fixed the project settings through the Vercel API (root directory `web`, and an ignore-build-step command that skips the build when nothing under `web/` changed) and confirmed the next push deployed. One consequence is worth recording: with a root directory set, a deployment from the command line has to run from the repository root, not from `web/`.
+
+Polish for people who find the repository: screenshots of the real site in the README, a social preview image, a tagged release with notes, and the repository description and topics. I also noticed a TypeScript build cache file had been committed by accident, untracked it and ignored the pattern.
+
 ## Bugs and what they taught me
 
 | Symptom | Root cause | Fix | Guard now |
@@ -337,6 +377,10 @@ Four themes were enough to prove the idea but not to be useful. I added seven: *
 | The suite took about 38 seconds | The 350 ms pause between creations was a hard-coded constant, so the builder tests slept for real | The pause comes from config (`BUILD_STEP_DELAY_MS`) and the tests set it to zero | The suite now runs in about 2.5 seconds |
 | A build that crashed halfway left items `/nuke` could not find | The record of created IDs was saved once, after all creation succeeded | The record is saved in a `finally` block | Test: the sixth channel creation throws, then nuke removes everything that was created |
 | On a phone the command list scrolled sideways by about 27 px | The space before each argument sat inside a no-wrap span, so `/build theme theme2 theme3 theme4` had no place to break | The space moved outside the span, and the command text may wrap anywhere | The overflow probe in the headless-browser script, run on both languages at phone width |
+| `/build` crashed the moment it ran after humor levels were added | A variable called `humor` shadowed the imported lines module used earlier in the same function (a temporal dead zone error) | Renamed it to `level` | `test/commands.test.js` runs the handler with a fake interaction |
+| Every push produced a failed Vercel deployment while command-line deploys worked | The project was connected to Git with no root directory, so Vercel looked for the app at the repository root | Root directory set to `web` through the API, plus a skip rule for pushes that do not touch `web/` | A Git deployment after the fix reached READY |
+| Two copies of the bot answered commands at the same time | A test terminal on my computer was still running an older version with the same token as the Pi | Stopped the local process | Lesson: one token, one process; the devlog's deploy steps say to stop the local run |
+| A TypeScript build cache file was in the repository | `git add -A` picked up `tsconfig.tsbuildinfo` after a type check | Untracked it and ignored `*.tsbuildinfo` | `git status` is clean after a build |
 | The page scrolled sideways by about 50 px on desktop | The "signed off" stamp starts scaled up 2.4 times inside the pinned scene, and its transformed box counted as scrollable overflow | `overflow-x: clip` on the scene and on the hero | The headless-browser script compares `scrollWidth` with `clientWidth` on every page |
 
 ## Design decisions and alternatives
@@ -353,13 +397,18 @@ Four themes were enough to prove the idea but not to be useful. I added seven: *
 | Plan derived from licenses | A `plan` column updated by a job | Nothing to expire, nothing to drift, one query |
 | Administrator when inviting | A narrow permission set | The bot posts into read-only channels it creates and creates roles; a narrow set can fail in subtle ways. The code still checks and names missing permissions |
 | A port of the merge in the website, tested against the bot | Precompute all 561 plans; import the bot's code into the site; call an API | Precomputed plans are too big for a page. The site deploys from `web/` alone, so it cannot import from `src/`. An API adds a server for a static page. A small port with an equivalence test over every mix costs about 40 lines and cannot drift silently |
+| Poll payOS from the bot | A webhook on a serverless function; a public tunnel to the Pi | No public address is needed, no endpoint to attack, and every secret stays on one machine. The price is up to 30 seconds of delay |
+| Levels change words, not structure | A separate set of themes per level | The builder is idempotent by name, so identical structure means a rebuild at another level duplicates nothing, and there is one copy of every channel to maintain |
+| Restore only creates | Restore as an exact copy that also deletes | Deleting from a file is the most dangerous thing a bot can do. Creating what is missing is safe to repeat and easy to undo with `/nuke` |
 | Components routed by `customId` prefix | A generic router library | About ten lines, and the prefix makes the owner of each id obvious |
 
 ## What I would do next and known limitations
 
-- **End-to-end coverage of the Discord handlers.** The command `execute` functions and `ui/editor.js` are tested only through the pure modules they call. A fake interaction harness would let CI exercise the select menus, modals and `update` versus `reply` paths.
+- **No end-to-end run against a real gateway.** Command handlers and the editor are driven in tests with minimal fake interactions (for example `/build`, `/mua`, the backup and theme commands and the editor's save button), and everything that decides something is a pure module. But nothing in CI talks to Discord, so the exact shape of a few discord.js calls (scheduled events, the role `colors` option, autocomplete, permission bigints) is checked against fakes only. A shared fake-gateway harness would close that gap.
 - **Blueprints are lost on restart,** by design (see Phase 11).
-- **Payments are manual,** and the license CLI is the only way to issue a code outside Discord. There is no reminder when a plan is about to expire.
+- **The payment integration was written against payOS's documentation and tested against a stub, not a live account.** It needs one real small payment before it is trusted. It polls every 30 seconds instead of receiving a webhook, does not verify the signature on payOS's responses, and relies on a dollar-to-dong rate I update by hand. There is no reminder when a plan is about to expire.
+- **Game limits live in memory.** The daily cap on game points and open game rounds reset when the bot restarts, which is fine for fun points and would not be for money.
+- **The trivia bank has 34 questions.** Enough to start, repeated within a couple of weeks of daily play.
 - **The free Gemini tier is a shared quota with data-use terms.** Limits protect it, but a real customer base would need the paid tier and a data-processing note.
 - **One process, SQLite, no sharding.** One bot process with a single-writer database is plenty for dozens of servers. Past a couple of thousand guilds Discord requires sharding, and a database server would be worth having.
 - **The update timer is not installed by the deploy.** It needs `sudo` with a password, so the owner runs three commands once.

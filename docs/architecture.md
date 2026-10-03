@@ -50,6 +50,11 @@ SQLite through the module built into Node 22 (`src/db.js`).
 | `guilds` | `id` TEXT primary key, `record` TEXT (JSON), `updated_at` INTEGER | per server: the theme, and the IDs of the roles, pick-roles, categories and channels the bot created |
 | `licenses` | `code` TEXT primary key, `plan`, `days`, `created_at`, `guild_id`, `redeemed_at`, `expires_at`, index `licenses_guild` on `guild_id` | one row per code, from creation to redemption |
 | `usage` | `guild_id`, `month`, `feature`, `count` (default 0), primary key on the first three | counters: lifetime builds (`month = "all"`) and AI designs per UTC month |
+| `custom_themes` | `guild_id`, `name`, `theme` (JSON), `created_at`, primary key on the first two | themes a server saved from a blueprint |
+| `backups` | `id`, `guild_id`, `name`, `data` (JSON), `created_at`, unique on `guild_id` and `name` | layout snapshots |
+| `scores` | `guild_id`, `user_id`, `points`, `streak`, `last_checkin` (a YYYY-MM-DD day in the configured zone), `updated_at`, index on points per guild | check-in streaks and the leaderboard |
+| `recurring_events` | `id`, `guild_id`, `name`, `description`, `weekday`, `hour`, `minute`, `duration_min`, `channel_id`, `notify_role_id`, `last_event_start`, `created_at` | weekly event definitions |
+| `orders` | `order_code` (primary key), `guild_id`, `user_id`, `channel_id`, `plan`, `days`, `amount`, `status`, `checkout_url`, `created_at`, `paid_at` | payment orders |
 
 The `record` column is a JSON document that is read and written whole and never filtered by field, so it stays a single column. Timestamps are milliseconds since the epoch. WAL mode is on so the daily `VACUUM INTO` copy can run while the bot writes.
 
@@ -113,6 +118,40 @@ stateDiagram-v2
 ```
 
 A server's plan is the highest-ranked license that is Active at the moment of the query, otherwise `free`. Redeeming a second code of the same plan sets the new expiry to the later of now and the current expiry, plus the code's days. Revoking sets `expires_at` to now, so the same query ends it with no extra state.
+
+## Background jobs and payments
+
+`src/jobs.js` loads every file in `src/jobs`, each exporting `{ name, everyMs, run(client) }`. A job runs once at start and then on its own timer, never overlaps itself, and a failure is logged and alerted without stopping the other jobs. There are two: the recurring-event job (every five minutes) and the payment job (every 30 seconds).
+
+```mermaid
+sequenceDiagram
+  participant A as Admin
+  participant B as /mua command
+  participant O as orders table
+  participant P as payOS
+  participant J as payment job
+  participant L as license.js
+  A->>B: /mua goi, ngay
+  B->>O: insert order, status PENDING
+  B->>P: create payment link (signed request)
+  P-->>B: checkout link
+  B-->>A: message with a Pay button
+  A->>P: pays by bank transfer
+  loop every 30 seconds
+    J->>O: open orders from the last 35 minutes
+    J->>P: payment status for each order
+  end
+  P-->>J: PAID
+  J->>O: UPDATE status PAID WHERE status PENDING
+  J->>L: grant plan, only if a row changed
+  J-->>A: confirmation in the channel of /mua
+```
+
+The status change is the exactly-once guard: only the poll that flips a row from pending to paid grants the license, so overlapping rounds or repeated polls cannot grant it twice.
+
+## Backups and restore
+
+A snapshot is validated JSON (roles, categories, text and voice channels, role overwrites by role name) with hard caps. `planRestore` is a pure function that lists what is missing; restoring only creates, records every new ID so `/nuke` can undo it, and strips Administrator always and the other powerful permissions when the file came from another server. Imports are read only from Discord's HTTPS hosts, with redirects refused and the real size measured.
 
 ## Failure modes
 

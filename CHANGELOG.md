@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.4.0
+
+- **Humor levels** (gentle, troll, absurd) for every built-in theme and for saved themes, in `/build` and `/theme dung`. The level changes words, never structure.
+- **Saved themes**: save a blueprint from the editor, reuse it, export it and import it. `/theme`.
+- **Backup and restore** of a server's layout with safe, create-only restore and strict import validation. `/backup`.
+- **Check-in, levels, leaderboard and mini-games** (guess the number, rock paper scissors, trivia). `/diemdanh`, `/bangxephang`, `/doanso`, `/thachdau`, `/cauhoi`.
+- **Recurring events** with Discord scheduled events and announcements. `/sukien`.
+- **Automatic payments** through payOS: `/mua` creates a payment link, a job polls open orders and switches the plan on when the money arrives. `/admin donhang` lists recent orders.
+- A job registry (`src/jobs.js`) and a router that lets a command own its buttons, menus, modals and autocomplete.
+- Plan limits for the new features and an updated `/goi`.
+- Fixed `/build` crashing because a variable shadowed the lines module; handlers are now driven in tests with fake interactions (128 tests).
+- The website: an after-the-build section, the full command list, payment steps, a privacy page that lists what the new features store, and deployment from Git.
+
 ## 1.3.0
 
 - Seven new themes, eleven in total: **Booking Bạn Chơi** (a server for booking a friend to play or talk, with a booking guide, price list, player profiles, free slots, feedback, anti-scam and complaints channels), anime fans, coders, content creators, cinema and music, an office team, and pet lovers.

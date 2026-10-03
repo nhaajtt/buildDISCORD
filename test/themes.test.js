@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { themes, buildPlan, countPlan } from "../src/themes/index.js";
+import { HUMOR_LEVELS, hasWelcomeVariants, rulesFor, welcomeFor } from "../src/themes/humor.js";
+import { baseRules } from "../src/themes/base.js";
 
 test("every theme fits Discord limits and has unique names", () => {
   for (const theme of themes) {
@@ -101,4 +103,33 @@ test("any mix of up to four themes stays inside Discord's limits", () => {
   };
   walk(0, []);
   assert.equal(checked, 11 + 55 + 165 + 330);
+});
+
+test("every humor level has the same number of shared rules and every built-in theme has a welcome for each level", () => {
+  for (const level of HUMOR_LEVELS) assert.equal(rulesFor(level).length, baseRules.length, level);
+  assert.equal(rulesFor("troll"), baseRules, "troll is the wording written in base.js");
+  for (const theme of themes) {
+    assert.ok(hasWelcomeVariants(theme.id), `${theme.id} lacks a gentle or absurd welcome`);
+    for (const level of HUMOR_LEVELS) assert.ok(welcomeFor(theme, level).includes("{user}"), `${theme.id}/${level} welcome needs {user}`);
+  }
+});
+
+test("the humor level changes the words but never the structure, so a rebuild at another level duplicates nothing", () => {
+  const strip = (plan) => ({ roles: plan.roles, categories: plan.categories, extraStart: plan.rules.length });
+  for (const ids of [["gaming"], ["booking", "anime"], ["hoc-tap", "dev-code", "thu-cung"]]) {
+    const troll = buildPlan(ids);
+    for (const level of ["nhe", "nham"]) {
+      const other = buildPlan(ids, { humor: level });
+      assert.deepEqual(strip(other), strip(troll), `${ids.join("+")}/${level}`);
+      assert.notEqual(other.welcome, troll.welcome);
+      assert.notDeepEqual(other.rules.slice(0, 8), troll.rules.slice(0, 8));
+      assert.equal(other.humor, level);
+    }
+    assert.equal(troll.humor, "troll");
+  }
+});
+
+test("an unknown humor level is refused and a theme without variants keeps its welcome", () => {
+  assert.throws(() => buildPlan(["gaming"], { humor: "giận" }), /Unknown humor level/);
+  assert.equal(welcomeFor({ id: "ai", welcome: "Chào {user}!" }, "nham"), "Chào {user}!");
 });
