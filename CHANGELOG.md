@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0
+
+- **Welcome flow** with an optional verify button and starter role. `/chaomung`.
+- **Server health check** with a score, explanations and safe fixes. `/khamsuckhoe`.
+- **AutoMod** through Discord's native rules, three levels. `/automod`.
+- **Tickets** as private channels with automatic closing. `/ticket`.
+- **Web dashboard** with Discord sign-in, running inside the bot.
+- **Unlocked servers**: `UNLOCKED_GUILD_IDS` gives chosen servers every feature without a license.
+
 ## 1.4.0
 
 - **Humor levels** (gentle, troll, absurd) for every built-in theme and for saved themes, in `/build` and `/theme dung`. The level changes words, never structure.

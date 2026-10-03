@@ -28,6 +28,13 @@ Made by [nhaajt](https://github.com/nhaajtt) ([website](https://www.nhaajt.com/)
 - **Check-in, levels and mini-games.** A daily check-in with streaks, level roles, a leaderboard, guess the number, rock paper scissors duels and quick trivia.
 - **Recurring events.** Weekly Discord events created and announced by the bot.
 
+**Look after the server**
+- **Welcome flow.** `/chaomung` greets new members (the bot reads Discord's own join notice, so no privileged intent), can hand out a starter role and add a verify button.
+- **Health check.** `/khamsuckhoe` scores the server on permissions, channels and security, explains each finding and offers safe one-click fixes. Nothing changes without a click.
+- **AutoMod.** `/automod` builds Discord's native rules (spam, invite links, mention floods, and more at higher levels) so Discord does the blocking and the bot never reads messages.
+- **Tickets.** `/ticket` posts a panel; each ticket is a private channel for the member and the staff role, closed automatically after a quiet spell, with no transcripts kept.
+- **Web dashboard.** Server admins sign in with Discord and manage all of the above in a browser. See [Dashboard](#dashboard).
+
 **Run it as a business**
 - **Plans per server** (free, Pro, Plus) with limits for everything above. See [Plans](#plans).
 - **Automatic payments.** `/mua` creates a payOS payment link with a QR code; the bot polls its own open orders and switches the plan on when the money arrives. Activation codes still work for buying by hand.
@@ -52,6 +59,10 @@ The bot never reads message content and uses no privileged intent. Discord does 
 | `/sukien tao, danhsach, xoa, mau` | Administrators, Pro | Weekly recurring events |
 | `/diemdanh`, `/bangxephang` | Everyone, Pro server | Daily check-in and the leaderboard |
 | `/doanso`, `/thachdau`, `/cauhoi` | Everyone, Pro server | Guess the number, rock paper scissors, trivia |
+| `/chaomung caidat, thu, tat` | Administrators | Welcome message, starter role, verify button |
+| `/khamsuckhoe kiemtra, lichsu` | Administrators | Health score with safe fixes, and recent scores |
+| `/automod bat, tat, trangthai, mientru` | Administrators | Native AutoMod rules by level (Medium and Strict from Pro) |
+| `/ticket caidat, loai, ...` | Administrators, Pro | Private support tickets |
 | `/nuke` | Administrators | Removes what the bot built, after confirmation |
 | `/mua goi [ngay]` | Administrators | Buy or renew a plan, paid by bank transfer |
 | `/kichhoat ma` | Administrators | Activates a plan with a code |
@@ -117,6 +128,14 @@ The update script fetches new commits, accepts fast-forwards only, rebuilds, wai
 
 `web/` is a Next.js site deployed on Vercel from this repository: the project's root directory is `web`, a push to `main` deploys it, and a push that changes nothing under `web/` skips the build.
 
+## Dashboard
+
+The dashboard runs inside the bot process and is off until `DISCORD_CLIENT_SECRET`, `SESSION_SECRET` and `DASHBOARD_URL` are all set. Sign-in is Discord OAuth2; the access token is revoked right after the user is identified, and a server is only shown to people who are administrators of it right now (re-checked against Discord on every request). Sessions are signed cookies, writes need a CSRF header and a same-origin check, and the page runs under a strict content security policy.
+
+1. In the Discord Developer Portal add the redirect `<DASHBOARD_URL>/auth/callback` and copy the client secret.
+2. Put the three variables in `.env`. Generate the session secret with `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`.
+3. Compose publishes the port on the host's loopback only (`127.0.0.1:8788`). To reach it from outside without opening a router port, run `tailscale funnel --bg 8788` and use the resulting `https://<machine>.<tailnet>.ts.net` as `DASHBOARD_URL`.
+
 ## Configuration
 
 | Variable | Needed | Meaning |
@@ -126,6 +145,9 @@ The update script fetches new commits, accepts fast-forwards only, rebuilds, wai
 | `GUILD_ID` | no | Register commands on one server only (instant). Empty means global, which can take a while to appear |
 | `OWNER_IDS` | no | Comma separated Discord user IDs allowed to use `/admin` |
 | `MUSIC_BOT_INVITE_URL`, `TTS_BOT_INVITE_URL` | no | Invite links behind the buttons in the DJ and text-to-speech channels |
+| `DISCORD_CLIENT_SECRET`, `SESSION_SECRET`, `DASHBOARD_URL` | no | All three switch the dashboard on |
+| `DASHBOARD_PORT`, `DASHBOARD_HOST` | no | Port (default 8788) and bind address (default 127.0.0.1, compose sets 0.0.0.0 inside the container) |
+| `UNLOCKED_GUILD_IDS` | no | Comma separated server IDs that get every feature with no license (your own and test servers) |
 | `GEMINI_API_KEY` | no | Key from [Google AI Studio](https://aistudio.google.com/apikey). Without it `/thietke` stays off |
 | `GEMINI_MODEL` | no | Force a model name. Empty means the bot picks the newest stable flash model your key can use |
 | `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY` | no | payOS credentials. All three switch `/mua` on |
@@ -139,7 +161,7 @@ The update script fetches new commits, accepts fast-forwards only, rebuilds, wai
 
 ## What is stored
 
-For each server: its ID, the theme used, the IDs of the channels, categories and roles the bot created, the active license (plan and expiry), usage counters, and, when the features are used, saved themes, backups (a copy of the layout, never message content), recurring event definitions and members' points, streaks and last check-in day. Payment orders keep the plan, days, amount, status and the Discord IDs of the server and the person who ran `/mua`. For `/thietke`, the description you type is sent to Google Gemini; on Google's free tier Google may use it to improve its products, so do not put anything private in it. Message content is never read or stored. `/xoadulieu` erases a server's record.
+For each server: its ID, its welcome, AutoMod and ticket settings, open tickets (channel and opener, never messages), health check scores, the theme used, the IDs of the channels, categories and roles the bot created, the active license (plan and expiry), usage counters, and, when the features are used, saved themes, backups (a copy of the layout, never message content), recurring event definitions and members' points, streaks and last check-in day. Payment orders keep the plan, days, amount, status and the Discord IDs of the server and the person who ran `/mua`. For `/thietke`, the description you type is sent to Google Gemini; on Google's free tier Google may use it to improve its products, so do not put anything private in it. Message content is never read or stored. `/xoadulieu` erases a server's record.
 
 The database is `data/thauxaydung.db` (SQLite). A consistent copy is written to `data/backups` once a day and the last seven are kept.
 
