@@ -1,7 +1,7 @@
 import { EmbedBuilder } from "discord.js";
 import { getPayment as getPayosPayment, payosEnabled } from "../pay/payos.js";
 import { getPayment as getStripePayment, stripeEnabled } from "../pay/stripe.js";
-import { closeOrder, expireStaleOrders, pendingOrders, settleOrder } from "../pay/orders.js";
+import { ONE_OFF, closeOrder, expireStaleOrders, pendingOrders, settleOrder } from "../pay/orders.js";
 import { PLANS } from "../license.js";
 
 // There is no public address for the gateways to call, so the bot asks about its own open orders instead. That keeps every secret on this machine.
@@ -12,7 +12,7 @@ async function announce(client, settled) {
   const embed = new EmbedBuilder()
     .setColor(0x12c79a)
     .setTitle("✅ Thanh toán thành công")
-    .setDescription(`Server đã lên gói **${PLANS[order.plan].label}**, hạn đến <t:${Math.floor(expiresAt / 1000)}:D>. Cảm ơn đại ca đã ủng hộ thầu, tiền này sẽ biến thành điện cho Raspberry Pi.`);
+    .setDescription(`Server đã lên gói **${PLANS[ONE_OFF[order.plan]?.grants ?? order.plan].label}**, hạn đến <t:${Math.floor(expiresAt / 1000)}:D>. Cảm ơn đại ca đã ủng hộ thầu, tiền này sẽ biến thành điện cho Raspberry Pi.`);
   await channel.send({ content: `<@${order.user_id}>`, embeds: [embed], allowedMentions: { users: [order.user_id] } }).catch(() => {});
 }
 

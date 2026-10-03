@@ -1,4 +1,5 @@
 import { addUsage, getPlan, getUsage } from "../license.js";
+import { track } from "../analytics.js";
 
 // Each gate returns null when allowed, or the funny refusal to show. Plan limits live in license.js.
 
@@ -8,12 +9,15 @@ export function gateBuild(guildId, themeCount) {
     return "Trộn nhiều theme là đặc quyền gói Pro. Gói miễn phí chỉ được một theme thôi, đầu tư chút đi đại ca. Gõ `/goi` để xem cách nâng cấp.";
   }
   if (getUsage(guildId, "build", { lifetime: true }) >= plan.buildsTotal) {
-    return "Gói miễn phí xây được đúng một lần, và bạn xài rồi. Muốn xây lại hay đổi theme thì nâng cấp Pro nhé. Gõ `/goi` để biết cách.";
+    return `Gói miễn phí xây được ${plan.buildsTotal} lần, và bạn xài hết rồi. Muốn xây thêm hay đổi theme thì nâng cấp Pro nhé. Gõ \`/goi\` để biết cách.`;
   }
   return null;
 }
 
-export const recordBuild = (guildId) => addUsage(guildId, "build", { lifetime: true });
+export const recordBuild = (guildId) => {
+  addUsage(guildId, "build", { lifetime: true });
+  track(guildId, "build_done");
+};
 
 const UPGRADE = "Gõ `/goi` để xem cách nâng cấp.";
 
@@ -23,6 +27,10 @@ const featureMessages = {
   events: `Sự kiện định kỳ là của gói Pro trở lên. ${UPGRADE}`,
   tickets: `Hệ thống ticket là của gói Pro trở lên. ${UPGRADE}`,
   automodFull: `AutoMod mức gắt, chặn link và tuỳ chỉnh sâu là của gói Pro trở lên. ${UPGRADE}`,
+  nukeGuard: `Chống xoá hàng loạt là của gói Pro trở lên. ${UPGRADE}`,
+  activity: `Điểm hoạt động, cấp độ theo chat và giọng nói là của gói Pro trở lên. ${UPGRADE}`,
+  giveaways: `Giveaway là của gói Pro trở lên. ${UPGRADE}`,
+  aiHelper: `Trợ lý AI viết luật, lời chào và thông báo là của gói Pro trở lên. ${UPGRADE}`,
 };
 
 // Returns null when the server's plan includes the feature, or the funny refusal to show

@@ -8,8 +8,17 @@ import { stopDashboard } from "./web/server.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// GuildMessages is not privileged and gives no message content; it is used to see Discord's own "member joined" notice
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
+// None of these is privileged. GuildMessages gives no message content: it shows Discord's own "member joined" notice and who is active.
+// GuildVoiceStates is for voice time, GuildModeration for bans and unbans, AutoModerationExecution for AutoMod blocks.
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildModeration,
+    GatewayIntentBits.AutoModerationExecution,
+  ],
+});
 
 client.commands = new Collection();
 for (const file of readdirSync(path.join(__dirname, "commands")).filter((f) => f.endsWith(".js"))) {

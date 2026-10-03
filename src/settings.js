@@ -79,6 +79,94 @@ export const SECTIONS = {
   },
 };
 
+export const SECTIONS_MORE = {
+  security: {
+    defaults: {
+      raidEnabled: false,
+      raidJoins: 8,
+      raidWindowSec: 30,
+      raidAction: "verify",
+      lockMinutes: 10,
+      alertChannelId: null,
+      nukeEnabled: false,
+      nukeThreshold: 3,
+      nukeWindowSec: 60,
+      lockdown: { active: false, since: 0, prevVerification: null, channels: [] },
+    },
+    normalize: (v = {}) => {
+      const lock = v.lockdown && typeof v.lockdown === "object" ? v.lockdown : {};
+      return {
+        raidEnabled: flag(v.raidEnabled, false),
+        raidJoins: whole(v.raidJoins, 3, 50, 8),
+        raidWindowSec: whole(v.raidWindowSec, 10, 300, 30),
+        // alert only, raise the verification level, or lock the channels for a while
+        raidAction: oneOf(v.raidAction, ["alert", "verify", "lock"], "verify"),
+        lockMinutes: whole(v.lockMinutes, 1, 120, 10),
+        alertChannelId: id(v.alertChannelId),
+        nukeEnabled: flag(v.nukeEnabled, false),
+        nukeThreshold: whole(v.nukeThreshold, 2, 10, 3),
+        nukeWindowSec: whole(v.nukeWindowSec, 10, 600, 60),
+        // what a lockdown changed, so it can be put back exactly as it was
+        lockdown: {
+          active: flag(lock.active, false),
+          since: whole(lock.since, 0, Number.MAX_SAFE_INTEGER, 0),
+          prevVerification: Number.isInteger(lock.prevVerification) && lock.prevVerification >= 0 && lock.prevVerification <= 4 ? lock.prevVerification : null,
+          channels: (Array.isArray(lock.channels) ? lock.channels : [])
+            .map((c) => ({ id: id(c?.id), sendMessages: oneOf(c?.sendMessages, ["neutral", "allow", "deny"], "neutral") }))
+            .filter((c) => c.id)
+            .slice(0, 150),
+        },
+      };
+    },
+  },
+  activity: {
+    defaults: { enabled: false, xpPerMessage: 5, cooldownSec: 60, dailyCap: 500, voiceEnabled: true, voiceXpPerMin: 2, announceChannelId: null },
+    normalize: (v = {}) => ({
+      enabled: flag(v.enabled, false),
+      xpPerMessage: whole(v.xpPerMessage, 1, 50, 5),
+      cooldownSec: whole(v.cooldownSec, 10, 600, 60),
+      dailyCap: whole(v.dailyCap, 50, 5000, 500),
+      voiceEnabled: flag(v.voiceEnabled, true),
+      voiceXpPerMin: whole(v.voiceXpPerMin, 0, 20, 2),
+      announceChannelId: id(v.announceChannelId),
+    }),
+  },
+  digest: {
+    defaults: { enabled: false, channelId: null, weekday: 1, hour: 9, auditWeekly: true, lastSentAt: 0, lastAuditAt: 0, lastScore: null },
+    normalize: (v = {}) => ({
+      enabled: flag(v.enabled, false),
+      channelId: id(v.channelId),
+      weekday: whole(v.weekday, 0, 6, 1),
+      hour: whole(v.hour, 0, 23, 9),
+      auditWeekly: flag(v.auditWeekly, true),
+      lastSentAt: whole(v.lastSentAt, 0, Number.MAX_SAFE_INTEGER, 0),
+      lastAuditAt: whole(v.lastAuditAt, 0, Number.MAX_SAFE_INTEGER, 0),
+      lastScore: Number.isInteger(v.lastScore) && v.lastScore >= 0 && v.lastScore <= 100 ? v.lastScore : null,
+    }),
+  },
+  modlog: {
+    defaults: { enabled: false, channelId: null, logBans: true, logTimeouts: true, logRoles: true, logAutomod: true },
+    normalize: (v = {}) => ({
+      enabled: flag(v.enabled, false),
+      channelId: id(v.channelId),
+      logBans: flag(v.logBans, true),
+      logTimeouts: flag(v.logTimeouts, true),
+      logRoles: flag(v.logRoles, true),
+      logAutomod: flag(v.logAutomod, true),
+    }),
+  },
+  setup: {
+    defaults: { done: false, at: 0, themeIds: "", humor: null },
+    normalize: (v = {}) => ({
+      done: flag(v.done, false),
+      at: whole(v.at, 0, Number.MAX_SAFE_INTEGER, 0),
+      themeIds: text(v.themeIds, 120),
+      humor: oneOf(v.humor, ["nhe", "troll", "nham"], null),
+    }),
+  },
+};
+Object.assign(SECTIONS, SECTIONS_MORE);
+
 export const SECTION_NAMES = Object.keys(SECTIONS);
 
 function readAll(guildId) {

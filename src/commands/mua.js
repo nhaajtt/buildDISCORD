@@ -4,7 +4,7 @@ import { PLANS } from "../license.js";
 import { alert } from "../alerts.js";
 import { PayError, createPaymentLink, payosEnabled } from "../pay/payos.js";
 import { StripeError, createCheckoutSession, stripeEnabled } from "../pay/stripe.js";
-import { DAY_CHOICES, PRICES_USD, amountCents, amountVnd, closeOrder, createOrder, describeOrder, newOrderCode, setCheckoutUrl, setProviderRef } from "../pay/orders.js";
+import { DAY_CHOICES, ONE_OFF, PRICES_USD, amountCents, amountVnd, closeOrder, createOrder, daysFor, describeOrder, monthsFor, newOrderCode, planLabel, setCheckoutUrl, setProviderRef } from "../pay/orders.js";
 import { isAdmin } from "../utils/guards.js";
 import * as humor from "../humor/lines.js";
 
@@ -20,10 +20,14 @@ export default {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .setDMPermission(false)
     .addStringOption((option) =>
-      option.setName("goi").setDescription("Gói muốn mua").setRequired(true).addChoices({ name: "Pro", value: "pro" }, { name: "Plus", value: "plus" }),
+      option
+        .setName("goi")
+        .setDescription("Gói muốn mua")
+        .setRequired(true)
+        .addChoices({ name: "Pro", value: "pro" }, { name: "Plus", value: "plus" }, { name: "Dựng giúp (Pro 7 ngày, trả một lần)", value: "dungiup" }),
     )
     .addIntegerOption((option) =>
-      option.setName("ngay").setDescription("Số ngày (mặc định 30)").addChoices(...DAY_CHOICES.map((d) => ({ name: `${d} ngày`, value: d }))),
+      option.setName("ngay").setDescription("Số ngày (mặc định 30, một năm trả 10 tháng, bỏ qua với Dựng giúp)").addChoices(...DAY_CHOICES.map((d) => ({ name: `${d} ngày`, value: d }))),
     )
     .addStringOption((option) =>
       option
@@ -45,7 +49,7 @@ export default {
     }
 
     const plan = interaction.options.getString("goi");
-    const days = interaction.options.getInteger("ngay") ?? 30;
+    const days = daysFor(plan, interaction.options.getInteger("ngay") ?? 30);
     const amount = provider === "stripe" ? amountCents(plan, days) : amountVnd(plan, days);
     const orderCode = newOrderCode();
 
@@ -58,7 +62,7 @@ export default {
         const session = await createCheckoutSession({
           orderCode,
           guildId: interaction.guildId,
-          productName: `Thầu Xây Dựng ${PLANS[plan].label}, ${days} ngày`,
+          productName: `Thầu Xây Dựng ${PLANS[plan]?.label ?? planLabel(plan)}, ${days} ngày`,
           amountCents: amount,
           successUrl: urls.returnUrl,
           cancelUrl: urls.cancelUrl,
@@ -69,10 +73,10 @@ export default {
         link = await createPaymentLink({ orderCode, amount, description: describeOrder(orderCode), ...urls });
       }
       setCheckoutUrl(orderCode, link.checkoutUrl);
-      const listUsd = PRICES_USD[plan] * (days / 30);
+      const listUsd = ONE_OFF[plan] ? PRICES_USD[plan] : PRICES_USD[plan] * monthsFor(days);
       const embed = new EmbedBuilder()
         .setColor(0xf5c518)
-        .setTitle(`💳 Mua gói ${PLANS[plan].label}, ${days} ngày`)
+        .setTitle(`💳 Mua gói ${PLANS[plan]?.label ?? planLabel(plan)}, ${days} ngày`)
         .setDescription(
           provider === "stripe"
             ? `Số tiền: **${usd(amount)}**.\nBấm nút bên dưới, nhập thẻ trên trang thanh toán của Stripe (thầu không thấy số thẻ của bạn). Tiền về là gói tự bật trong chừng một phút, không cần nhập mã. Liên kết sống 30 phút.`

@@ -1,14 +1,15 @@
 import { randomBytes } from "node:crypto";
 import { config } from "./config.js";
 import { getDb } from "./db.js";
+import { track } from "./analytics.js";
 
 const DAY = 24 * 60 * 60 * 1000;
 
 // What each plan allows. Infinity means no cap.
 export const PLANS = {
-  free: { label: "Miễn phí", rank: 0, mix: false, humor: false, onboarding: true, audit: true, automodFull: false, tickets: false, buildsTotal: 1, aiPerMonth: 0, backups: 0, customThemes: 0, recurringEvents: 0, games: false, events: false },
-  pro: { label: "Pro", rank: 1, mix: true, humor: true, onboarding: true, audit: true, automodFull: true, tickets: true, buildsTotal: Infinity, aiPerMonth: 20, backups: 3, customThemes: 3, recurringEvents: 3, games: true, events: true },
-  plus: { label: "Plus", rank: 2, mix: true, humor: true, onboarding: true, audit: true, automodFull: true, tickets: true, buildsTotal: Infinity, aiPerMonth: 100, backups: 10, customThemes: 10, recurringEvents: 10, games: true, events: true },
+  free: { label: "Miễn phí", rank: 0, mix: false, humor: false, onboarding: true, audit: true, automodFull: false, tickets: false, security: true, nukeGuard: false, activity: false, giveaways: false, digest: true, aiHelper: false, roleMenus: 3, buildsTotal: 2, aiPerMonth: 0, backups: 0, customThemes: 0, recurringEvents: 0, games: false, events: false },
+  pro: { label: "Pro", rank: 1, mix: true, humor: true, onboarding: true, audit: true, automodFull: true, tickets: true, security: true, nukeGuard: true, activity: true, giveaways: true, digest: true, aiHelper: true, roleMenus: 10, buildsTotal: Infinity, aiPerMonth: 20, backups: 3, customThemes: 3, recurringEvents: 3, games: true, events: true },
+  plus: { label: "Plus", rank: 2, mix: true, humor: true, onboarding: true, audit: true, automodFull: true, tickets: true, security: true, nukeGuard: true, activity: true, giveaways: true, digest: true, aiHelper: true, roleMenus: 25, buildsTotal: Infinity, aiPerMonth: 100, backups: 10, customThemes: 10, recurringEvents: 10, games: true, events: true },
 };
 
 // No 0/O/1/I so a code read out loud or typed from a screenshot is hard to get wrong
@@ -35,7 +36,7 @@ export function createLicense(plan, days, now = Date.now()) {
 // Active plan of a server: the highest-ranked license that has not expired, else free
 // Servers the owner lists in UNLOCKED_GUILD_IDS (their own and their test servers) get everything, with no license and no expiry.
 // The limits are lifted far above anything a paid plan has, so new features can be tried without hitting a quota.
-const UNLOCKED = { ...PLANS.plus, label: "Mở khoá (chủ bot)", rank: 3, aiPerMonth: 1000, backups: 50, customThemes: 50, recurringEvents: 25 };
+const UNLOCKED = { ...PLANS.plus, label: "Mở khoá (chủ bot)", rank: 3, aiPerMonth: 1000, backups: 50, customThemes: 50, recurringEvents: 25, roleMenus: 100 };
 
 export const isUnlocked = (guildId) => config.unlockedGuildIds.includes(String(guildId));
 
@@ -85,6 +86,7 @@ export function startTrial(guildId, now = Date.now()) {
   if (getUsage(guildId, "trial", { lifetime: true }) > 0) return { ok: false, reason: "used" };
   if (getPlan(guildId, now).rank > 0) return { ok: false, reason: "paid" };
   addUsage(guildId, "trial", { lifetime: true, now });
+  track(guildId, "trial", now);
   return grant(guildId, "pro", TRIAL_DAYS, now);
 }
 

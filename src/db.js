@@ -108,6 +108,86 @@ CREATE TABLE IF NOT EXISTS audit_reports (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS audit_guild ON audit_reports (guild_id, created_at DESC);
+CREATE TABLE IF NOT EXISTS events_log (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS events_kind ON events_log (kind, at);
+CREATE INDEX IF NOT EXISTS events_guild ON events_log (guild_id, kind, at);
+CREATE TABLE IF NOT EXISTS xp (
+  guild_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  xp INTEGER NOT NULL DEFAULT 0,
+  msgs INTEGER NOT NULL DEFAULT 0,
+  voice_min INTEGER NOT NULL DEFAULT 0,
+  day TEXT,
+  day_xp INTEGER NOT NULL DEFAULT 0,
+  last_msg_at INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (guild_id, user_id)
+);
+CREATE INDEX IF NOT EXISTS xp_rank ON xp (guild_id, xp DESC);
+CREATE TABLE IF NOT EXISTS giveaways (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  message_id TEXT,
+  host_id TEXT NOT NULL,
+  prize TEXT NOT NULL,
+  winners INTEGER NOT NULL DEFAULT 1,
+  ends_at INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  winner_ids TEXT,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS giveaways_due ON giveaways (status, ends_at);
+CREATE TABLE IF NOT EXISTS giveaway_entries (
+  giveaway_id INTEGER NOT NULL,
+  user_id TEXT NOT NULL,
+  PRIMARY KEY (giveaway_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS polls (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  message_id TEXT,
+  question TEXT NOT NULL,
+  options TEXT NOT NULL,
+  ends_at INTEGER,
+  status TEXT NOT NULL,
+  created_by TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS polls_due ON polls (status, ends_at);
+CREATE TABLE IF NOT EXISTS poll_votes (
+  poll_id INTEGER NOT NULL,
+  user_id TEXT NOT NULL,
+  option_index INTEGER NOT NULL,
+  PRIMARY KEY (poll_id, user_id)
+);
+CREATE TABLE IF NOT EXISTS mod_cases (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  mod_id TEXT NOT NULL,
+  action TEXT NOT NULL,
+  reason TEXT,
+  until INTEGER,
+  at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS mod_cases_user ON mod_cases (guild_id, user_id, at DESC);
+CREATE TABLE IF NOT EXISTS role_menus (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  message_id TEXT,
+  title TEXT NOT NULL,
+  mode TEXT NOT NULL,
+  roles TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS role_menus_guild ON role_menus (guild_id);
 `;
 
 // Imports the per-server JSON files written by the first version, then sets them aside

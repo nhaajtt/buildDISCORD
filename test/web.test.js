@@ -483,7 +483,7 @@ test("the guild view lists pickers, plan, usage, settings, health, tickets and o
   assert.equal(g.name, "Server Miễn Phí");
   assert.equal(g.plan.plan, "free");
   assert.equal(g.plan.limits.tickets, false);
-  assert.equal(g.plan.limits.buildsTotal, 1);
+  assert.equal(g.plan.limits.buildsTotal, 2);
   assert.equal(g.usage.builds, 0);
   assert.deepEqual(Object.keys(g.settings).sort(), ["automod", "tickets", "welcome"]);
   assert.deepEqual(g.texts.map((c) => c.name).sort(), ["chung", "log", "tin-tuc"]);

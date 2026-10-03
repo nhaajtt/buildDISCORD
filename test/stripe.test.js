@@ -44,7 +44,7 @@ function stripeOrder(code, guildId, plan = "pro", days = 30, ref = `cs_${code}`)
   orders.setProviderRef(code, ref);
 }
 
-const session = (code, extra = {}) => ({ id: `cs_${code}`, client_reference_id: String(code), amount_total: 999, currency: "usd", status: "open", payment_status: "unpaid", ...extra });
+const session = (code, extra = {}) => ({ id: `cs_${code}`, client_reference_id: String(code), amount_total: 399, currency: "usd", status: "open", payment_status: "unpaid", ...extra });
 
 beforeEach(() => {
   globalThis.fetch = undefined;
@@ -56,10 +56,12 @@ test("an old database gets the provider columns and keeps its payOS order", () =
 });
 
 test("Stripe prices are the list prices in cents", () => {
-  assert.equal(orders.amountCents("pro", 30), 999);
-  assert.equal(orders.amountCents("plus", 30), 1999);
-  assert.equal(orders.amountCents("pro", 90), 2997);
-  assert.equal(orders.amountCents("plus", 180), 11994);
+  assert.equal(orders.amountCents("pro", 30), 399);
+  assert.equal(orders.amountCents("plus", 30), 799);
+  assert.equal(orders.amountCents("pro", 90), 1197);
+  assert.equal(orders.amountCents("plus", 180), 4794);
+  assert.equal(orders.amountCents("pro", 365), 3990, "a year is ten months");
+  assert.equal(orders.amountCents("dungiup", 7), 499, "the one-off build-for-me price");
   assert.throws(() => orders.amountCents("free", 30));
   assert.throws(() => orders.amountCents("pro", 45));
   assert.ok(stripe.stripeEnabled());
@@ -93,7 +95,7 @@ test("a Stripe error or a missing link is an error, never a success", async () =
 });
 
 test("getPayment understands paid, unpaid and expired, and refuses a session that is not this order's", async () => {
-  const expect = { orderCode: 7, amountCents: 999 };
+  const expect = { orderCode: 7, amountCents: 399 };
   stubFetch(() => ({ body: session(7, { status: "complete", payment_status: "paid" }) }));
   assert.deepEqual(await stripe.getPayment("cs_7", expect), { status: "PAID", paid: true, closed: false });
   stubFetch(() => ({ body: session(7) }));
@@ -166,12 +168,12 @@ test("/mua pays by card through Stripe by default, in dollars", async () => {
   const i = fakeInteraction({ goi: "plus", ngay: 90 });
   await mua.execute(i);
   const sent = i.replies.at(-1);
-  assert.match(sent.embeds[0].data.description, /\$59\.97/);
+  assert.match(sent.embeds[0].data.description, /\$23\.97/);
   assert.equal(sent.components[0].components[0].data.url, "https://checkout.stripe.com/c/pay/cs_mua");
   const code = Number(sent.embeds[0].data.footer.text.replace(/\D/g, ""));
   const order = orders.getOrder(code);
   assert.equal(order.provider, "stripe");
-  assert.equal(order.amount, 5997);
+  assert.equal(order.amount, 2397);
   assert.equal(order.provider_ref, "cs_mua");
 });
 

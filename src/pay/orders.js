@@ -1,18 +1,28 @@
 import { config } from "../config.js";
 import { getDb } from "../db.js";
 import { grant } from "../license.js";
+import { track } from "../analytics.js";
 
 // List prices in US dollars per 30 days. The amount charged is in dong, converted at config.usdVndRate.
-export const PRICES_USD = { pro: 9.99, plus: 19.99 };
-export const DAY_CHOICES = [30, 90, 180];
+export const PRICES_USD = { pro: 3.99, plus: 7.99, dungiup: 4.99 };
+export const DAY_CHOICES = [30, 90, 180, 365];
+
+// "dungiup" (build for me) is a one-off: a week of Pro, enough to set a server up, paid once instead of subscribing
+export const ONE_OFF = { dungiup: { grants: "pro", days: 7, label: "Dựng giúp" } };
+export const planLabel = (plan) => ONE_OFF[plan]?.label ?? plan;
+
+// A year costs ten months, so the two months are free. Everything else is priced per 30 days.
+export const monthsFor = (days) => (days === 365 ? 10 : days / 30);
+export const daysFor = (plan, days) => ONE_OFF[plan]?.days ?? days;
 export const PROVIDERS = ["stripe", "payos"];
 
 // What Stripe charges, in cents. Dollar prices are exact, so there is no rate and no rounding to a thousand.
 export function amountCents(plan, days) {
   const usd = PRICES_USD[plan];
   if (!usd) throw new Error(`No price for plan ${plan}`);
+  if (ONE_OFF[plan]) return Math.round(usd * 100);
   if (!DAY_CHOICES.includes(days)) throw new Error(`Unsupported number of days: ${days}`);
-  return Math.round(usd * (days / 30) * 100);
+  return Math.round(usd * monthsFor(days) * 100);
 }
 
 // How long a payment link stays worth polling
@@ -21,8 +31,8 @@ export const ORDER_TTL_MS = 35 * 60 * 1000;
 export function amountVnd(plan, days, rate = config.usdVndRate) {
   const usd = PRICES_USD[plan];
   if (!usd) throw new Error(`No price for plan ${plan}`);
-  if (!DAY_CHOICES.includes(days)) throw new Error(`Unsupported number of days: ${days}`);
-  const raw = usd * (days / 30) * rate;
+  if (!ONE_OFF[plan] && !DAY_CHOICES.includes(days)) throw new Error(`Unsupported number of days: ${days}`);
+  const raw = usd * (ONE_OFF[plan] ? 1 : monthsFor(days)) * rate;
   return Math.max(2000, Math.round(raw / 1000) * 1000);
 }
 
@@ -79,6 +89,7 @@ export function settleOrder(orderCode, now = Date.now()) {
   if (!order) return null;
   const flipped = Number(getDb().prepare("UPDATE orders SET status = 'PAID', paid_at = ? WHERE order_code = ? AND status = 'PENDING'").run(now, orderCode).changes);
   if (!flipped) return null;
-  const result = grant(order.guild_id, order.plan, order.days, now);
+  const result = grant(order.guild_id, ONE_OFF[order.plan]?.grants ?? order.plan, order.days, now);
+  track(order.guild_id, "paid", now);
   return { order: { ...order, status: "PAID", paid_at: now }, expiresAt: result.expiresAt };
 }

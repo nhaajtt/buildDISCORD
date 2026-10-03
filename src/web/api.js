@@ -7,7 +7,7 @@ import { applyFix, fixIdsOf, getFix, latestReport, reports, runAudit } from "../
 import { gateAutomod, removeAutomod, syncAutomod } from "../automod/index.js";
 import { ruleLabels } from "../humor/automod.js";
 import { roleProblem } from "../onboarding/safety.js";
-import { PRICES_USD, DAY_CHOICES, amountVnd, describeOrder, recentOrders } from "../pay/orders.js";
+import { PRICES_USD, DAY_CHOICES, ONE_OFF, amountCents, amountVnd, describeOrder, recentOrders } from "../pay/orders.js";
 import { panelPayload, postTicketPanel } from "../tickets/panel.js";
 import { listOpen } from "../tickets/store.js";
 import { HttpError, avatarUrl, iconUrl } from "./auth.js";
@@ -82,7 +82,7 @@ const buyInfo = () => ({
   contact: config.contactText,
   payosEnabled: Boolean(config.payos.clientId && config.payos.apiKey && config.payos.checksumKey),
   stripeEnabled: Boolean(config.stripe.secretKey),
-  offers: Object.keys(PRICES_USD).flatMap((plan) => DAY_CHOICES.map((days) => ({ plan, label: PLANS[plan].label, days, amount: amountVnd(plan, days), usd: Math.round(PRICES_USD[plan] * (days / 30) * 100) / 100 }))),
+  offers: Object.keys(PRICES_USD).flatMap((plan) => (ONE_OFF[plan] ? [ONE_OFF[plan].days] : DAY_CHOICES).map((days) => ({ plan, label: PLANS[plan]?.label ?? ONE_OFF[plan].label, days, amount: amountVnd(plan, days), usd: amountCents(plan, days) / 100 }))),
 });
 
 export function me(session, client, ctx) {

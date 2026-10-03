@@ -53,9 +53,11 @@ test("the request signature is HMAC-SHA256 over the five fields sorted by name",
 });
 
 test("prices turn dollars into dong at the configured rate, rounded to a thousand", () => {
-  assert.equal(orders.amountVnd("pro", 30), 260000); // 9.99 x 26000 = 259740
-  assert.equal(orders.amountVnd("plus", 30), 520000); // 19.99 x 26000 = 519740
-  assert.equal(orders.amountVnd("pro", 90), 779000);
+  assert.equal(orders.amountVnd("pro", 30), 104000); // 3.99 x 26000 = 103740
+  assert.equal(orders.amountVnd("plus", 30), 208000); // 7.99 x 26000 = 207740
+  assert.equal(orders.amountVnd("pro", 90), 311000);
+  assert.equal(orders.amountVnd("pro", 365), 1037000, "a year is ten months");
+  assert.equal(orders.amountVnd("dungiup", 7), 130000, "the one-off is a fixed price");
   assert.equal(orders.amountVnd("pro", 30, 100), 2000, "never below the 2,000 dong minimum");
   assert.throws(() => orders.amountVnd("free", 30));
   assert.throws(() => orders.amountVnd("pro", 45));
@@ -170,7 +172,7 @@ test("/mua creates a pending order and shows a payment button", async () => {
   const i = fakeInteraction({ goi: "pro", ngay: 30 });
   await mua.execute(i);
   const sent = i.replies.at(-1);
-  assert.match(sent.embeds[0].data.description, /260\.000/);
+  assert.match(sent.embeds[0].data.description, /104\.000/);
   assert.equal(sent.components[0].components[0].data.url, "https://pay.payos.vn/web/xyz");
   const code = Number(sent.embeds[0].data.footer.text.replace(/\D/g, ""));
   assert.equal(orders.getOrder(code).status, "PENDING");

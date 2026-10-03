@@ -83,11 +83,13 @@ test("usage counts per month and for a lifetime", () => {
   assert.equal(getUsage("g7", "build", { lifetime: true }), 1);
 });
 
-test("free servers get one single-theme build, paid servers mix and rebuild", () => {
+test("free servers get two single-theme builds, paid servers mix and rebuild", () => {
   assert.match(gateBuild("g8", 2), /Pro/);
   assert.equal(gateBuild("g8", 1), null);
   recordBuild("g8");
-  assert.match(gateBuild("g8", 1), /đúng một lần/);
+  assert.equal(gateBuild("g8", 1), null, "a second build is allowed so a wrong theme can be redone");
+  recordBuild("g8");
+  assert.match(gateBuild("g8", 1), /2 lần/);
 
   grant("g8", "pro", 30);
   assert.equal(gateBuild("g8", 3), null);
