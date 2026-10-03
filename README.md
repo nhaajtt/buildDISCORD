@@ -113,7 +113,7 @@ src/
   humor/         every line the bot says
 scripts/         license CLI, Raspberry Pi installer and updater
 deploy/pi/       systemd unit and timer for the daily update
-web/             the landing page (Next.js), Vietnamese and English
+web/             the website (Next.js), Vietnamese and English: landing page, AI designer and editor sections, plans, commands, FAQ, devlog, privacy and terms
 test/            node --test
 ```
 
@@ -134,7 +134,7 @@ The builder, licenses, blueprint editing, validator and Gemini client are plain 
 - Humor level for the built-in themes, and saving a blueprint as your own theme
 - Backup and restore of a server layout
 - Mini-games, levels and scheduled events to keep a server alive after it is built
-- A pricing page on the website and automatic payments
+- Automatic payments (activation codes are made by hand for now)
 
 ## Privacy and terms
 

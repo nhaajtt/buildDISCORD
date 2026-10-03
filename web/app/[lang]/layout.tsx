@@ -31,6 +31,7 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
     title: d.meta.title,
     description: d.meta.description,
     alternates: { languages: { vi: "/", en: "/en" } },
+    openGraph: { title: d.meta.title, description: d.meta.description, type: "website", locale: d.lang === "en" ? "en_US" : "vi_VN" },
   };
 }
 

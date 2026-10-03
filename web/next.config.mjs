@@ -10,6 +10,7 @@ const nextConfig = {
       { source: "/", destination: "/vi" },
       { source: "/privacy", destination: "/vi/privacy" },
       { source: "/terms", destination: "/vi/terms" },
+      { source: "/devlog", destination: "/vi/devlog" },
     ];
   },
 };

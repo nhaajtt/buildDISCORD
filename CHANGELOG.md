@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.0
+
+- Website finished: sections for the AI designer (with a real example answer) and the editable blueprint, a plans section with how to buy a code, all seven customer commands, an updated FAQ, a devlog page in both languages, and a working invite button.
+
 ## 1.0.0
 
 - `/build` with one to four mixed themes (late-night gamers, studying without studying, general-store community, chill with the crew), an editable blueprint (remove or rename a category, add a channel) and a confirmation before anything is created.

@@ -549,7 +549,7 @@ a {
 }
 .cmd-row {
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr);
+  grid-template-columns: minmax(220px, 360px) minmax(0, 1fr);
   gap: 16px;
   padding: 20px 0;
   border-bottom: 1px solid var(--line);
@@ -560,6 +560,7 @@ a {
 }
 .arg {
   color: var(--accent);
+  white-space: nowrap;
 }
 .cmd-row dd {
   margin: 0;
@@ -764,4 +765,186 @@ a {
 }
 .footer-links a {
   font-weight: 500;
+}
+
+/* AI designer and editor sections */
+.ai-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 3vw, 32px);
+  margin-top: 40px;
+  align-items: start;
+}
+.sheet {
+  background: var(--bg2);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: 8px 8px 0 var(--shadow);
+  padding: 20px;
+}
+.sheet .side-label + .chips,
+.sheet .side-label + p {
+  margin-top: 4px;
+}
+.sheet .chips,
+.sheet .cat {
+  margin-top: 10px;
+}
+.sheet .note {
+  margin-top: 16px;
+}
+.ai-cmd {
+  margin: 6px 0 18px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border-left: 4px solid var(--accent);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.ai-cmd code {
+  font-weight: 700;
+}
+.ai-welcome {
+  margin: 6px 0 12px;
+  font-weight: 500;
+}
+.chip.on {
+  background: var(--accent);
+  color: var(--on-accent);
+  border-color: var(--ink);
+  font-weight: 700;
+}
+.mock-select {
+  margin-top: 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: space-between;
+}
+.mock-select::after {
+  content: "▾";
+}
+.mock-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.mock-btn {
+  padding: 6px 12px;
+  border: 1px solid var(--ink);
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+.mock-btn.go {
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 700;
+}
+.mix-note {
+  margin-top: 20px;
+  max-width: 62ch;
+}
+
+/* pricing */
+.plans {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(12px, 2vw, 24px);
+  margin-top: 40px;
+  align-items: stretch;
+}
+.plan-card {
+  background: var(--bg2);
+  border: 2px solid var(--ink);
+  border-radius: var(--radius);
+  padding: 24px;
+}
+.plan-card.featured {
+  box-shadow: 8px 8px 0 var(--accent);
+}
+.plan-card h3 {
+  font-family: var(--font-display), sans-serif;
+  font-weight: 900;
+  font-size: 2rem;
+  text-transform: uppercase;
+  line-height: 1.1;
+}
+.price {
+  font-weight: 700;
+  font-size: 1.3rem;
+  margin: 4px 0 8px;
+  color: var(--accent);
+}
+.plan-blurb {
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.plan-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.plan-card li {
+  padding-left: 22px;
+  position: relative;
+}
+.plan-card li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 0.55em;
+  width: 10px;
+  height: 6px;
+  border-left: 3px solid var(--accent);
+  border-bottom: 3px solid var(--accent);
+  rotate: -45deg;
+}
+.how-buy {
+  margin-top: 40px;
+  max-width: 62ch;
+}
+.how-buy h3 {
+  font-size: 1.2rem;
+  margin-bottom: 8px;
+}
+.how-buy ol {
+  margin: 0 0 20px;
+  padding-left: 1.4em;
+  display: grid;
+  gap: 6px;
+}
+
+/* devlog page */
+.devlog ul {
+  padding-left: 1.2em;
+  display: grid;
+  gap: 10px;
+  margin: 8px 0;
+}
+.devlog li {
+  max-width: 66ch;
+  color: var(--muted);
+}
+.devlog li strong {
+  color: var(--ink);
+}
+.devlog .lede {
+  margin-bottom: 8px;
+}
+.devlog-src {
+  margin-top: 40px;
+}
+
+@media (max-width: 900px) {
+  .ai-grid,
+  .plans {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

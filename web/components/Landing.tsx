@@ -15,10 +15,9 @@ import {
   themeRoles,
   type Category,
 } from "@/content/shared";
+import { CONTACT_URL, INVITE_URL, REPO_URL, aiSample } from "@/content/site";
 import SplitText from "./SplitText";
 import ThemeToggle from "./ThemeToggle";
-
-const INVITE = process.env.NEXT_PUBLIC_INVITE_URL || "";
 
 const sceneCategories: Category[] = [infoCategory, ...themeCategories.gaming, djCategory, staffCategory];
 const sceneRoles = [...baseRoles, "🎮 Pro Gamer (tự xưng)", "🥔 Gánh Team Ngược"];
@@ -37,8 +36,9 @@ function ChannelRow({ name, voice }: { name: string; voice?: boolean }) {
 export default function Landing({ dict }: { dict: Dict }) {
   const root = useRef<HTMLDivElement>(null);
   const [themeId, setThemeId] = useState(dict.themes.items[0].id);
-  const inviteHref = INVITE || `#${dict.cta.setupId}`;
-  const inviteProps = INVITE ? { target: "_blank", rel: "noopener noreferrer" } : {};
+  const inviteHref = INVITE_URL;
+  const inviteProps = { target: "_blank", rel: "noopener noreferrer" };
+  const prefix = dict.lang === "vi" ? "" : "/en";
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
@@ -129,8 +129,10 @@ export default function Landing({ dict }: { dict: Dict }) {
         <nav className="nav-links" aria-label="Main">
           <a href="#how">{dict.nav.how}</a>
           <a href="#themes">{dict.nav.themes}</a>
+          <a href="#pricing">{dict.nav.pricing}</a>
           <a href="#commands">{dict.nav.commands}</a>
           <a href="#faq">{dict.nav.faq}</a>
+          <a href={`${prefix}/devlog`}>{dict.nav.devlog}</a>
         </nav>
         <div className="nav-end">
           <a className="lang" href={dict.nav.switchHref} hrefLang={dict.lang === "vi" ? "en" : "vi"}>
@@ -223,6 +225,89 @@ export default function Landing({ dict }: { dict: Dict }) {
           </div>
         </section>
 
+        <section className="block" id="ai" aria-labelledby="ai-title">
+          <SplitText as="h2" id="ai-title" className="section-title reveal" text={dict.ai.title} />
+          <p className="lede">{dict.ai.sub}</p>
+          <div className="ai-grid">
+            <div className="sheet">
+              <div className="side-label">{dict.ai.inputLabel}</div>
+              <p className="ai-cmd">
+                <code>/thietke</code> <span className="arg">mota:</span> {dict.ai.description}
+              </p>
+              <div className="side-label">{dict.ai.levelLabel}</div>
+              <div className="chips" role="group" aria-label={dict.ai.levelLabel}>
+                {dict.ai.levels.map((level, i) => (
+                  <span key={level} className={i === 1 ? "chip solid on" : "chip solid"}>
+                    {level}
+                  </span>
+                ))}
+              </div>
+              <p className="note">{dict.ai.plan}</p>
+            </div>
+            <div className="sheet">
+              <div className="side-label">{dict.ai.resultLabel}: {aiSample.label}</div>
+              <p className="ai-welcome">{aiSample.welcome}</p>
+              <div className="chips">
+                {aiSample.roles.map((r) => (
+                  <span key={r} className="chip">
+                    {r}
+                  </span>
+                ))}
+              </div>
+              {aiSample.categories.map((cat) => (
+                <div key={cat.name} className="cat">
+                  <div className="cat-name">{cat.name}</div>
+                  <ul>
+                    {cat.channels.map((ch) => (
+                      <li key={ch} className="row">
+                        {ch}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <p className="note">{dict.ai.sampleNote}</p>
+            </div>
+          </div>
+        </section>
+
+        <section className="block" id="editor" aria-labelledby="editor-title">
+          <SplitText as="h2" id="editor-title" className="section-title reveal" text={dict.editor.title} />
+          <p className="lede">{dict.editor.sub}</p>
+          <div className="ai-grid">
+            <div className="sheet mock" aria-hidden="true">
+              <div className="side-label">{dict.editor.mockLabel}</div>
+              {aiSample.categories.slice(0, 2).map((cat) => (
+                <div key={cat.name} className="cat">
+                  <div className="cat-name">{cat.name}</div>
+                  <ul>
+                    {cat.channels.map((ch) => (
+                      <li key={ch} className="row">
+                        {ch}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <div className="mock-select">{dict.editor.removeLabel}</div>
+              <div className="mock-select">{dict.editor.renameLabel}</div>
+              <div className="mock-buttons">
+                <span className="mock-btn">+ {dict.editor.add}</span>
+                <span className="mock-btn go">{dict.editor.build}</span>
+                <span className="mock-btn">{dict.editor.cancel}</span>
+              </div>
+              <p className="note">{dict.editor.footer}</p>
+            </div>
+            <ul className="points">
+              {dict.editor.points.map((p) => (
+                <li key={p.t}>
+                  <strong>{p.t}.</strong> {p.d}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+
         <section className="block" id="themes" aria-labelledby="themes-title">
           <SplitText as="h2" id="themes-title" className="section-title reveal" text={dict.themes.title} />
           <p className="lede">{dict.themes.sub}</p>
@@ -272,6 +357,7 @@ export default function Landing({ dict }: { dict: Dict }) {
               </div>
             </div>
           </div>
+          <p className="note mix-note">{dict.themes.mixNote}</p>
         </section>
 
         <section className="block" aria-labelledby="rules-title">
@@ -301,6 +387,37 @@ export default function Landing({ dict }: { dict: Dict }) {
           </ul>
         </section>
 
+        <section className="block" id="pricing" aria-labelledby="pricing-title">
+          <SplitText as="h2" id="pricing-title" className="section-title reveal" text={dict.pricing.title} />
+          <p className="lede">{dict.pricing.sub}</p>
+          <div className="plans">
+            {dict.pricing.plans.map((plan) => (
+              <article key={plan.id} className={plan.id === "pro" ? "plan-card featured" : "plan-card"}>
+                <h3>{plan.name}</h3>
+                <p className="price">{plan.price}</p>
+                <p className="plan-blurb">{plan.blurb}</p>
+                <ul>
+                  {plan.features.map((f) => (
+                    <li key={f}>{f}</li>
+                  ))}
+                </ul>
+              </article>
+            ))}
+          </div>
+          <div className="how-buy">
+            <h3>{dict.pricing.howTitle}</h3>
+            <ol>
+              {dict.pricing.how.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ol>
+            <a className="btn" href={CONTACT_URL} target="_blank" rel="noopener noreferrer">
+              {dict.pricing.contact}
+            </a>
+            <p className="note">{dict.pricing.note}</p>
+          </div>
+        </section>
+
         <section className="block" id="commands" aria-labelledby="commands-title">
           <SplitText as="h2" id="commands-title" className="section-title reveal" text={dict.commands.title} />
           <dl className="cmds">
@@ -309,7 +426,14 @@ export default function Landing({ dict }: { dict: Dict }) {
                 <dt>
                   <code>
                     {c.name}
-                    {c.args ? <span className="arg"> {c.args}</span> : null}
+                    {c.args
+                      ? c.args.split(" ").map((arg) => (
+                          <span key={arg} className="arg">
+                            {" "}
+                            {arg}
+                          </span>
+                        ))
+                      : null}
                   </code>
                 </dt>
                 <dd>{c.d}</dd>
@@ -340,7 +464,6 @@ export default function Landing({ dict }: { dict: Dict }) {
           <a className="btn" href={inviteHref} {...inviteProps}>
             {dict.cta.button}
           </a>
-          {!INVITE ? <p className="note">{dict.cta.note}</p> : null}
         </section>
       </main>
 
@@ -350,8 +473,12 @@ export default function Landing({ dict }: { dict: Dict }) {
           {dict.footer.word}
         </div>
         <nav className="footer-links" aria-label="Legal">
-          <a href={dict.lang === "vi" ? "/privacy" : "/en/privacy"}>{dict.footer.privacy}</a>
-          <a href={dict.lang === "vi" ? "/terms" : "/en/terms"}>{dict.footer.terms}</a>
+          <a href={`${prefix}/devlog`}>{dict.footer.devlog}</a>
+          <a href={`${prefix}/privacy`}>{dict.footer.privacy}</a>
+          <a href={`${prefix}/terms`}>{dict.footer.terms}</a>
+          <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
+            {dict.footer.source}
+          </a>
         </nav>
         <p>{dict.footer.line}</p>
       </footer>
