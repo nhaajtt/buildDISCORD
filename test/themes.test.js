@@ -55,3 +55,50 @@ test("mixed themes merge without duplicate channels or categories", () => {
   assert.ok(plan.categories.some((c) => c.name.includes("Nhà Chung")));
   assert.equal(buildPlan(["gaming", "gaming"]).id, "gaming");
 });
+
+test("role keys and role names never collide between themes, so any mix is safe", () => {
+  const keys = [];
+  const names = [];
+  for (const theme of themes) for (const role of theme.roles) {
+    keys.push(role.key);
+    names.push(role.name);
+  }
+  assert.equal(new Set(keys).size, keys.length, "a role key is used by two themes");
+  assert.equal(new Set(names).size, names.length, "a role name is used by two themes");
+});
+
+test("roles anyone can pick for themselves never carry permissions", () => {
+  for (const theme of themes) {
+    for (const role of theme.roles) {
+      if (role.pick) assert.equal(role.perms, undefined, `${theme.id}/${role.key} is self-assignable but has permissions`);
+    }
+  }
+});
+
+test("the booking theme keeps trust roles out of the self-assign picker and has its safety rules", () => {
+  const booking = themes.find((t) => t.id === "booking");
+  for (const key of ["bk-verified", "bk-top", "bk-regular"]) {
+    assert.ok(!booking.roles.find((r) => r.key === key).pick, `${key} must be handed out by staff`);
+  }
+  const text = booking.extraRules.join(" ");
+  assert.match(text, /18/);
+  assert.match(text, /thông tin cá nhân/);
+  const channels = booking.categories.flatMap((c) => c.channels.map((ch) => ch.name)).join(" ");
+  for (const needle of ["bảng-giá", "chống-lừa-đảo", "feedback", "lịch-trống"]) assert.ok(channels.includes(needle), needle);
+});
+
+test("any mix of up to four themes stays inside Discord's limits", () => {
+  const ids = themes.map((t) => t.id);
+  let checked = 0;
+  const walk = (start, picked) => {
+    if (picked.length) {
+      const counts = countPlan(buildPlan(picked));
+      assert.ok(counts.roles <= 250 && counts.channels + counts.categories <= 500, picked.join("+"));
+      checked++;
+    }
+    if (picked.length === 4) return;
+    for (let i = start; i < ids.length; i++) walk(i + 1, [...picked, ids[i]]);
+  };
+  walk(0, []);
+  assert.equal(checked, 11 + 55 + 165 + 330);
+});

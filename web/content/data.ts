@@ -1,20 +1,18 @@
+import { compose, type Category, type Channel, type Plan, type ThemesData } from "@/lib/compose.mjs";
 import themesData from "./themes.data.json";
 import aiData from "./ai-samples.json";
 
-export type Channel = { name: string; type: "text" | "voice" };
-export type Category = { name: string; staff?: boolean; channels: Channel[] };
-export type Plan = {
-  label: string;
-  counts: { roles: number; categories: number; channels: number };
-  rules: number;
-  roles: string[];
-  categories: Category[];
-};
-export type ThemeMeta = { id: string; label: string; blurb: string };
+export type { Category, Channel, Plan };
 
-// Both files are written by scripts in the bot repository (export-web-data.js and sample-designs.js) and checked by a test
-export const themes = themesData.themes as ThemeMeta[];
-export const plans = themesData.plans as unknown as Record<string, Plan>;
+// Written by scripts/export-web-data.js from the bot's own theme files, and checked by a test
+const data = themesData as unknown as ThemesData;
+export const themes = data.themes;
+
+// The bot's real plan for any mix of themes (see web/lib/compose.mjs)
+export const planFor = (ids: string[]): Plan => compose(data, ids);
+
+// The most themes /build takes at once
+export const MAX_MIX = 4;
 
 export type Level = "nhe" | "troll" | "nham";
 export type Sample = {
@@ -24,6 +22,7 @@ export type Sample = {
   rules: string[];
   categories: { name: string; channels: Channel[] }[];
 };
+// Written by scripts/sample-designs.js: real answers from the AI designer, one per humor level
 export const ai = aiData as unknown as { description: string; model: string; generatedAt: string; samples: Record<Level, Sample> };
 
 // Same rule the bot applies to a new text channel name

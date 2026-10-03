@@ -13,7 +13,7 @@ flowchart LR
     B[builder.js<br/>creates roles, channels, content]
   end
   subgraph Pure modules
-    T[themes/<br/>four themes + composePlan]
+    T[themes/<br/>eleven themes + composePlan]
     BP[blueprints.js<br/>plan being edited, 15 min]
     AI[ai/<br/>gemini.js, designer.js, validate.js]
     L[license.js + utils/gate.js]

@@ -1,5 +1,5 @@
 import type { Dict } from "@/content/types";
-import { plans, themes as themeMeta } from "@/content/data";
+import { planFor } from "@/content/data";
 import { sampleRules } from "@/content/shared";
 import { CONTACT_URL, INSTAGRAM_URL, INVITE_URL, PERSONAL_URL, REPO_URL } from "@/content/site";
 import AiDemo from "./AiDemo";
@@ -16,9 +16,11 @@ import Tilt from "./Tilt";
 
 const external = { target: "_blank", rel: "noopener noreferrer" } as const;
 // Roles a single theme adds on top of the four every server gets
-const ownRoles = (id: string) => plans[id].roles.slice(4);
+const ownRoles = (id: string) => planFor([id]).roles.slice(4);
 
 export default function Landing({ dict }: { dict: Dict }) {
+  const base = planFor(["gaming"]).categories;
+  const shared = [base[0], base.find((c) => c.channels.some((ch) => ch.name.includes("dj-booth")))!, base.find((c) => c.staff)!];
   const prefix = dict.lang === "vi" ? "" : "/en";
   const sections = [
     { id: "how", label: dict.nav.how },
@@ -122,13 +124,13 @@ export default function Landing({ dict }: { dict: Dict }) {
                   ))}
                 </div>
                 <p className="theme-count">
-                  {plans[t.id].counts.categories} / {plans[t.id].counts.channels} / {plans[t.id].counts.roles}
+                  {planFor([t.id]).counts.categories} / {planFor([t.id]).counts.channels} / {planFor([t.id]).counts.roles}
                 </p>
               </article>
             ))}
           </div>
           <p className="note mix-note">
-            {dict.themes.sharedLabel}: {plans[themeMeta[0].id].categories[0].name}, {plans[themeMeta[0].id].categories.find((c) => c.channels.some((ch) => ch.name.includes("dj-booth")))?.name}, {plans[themeMeta[0].id].categories.find((c) => c.staff)?.name}. {dict.themes.mixNote}
+            {dict.themes.sharedLabel}: {shared.map((c) => c.name).join(", ")}. {dict.themes.mixNote}
           </p>
         </section>
 
@@ -235,7 +237,7 @@ export default function Landing({ dict }: { dict: Dict }) {
           <tbody>
             <tr>
               <th scope="row">{dict.footer.block.project}</th>
-              <td>buildDISCORD, v1.2</td>
+              <td>buildDISCORD, v1.3</td>
               <th scope="row">{dict.footer.block.sheet}</th>
               <td>1 / 1</td>
             </tr>

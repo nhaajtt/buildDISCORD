@@ -22,6 +22,7 @@ export type Dict = {
     chipsLabel: string;
     hint: string;
     proNote: string;
+    limit: string;
     categories: string;
     channels: string;
     roles: string;

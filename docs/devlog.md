@@ -17,18 +17,18 @@ These were measured on the repository, not estimated.
 | What | Value |
 | --- | --- |
 | Bot source (`src/`, JavaScript) | about 1,850 lines in 35 files |
-| Tests | 35 tests in 5 files (about 510 lines), run with `node --test` |
+| Tests | 40 tests in 5 files (about 580 lines), run with `node --test` |
 | Scripts (`scripts/`) | about 360 lines (license CLI, Pi installer, updater, website data export, sample generator) |
 | Website source (`web/`, TypeScript, TSX, CSS) | about 4,000 lines |
 | Slash commands | 8 (7 for customers, 1 owner-only) |
 | Database tables | 3 (`guilds`, `licenses`, `usage`) |
-| Built-in themes | 4, which give 15 combinations (every non-empty mix) |
+| Built-in themes | 11, which give 561 mixes of up to four |
 | One theme builds | 8 roles, 5 categories, 21 or 22 channels, 10 rules |
-| All four themes mixed | 20 roles, 11 categories, 44 channels (duplicates merged) |
+| Largest mix of four themes | 22 roles, 13 categories, 54 channels (duplicates merged) |
 | Runtime dependencies of the bot | 2 (`discord.js`, `dotenv`) |
 | Docker image on the Pi (arm64) | 186 MB at the first deploy |
 | CI | 3 jobs (tests and syntax, website build, image build); every run so far passed |
-| Test suite wall time | about 2.5 s (it was about 38 s until the builder's pause became configurable, see Bugs) |
+| Test suite wall time | about 3 s (it was about 38 s until the builder's pause became configurable, see Bugs) |
 | Website first load JS | 163 kB for the landing page, 155 kB for the devlog page (Next.js build output) |
 
 ### What this project demonstrates
@@ -149,7 +149,7 @@ Mixing "study", "gaming" and "chill" first produced three channels called `meme`
 4. End with the DJ category and the mod-only category.
 5. Concatenate roles and extra rules from every theme.
 
-`buildPlan(ids)` accepts an array or a `+`-joined string (`gaming+hoc-tap`), which matters because the string travels through a button `customId` and a database row. `/build` takes `theme` plus optional `theme2` to `theme4`. A test checks a three-theme mix for duplicate names and Discord limits, and another test (added with the website's data export) checks all 15 combinations.
+`buildPlan(ids)` accepts an array or a `+`-joined string (`gaming+hoc-tap`), which matters because the string travels through a button `customId` and a database row. `/build` takes `theme` plus optional `theme2` to `theme4`. A test checks a three-theme mix for duplicate names and Discord limits, and later tests check every mix of up to four themes (561 of them) against the limits and against the website's port of the merge.
 
 ### Phase 7: from JSON files to SQLite
 
@@ -274,11 +274,11 @@ The `.local` mDNS name of the Pi did not resolve from Windows, so I used its LAN
 
 The first site was a good-looking brochure. For a project I want people to judge, it should also let them try the product, so I rebuilt it around things you can touch. The direction stayed a blueprint sheet, but in daylight: cool white paper, ink-blue lines, and tangerine, mint and sun yellow as the only colors, with a dark variant behind a toggle. Fonts are Big Shoulders for lettering (it reads like drafting letters) and Be Vietnam Pro for text.
 
-**One source of truth.** The page should never claim something the bot does not do, so the numbers on it come from the bot. `scripts/export-web-data.js` calls the bot's own `buildPlan` for all 15 non-empty combinations of the four themes and writes `web/content/themes.data.json` (counts, role names, categories and channels). `scripts/sample-designs.js` makes three real Gemini calls, one per humor level, and saves the answers with the date and model name. `test/webdata.test.js` fails if the committed data differs from what the bot builds now, and a second check fails if the website's copy of this devlog is stale. The website deploys from the `web/` folder alone, so it cannot import from the bot's `src/`; the generated files, plus the test, are how the two stay in step.
+**One source of truth.** The page should never claim something the bot does not do, so the numbers on it come from the bot. `scripts/export-web-data.js` writes the bot's theme data (role names, categories, channels and rule counts, plus the shared parts) to `web/content/themes.data.json`, and the page merges themes with `web/lib/compose.mjs`, a port of the bot's merge (see Phase 17 for how the port is kept honest). `scripts/sample-designs.js` makes three real Gemini calls, one per humor level, and saves the answers with the date and model name. `test/webdata.test.js` fails if the committed data differs from what the bot builds now, and a second check fails if the website's copy of this devlog is stale. The website deploys from the `web/` folder alone, so it cannot import from the bot's `src/`; the generated files, plus the test, are how the two stay in step.
 
 **What you can do on the page.**
 
-- **The drafting table in the hero** (`Plotter.tsx`): toggle the four themes in any mix and the counters roll to the real numbers for that combination (for example, all four give 11 categories, 44 channels and 20 roles) while the tree re-plots. "Try a build" replays a progress run and slams a stamp.
+- **The drafting table in the hero** (`Plotter.tsx`): toggle up to four of the eleven themes in any mix and the counters roll to the real numbers for that combination (for example, booking alone gives 7 categories, 26 channels and 10 roles) while the tree re-plots. "Try a build" replays a progress run and slams a stamp.
 - **The pinned scene** (`BuildScene.tsx`): a server assembles itself while you scroll. It only pins on wide screens without reduced motion; elsewhere it is a static sheet with every step visible.
 - **The AI section** (`AiDemo.tsx`): three real answers, one per humor level, typed out when you switch.
 - **A working miniature of the blueprint editor** (`EditorDemo.tsx`): remove a category, rename one in place, add a channel, press build. It follows the bot's rules from `src/blueprints.js`: the admin area cannot be removed, renames cannot collide, a duplicate channel name is refused, text channel names are normalised the way Discord does it.
@@ -304,6 +304,20 @@ When the features were done I did a hygiene pass over the repository, my compute
 - **A record I did not want to lose.** The local test data held the record of what the first version had built on my test server. I copied it to the Pi, where the importer from Phase 7 picked it up on the next start and renamed the file, so `/nuke` on the Pi still knows what to remove there.
 - **The Pi.** I rebuilt the container from the new commit and waited for it to report healthy, then removed 24 dangling images and the build cache with `docker image prune` and `docker builder prune` (images went from 29 to 5, and 161 MB of cache was freed). The music bot, its audio server, the monitor and the companion bots kept running the whole time.
 
+### Phase 17: seven more themes, and a server for booking a friend
+
+Four themes were enough to prove the idea but not to be useful. I added seven: **book a friend**, anime fans, coders, content creators, cinema and music, an office team, and pet lovers. Each is plain data in `src/themes/` (roles, categories, channels, two extra rules, a welcome), so adding one is a file plus one line in `index.js`.
+
+**The booking theme.** Some communities are built around booking a person's time: you hire someone to play a game with you, or to talk. I looked for how such servers are laid out and found little useful in public sources, so I designed it from the structure these communities share and from what makes them safe or unsafe. The result has a reception area (booking guide, price list, an anti-scam channel, a place to post proof of a transaction), a list of players (profiles, today's free slots, customers looking for a player), voice rooms for playing together, waiting and talking, and a trust area (feedback after each session, a hall of fame, a complaints channel). The safety choices are in the data, not just the copy:
+
+- **Trust roles are handed out by people, never picked.** "Verified player", "popular player" and "regular customer" are not self-assignable. The role picker only offers roles with `pick: true`, and a test asserts that those three have it off.
+- **Two rules written for this theme:** every transaction goes through the official channel with staff confirmation, and nobody asks for or gives personal information (address, phone number, documents); and players and customers must be 18 or older, arrive on time and cancel in advance.
+- **No claim of privacy it cannot keep.** I first named a voice room "private talk room", then renamed it, because the bot does not set permissions that would make it private.
+
+**Rules that hold for every theme, as tests.** With eleven themes mixing safely matters more, so the suite now checks that no role key or role name is used by two themes (the merge would silently share a role), that no self-assignable role carries permissions, and that every mix of up to four themes (11 + 55 + 165 + 330 = 561) stays inside Discord's limits of 250 roles and 500 channels. The largest mix of four builds 22 roles, 13 categories and 54 channels.
+
+**Keeping the website honest with eleven themes.** With four themes the exporter could precompute every combination. With eleven, 561 precomputed plans would be far too much for a page's JavaScript. So the website now receives the raw theme data (about the size of the themes themselves) and merges it in the browser with `web/lib/compose.mjs`, a 40-line port of `composePlan`. It is plain JavaScript with a `.d.mts` file for types, so the bot's test suite can import it. `test/webdata.test.js` compares the port with the bot's own `buildPlan` for all 561 mixes (labels, role names, rule counts, category and channel names, staff flags and counts), and the exported data is checked against the theme files. If I change the bot's merge and forget the port, the suite fails.
+
 ## Bugs and what they taught me
 
 | Symptom | Root cause | Fix | Guard now |
@@ -322,6 +336,7 @@ When the features were done I did a hygiene pass over the repository, my compute
 | Free-tier Gemini sometimes answers with a 5xx | The free service is overloaded at times. I first met it as a raw 503 while generating the website's sample answers, which the client then treated as an unusable answer | A 5xx maps to its own `unavailable` kind, retried with 1.5 s and 4 s waits, then a clear "overloaded" message that does not use up the customer's allowance. The sample script also waits out a quota answer for 65 s | Test with the waits set to zero |
 | The suite took about 38 seconds | The 350 ms pause between creations was a hard-coded constant, so the builder tests slept for real | The pause comes from config (`BUILD_STEP_DELAY_MS`) and the tests set it to zero | The suite now runs in about 2.5 seconds |
 | A build that crashed halfway left items `/nuke` could not find | The record of created IDs was saved once, after all creation succeeded | The record is saved in a `finally` block | Test: the sixth channel creation throws, then nuke removes everything that was created |
+| On a phone the command list scrolled sideways by about 27 px | The space before each argument sat inside a no-wrap span, so `/build theme theme2 theme3 theme4` had no place to break | The space moved outside the span, and the command text may wrap anywhere | The overflow probe in the headless-browser script, run on both languages at phone width |
 | The page scrolled sideways by about 50 px on desktop | The "signed off" stamp starts scaled up 2.4 times inside the pinned scene, and its transformed box counted as scrollable overflow | `overflow-x: clip` on the scene and on the hero | The headless-browser script compares `scrollWidth` with `clientWidth` on every page |
 
 ## Design decisions and alternatives
@@ -337,6 +352,7 @@ When the features were done I did a hygiene pass over the repository, my compute
 | Typed dictionaries for languages | An i18n library | Two languages, static pages, compile-time key checking, no runtime dependency |
 | Plan derived from licenses | A `plan` column updated by a job | Nothing to expire, nothing to drift, one query |
 | Administrator when inviting | A narrow permission set | The bot posts into read-only channels it creates and creates roles; a narrow set can fail in subtle ways. The code still checks and names missing permissions |
+| A port of the merge in the website, tested against the bot | Precompute all 561 plans; import the bot's code into the site; call an API | Precomputed plans are too big for a page. The site deploys from `web/` alone, so it cannot import from `src/`. An API adds a server for a static page. A small port with an equivalence test over every mix costs about 40 lines and cannot drift silently |
 | Components routed by `customId` prefix | A generic router library | About ten lines, and the prefix makes the owner of each id obvious |
 
 ## What I would do next and known limitations

@@ -1,68 +1,92 @@
 {
+  "base": {
+    "roles": [
+      "👑 Chủ Tịch (tự phong)",
+      "🛡️ Mod Cầm Chổi",
+      "🤖 Bot Nô Lệ",
+      "🐣 Người Mới Chưa Biết Gì"
+    ],
+    "rules": 8,
+    "info": {
+      "name": "📌 Khu Hành Chính",
+      "staff": false,
+      "channels": [
+        {
+          "name": "👋・sảnh-chờ-nhận-lương",
+          "type": "text"
+        },
+        {
+          "name": "📜・luật-không-ai-đọc",
+          "type": "text"
+        },
+        {
+          "name": "🎭・xin-role-xin-lộc",
+          "type": "text"
+        },
+        {
+          "name": "📢・thông-báo-quan-trọng",
+          "type": "text"
+        }
+      ]
+    },
+    "dj": {
+      "name": "🎧 Phòng Thu Âm Dở Hơi",
+      "staff": false,
+      "channels": [
+        {
+          "name": "🎛️・dj-booth",
+          "type": "text"
+        },
+        {
+          "name": "🎵 Nhạc Cho Đỡ Buồn",
+          "type": "voice"
+        },
+        {
+          "name": "🎤 Karaoke Tone Điếc",
+          "type": "voice"
+        },
+        {
+          "name": "🗣️・chém-gió-bằng-giọng",
+          "type": "text"
+        },
+        {
+          "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
+          "type": "voice"
+        }
+      ]
+    },
+    "staff": {
+      "name": "🔒 Hậu Trường Của Mod",
+      "staff": true,
+      "channels": [
+        {
+          "name": "🕵️・mod-bàn-chuyện",
+          "type": "text"
+        },
+        {
+          "name": "📋・nhật-ký-phạt",
+          "type": "text"
+        },
+        {
+          "name": "☕ Phòng Họp Mod",
+          "type": "voice"
+        }
+      ]
+    }
+  },
   "themes": [
     {
       "id": "gaming",
       "label": "Game Thủ Cày Đêm",
-      "blurb": "Cho hội cày game: kênh LFG, kênh khoe clip, kênh than thở vì thua."
-    },
-    {
-      "id": "hoc-tap",
-      "label": "Học Mà Như Không Học",
-      "blurb": "Cho hội học nhóm: kênh hỏi bài, kênh deadline, kênh drama trước kỳ thi."
-    },
-    {
-      "id": "cong-dong",
-      "label": "Cộng Đồng Tạp Hoá",
-      "blurb": "Cho mọi loại cộng đồng: chat, ảnh, chia sẻ, sự kiện, đủ thứ lặt vặt."
-    },
-    {
-      "id": "chill-ban-be",
-      "label": "Chill Cùng Hội Bạn",
-      "blurb": "Cho nhóm bạn thân: nhỏ, ấm, ồn ào và đầy chuyện không ai muốn nhớ."
-    }
-  ],
-  "plans": {
-    "gaming": {
-      "label": "Game Thủ Cày Đêm",
-      "counts": {
-        "roles": 8,
-        "categories": 5,
-        "channels": 22
-      },
-      "rules": 10,
+      "blurb": "Cho hội cày game: kênh LFG, kênh khoe clip, kênh than thở vì thua.",
       "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
         "🎮 Pro Gamer (tự xưng)",
         "🥔 Gánh Team Ngược",
         "💤 AFK Từ 2019",
         "📹 Streamer 0 View"
       ],
+      "extraRules": 2,
       "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
         {
           "name": "🎮 Khu Cày Game",
           "staff": false,
@@ -114,94 +138,21 @@
               "type": "text"
             }
           ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
-              "type": "voice"
-            }
-          ]
         }
       ]
     },
-    "hoc-tap": {
+    {
+      "id": "hoc-tap",
       "label": "Học Mà Như Không Học",
-      "counts": {
-        "roles": 8,
-        "categories": 5,
-        "channels": 22
-      },
-      "rules": 10,
+      "blurb": "Cho hội học nhóm: kênh hỏi bài, kênh deadline, kênh drama trước kỳ thi.",
       "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
         "📚 Học Bá (có chứng nhận từ mẹ)",
         "🔥 Chiến Thần Deadline",
         "📋 Thợ Chép Bài",
         "😴 Ngủ Gật Trong Lớp"
       ],
+      "extraRules": 2,
       "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
         {
           "name": "📖 Khu Học Tập",
           "staff": false,
@@ -253,285 +204,21 @@
               "type": "text"
             }
           ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
-              "type": "voice"
-            }
-          ]
         }
       ]
     },
-    "gaming+hoc-tap": {
-      "label": "Game Thủ Cày Đêm + Học Mà Như Không Học",
-      "counts": {
-        "roles": 12,
-        "categories": 7,
-        "channels": 31
-      },
-      "rules": 12,
-      "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "🎮 Pro Gamer (tự xưng)",
-        "🥔 Gánh Team Ngược",
-        "💤 AFK Từ 2019",
-        "📹 Streamer 0 View",
-        "📚 Học Bá (có chứng nhận từ mẹ)",
-        "🔥 Chiến Thần Deadline",
-        "📋 Thợ Chép Bài",
-        "😴 Ngủ Gật Trong Lớp"
-      ],
-      "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎮 Khu Cày Game",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
-              "type": "text"
-            },
-            {
-              "name": "🔍・tìm-team-lfg",
-              "type": "text"
-            },
-            {
-              "name": "🎬・khoe-clip-pha-xử-lý",
-              "type": "text"
-            },
-            {
-              "name": "😭・khóc-lóc-sau-trận",
-              "type": "text"
-            },
-            {
-              "name": "🎲 Phòng Game 1",
-              "type": "voice"
-            },
-            {
-              "name": "🎲 Phòng Game 2",
-              "type": "voice"
-            },
-            {
-              "name": "🔥 Phòng Rage Quit",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🍕 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-tươi-mới",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-hôm-nay",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "📖 Khu Học Tập",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・trà-đá-giữa-giờ",
-              "type": "text"
-            },
-            {
-              "name": "❓・hỏi-bài",
-              "type": "text"
-            },
-            {
-              "name": "⏰・deadline-sắp-cháy",
-              "type": "text"
-            },
-            {
-              "name": "📝・chia-sẻ-tài-liệu",
-              "type": "text"
-            },
-            {
-              "name": "📚 Phòng Học Nhóm",
-              "type": "voice"
-            },
-            {
-              "name": "🤫 Phòng Học Im Lặng",
-              "type": "voice"
-            },
-            {
-              "name": "😱 Phòng Ôn Đêm Trước Thi",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "☕ Khu Xả Stress",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-học-đường",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-cho-tỉnh",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
-              "type": "voice"
-            }
-          ]
-        }
-      ]
-    },
-    "cong-dong": {
+    {
+      "id": "cong-dong",
       "label": "Cộng Đồng Tạp Hoá",
-      "counts": {
-        "roles": 8,
-        "categories": 5,
-        "channels": 21
-      },
-      "rules": 10,
+      "blurb": "Cho mọi loại cộng đồng: chat, ảnh, chia sẻ, sự kiện, đủ thứ lặt vặt.",
       "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
         "💎 VIP (chưa ai biết vì sao)",
         "👻 Thành Viên Tàng Hình",
         "🗣️ Cây Chém Gió",
         "🎨 Hoạ Sĩ Tay Run"
       ],
+      "extraRules": 2,
       "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
         {
           "name": "💬 Khu Tám Chuyện",
           "staff": false,
@@ -579,683 +266,21 @@
               "type": "text"
             }
           ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
-              "type": "voice"
-            }
-          ]
         }
       ]
     },
-    "gaming+cong-dong": {
-      "label": "Game Thủ Cày Đêm + Cộng Đồng Tạp Hoá",
-      "counts": {
-        "roles": 12,
-        "categories": 7,
-        "channels": 27
-      },
-      "rules": 12,
-      "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "🎮 Pro Gamer (tự xưng)",
-        "🥔 Gánh Team Ngược",
-        "💤 AFK Từ 2019",
-        "📹 Streamer 0 View",
-        "💎 VIP (chưa ai biết vì sao)",
-        "👻 Thành Viên Tàng Hình",
-        "🗣️ Cây Chém Gió",
-        "🎨 Hoạ Sĩ Tay Run"
-      ],
-      "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎮 Khu Cày Game",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
-              "type": "text"
-            },
-            {
-              "name": "🔍・tìm-team-lfg",
-              "type": "text"
-            },
-            {
-              "name": "🎬・khoe-clip-pha-xử-lý",
-              "type": "text"
-            },
-            {
-              "name": "😭・khóc-lóc-sau-trận",
-              "type": "text"
-            },
-            {
-              "name": "🎲 Phòng Game 1",
-              "type": "voice"
-            },
-            {
-              "name": "🎲 Phòng Game 2",
-              "type": "voice"
-            },
-            {
-              "name": "🔥 Phòng Rage Quit",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🍕 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-tươi-mới",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-hôm-nay",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "💬 Khu Tám Chuyện",
-          "staff": false,
-          "channels": [
-            {
-              "name": "📸・khoe-ảnh-khoe-đồ",
-              "type": "text"
-            },
-            {
-              "name": "🎉・sự-kiện-sắp-tới",
-              "type": "text"
-            },
-            {
-              "name": "🗣️ Phòng Tám Chung",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️ Phòng Tám Riêng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎪 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💡・góp-ý-cho-server",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
-              "type": "voice"
-            }
-          ]
-        }
-      ]
-    },
-    "hoc-tap+cong-dong": {
-      "label": "Học Mà Như Không Học + Cộng Đồng Tạp Hoá",
-      "counts": {
-        "roles": 12,
-        "categories": 7,
-        "channels": 30
-      },
-      "rules": 12,
-      "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "📚 Học Bá (có chứng nhận từ mẹ)",
-        "🔥 Chiến Thần Deadline",
-        "📋 Thợ Chép Bài",
-        "😴 Ngủ Gật Trong Lớp",
-        "💎 VIP (chưa ai biết vì sao)",
-        "👻 Thành Viên Tàng Hình",
-        "🗣️ Cây Chém Gió",
-        "🎨 Hoạ Sĩ Tay Run"
-      ],
-      "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "📖 Khu Học Tập",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・trà-đá-giữa-giờ",
-              "type": "text"
-            },
-            {
-              "name": "❓・hỏi-bài",
-              "type": "text"
-            },
-            {
-              "name": "⏰・deadline-sắp-cháy",
-              "type": "text"
-            },
-            {
-              "name": "📝・chia-sẻ-tài-liệu",
-              "type": "text"
-            },
-            {
-              "name": "📚 Phòng Học Nhóm",
-              "type": "voice"
-            },
-            {
-              "name": "🤫 Phòng Học Im Lặng",
-              "type": "voice"
-            },
-            {
-              "name": "😱 Phòng Ôn Đêm Trước Thi",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "☕ Khu Xả Stress",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-học-đường",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-cho-tỉnh",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "💬 Khu Tám Chuyện",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
-              "type": "text"
-            },
-            {
-              "name": "📸・khoe-ảnh-khoe-đồ",
-              "type": "text"
-            },
-            {
-              "name": "🎉・sự-kiện-sắp-tới",
-              "type": "text"
-            },
-            {
-              "name": "🗣️ Phòng Tám Chung",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️ Phòng Tám Riêng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎪 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-tươi-mới",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-hôm-nay",
-              "type": "text"
-            },
-            {
-              "name": "💡・góp-ý-cho-server",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
-              "type": "voice"
-            }
-          ]
-        }
-      ]
-    },
-    "gaming+hoc-tap+cong-dong": {
-      "label": "Game Thủ Cày Đêm + Học Mà Như Không Học + Cộng Đồng Tạp Hoá",
-      "counts": {
-        "roles": 16,
-        "categories": 9,
-        "channels": 36
-      },
-      "rules": 14,
-      "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "🎮 Pro Gamer (tự xưng)",
-        "🥔 Gánh Team Ngược",
-        "💤 AFK Từ 2019",
-        "📹 Streamer 0 View",
-        "📚 Học Bá (có chứng nhận từ mẹ)",
-        "🔥 Chiến Thần Deadline",
-        "📋 Thợ Chép Bài",
-        "😴 Ngủ Gật Trong Lớp",
-        "💎 VIP (chưa ai biết vì sao)",
-        "👻 Thành Viên Tàng Hình",
-        "🗣️ Cây Chém Gió",
-        "🎨 Hoạ Sĩ Tay Run"
-      ],
-      "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎮 Khu Cày Game",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
-              "type": "text"
-            },
-            {
-              "name": "🔍・tìm-team-lfg",
-              "type": "text"
-            },
-            {
-              "name": "🎬・khoe-clip-pha-xử-lý",
-              "type": "text"
-            },
-            {
-              "name": "😭・khóc-lóc-sau-trận",
-              "type": "text"
-            },
-            {
-              "name": "🎲 Phòng Game 1",
-              "type": "voice"
-            },
-            {
-              "name": "🎲 Phòng Game 2",
-              "type": "voice"
-            },
-            {
-              "name": "🔥 Phòng Rage Quit",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🍕 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-tươi-mới",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-hôm-nay",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "📖 Khu Học Tập",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・trà-đá-giữa-giờ",
-              "type": "text"
-            },
-            {
-              "name": "❓・hỏi-bài",
-              "type": "text"
-            },
-            {
-              "name": "⏰・deadline-sắp-cháy",
-              "type": "text"
-            },
-            {
-              "name": "📝・chia-sẻ-tài-liệu",
-              "type": "text"
-            },
-            {
-              "name": "📚 Phòng Học Nhóm",
-              "type": "voice"
-            },
-            {
-              "name": "🤫 Phòng Học Im Lặng",
-              "type": "voice"
-            },
-            {
-              "name": "😱 Phòng Ôn Đêm Trước Thi",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "☕ Khu Xả Stress",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-học-đường",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-cho-tỉnh",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "💬 Khu Tám Chuyện",
-          "staff": false,
-          "channels": [
-            {
-              "name": "📸・khoe-ảnh-khoe-đồ",
-              "type": "text"
-            },
-            {
-              "name": "🎉・sự-kiện-sắp-tới",
-              "type": "text"
-            },
-            {
-              "name": "🗣️ Phòng Tám Chung",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️ Phòng Tám Riêng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎪 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💡・góp-ý-cho-server",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
-              "type": "voice"
-            }
-          ]
-        }
-      ]
-    },
-    "chill-ban-be": {
+    {
+      "id": "chill-ban-be",
       "label": "Chill Cùng Hội Bạn",
-      "counts": {
-        "roles": 8,
-        "categories": 5,
-        "channels": 21
-      },
-      "rules": 10,
+      "blurb": "Cho nhóm bạn thân: nhỏ, ấm, ồn ào và đầy chuyện không ai muốn nhớ.",
       "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
         "💖 Bạn Thân Cứng",
         "📷 Thợ Chụp Ảnh Xấu Bạn",
         "🍜 Hội Ăn Uống",
         "🦉 Cú Đêm 3 Giờ Sáng"
       ],
+      "extraRules": 2,
       "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
         {
           "name": "🏠 Nhà Chung",
           "staff": false,
@@ -1303,1581 +328,418 @@
               "type": "text"
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "booking",
+      "label": "Booking Bạn Chơi",
+      "blurb": "Cho server thuê bạn chơi game hoặc tâm sự: hướng dẫn đặt lịch, bảng giá, hồ sơ player, feedback và chống lừa đảo.",
+      "roles": [
+        "✅ Player Đã Xác Minh",
+        "🌟 Player Được Yêu Thích",
+        "💎 Khách Quen Của Tiệm",
+        "🎧 Đang Tìm Bạn Chơi",
+        "🗣️ Cần Người Tâm Sự",
+        "🔔 Báo Khi Có Lịch Trống"
+      ],
+      "extraRules": 2,
+      "categories": [
         {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
+          "name": "📋 Quầy Lễ Tân",
           "staff": false,
           "channels": [
             {
-              "name": "🎛️・dj-booth",
+              "name": "📖・hướng-dẫn-đặt-lịch",
               "type": "text"
             },
             {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
+              "name": "💵・bảng-giá",
               "type": "text"
             },
             {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
+              "name": "🛡️・chống-lừa-đảo",
+              "type": "text"
+            },
+            {
+              "name": "🧾・xác-nhận-giao-dịch",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "name": "🎮 Danh Sách Player",
+          "staff": false,
+          "channels": [
+            {
+              "name": "🧑‍🎤・hồ-sơ-player",
+              "type": "text"
+            },
+            {
+              "name": "📅・lịch-trống-hôm-nay",
+              "type": "text"
+            },
+            {
+              "name": "🔍・khách-tìm-player",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "name": "🎧 Phòng Chơi Cùng",
+          "staff": false,
+          "channels": [
+            {
+              "name": "🎮 Phòng Chơi Cùng 1",
+              "type": "voice"
+            },
+            {
+              "name": "🎮 Phòng Chơi Cùng 2",
+              "type": "voice"
+            },
+            {
+              "name": "🗣️ Phòng Tâm Sự",
+              "type": "voice"
+            },
+            {
+              "name": "👀 Phòng Chờ Khách",
               "type": "voice"
             }
           ]
         },
         {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
+          "name": "⭐ Uy Tín Là Vàng",
+          "staff": false,
           "channels": [
             {
-              "name": "🕵️・mod-bàn-chuyện",
+              "name": "⭐・feedback-sau-ca",
               "type": "text"
             },
             {
-              "name": "📋・nhật-ký-phạt",
+              "name": "🏆・bảng-vàng-player",
               "type": "text"
             },
             {
-              "name": "☕ Phòng Họp Mod",
+              "name": "🆘・hỗ-trợ-khiếu-nại",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "anime",
+      "label": "Hội Mê Anime",
+      "blurb": "Cho hội cày anime và manga: gợi ý phim, review, spoiler có rào chắn, fanart và cãi nhau về waifu.",
+      "roles": [
+        "🍥 Otaku Chính Hiệu",
+        "📚 Mọt Manga",
+        "🎭 Cosplayer Gương Mặt Vàng",
+        "😭 Vừa Khóc Vì Tập Cuối"
+      ],
+      "extraRules": 2,
+      "categories": [
+        {
+          "name": "🍥 Thế Giới Anime",
+          "staff": false,
+          "channels": [
+            {
+              "name": "💬・chém-anime",
+              "type": "text"
+            },
+            {
+              "name": "🔥・anime-mùa-này",
+              "type": "text"
+            },
+            {
+              "name": "⭐・review-chấm-điểm",
+              "type": "text"
+            },
+            {
+              "name": "🚨・spoiler-cẩn-thận",
+              "type": "text"
+            },
+            {
+              "name": "🎨・fanart-khoe-tranh",
+              "type": "text"
+            },
+            {
+              "name": "💞・đua-waifu-husbando",
+              "type": "text"
+            },
+            {
+              "name": "📺 Phòng Xem Chung",
+              "type": "voice"
+            },
+            {
+              "name": "🎤 Phòng Karaoke Opening",
               "type": "voice"
             }
           ]
         }
       ]
     },
-    "gaming+chill-ban-be": {
-      "label": "Game Thủ Cày Đêm + Chill Cùng Hội Bạn",
-      "counts": {
-        "roles": 12,
-        "categories": 7,
-        "channels": 30
-      },
-      "rules": 12,
+    {
+      "id": "dev-code",
+      "label": "Hội Code Dạo",
+      "blurb": "Cho dân lập trình: hỏi bug, khoe project, review code, tìm việc và than về lần deploy chiều thứ Sáu.",
       "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "🎮 Pro Gamer (tự xưng)",
-        "🥔 Gánh Team Ngược",
-        "💤 AFK Từ 2019",
-        "📹 Streamer 0 View",
-        "💖 Bạn Thân Cứng",
-        "📷 Thợ Chụp Ảnh Xấu Bạn",
-        "🍜 Hội Ăn Uống",
-        "🦉 Cú Đêm 3 Giờ Sáng"
+        "💻 Dev Cấp Cao (tự xưng)",
+        "🐛 Thợ Săn Bug",
+        "☕ Chạy Bằng Cà Phê",
+        "🔁 Sửa Bug Đẻ Ra Bug"
       ],
+      "extraRules": 2,
       "categories": [
         {
-          "name": "📌 Khu Hành Chính",
+          "name": "💻 Khu Làm Việc",
           "staff": false,
           "channels": [
             {
-              "name": "👋・sảnh-chờ-nhận-lương",
+              "name": "🆘・hỏi-bug-xin-giúp",
               "type": "text"
             },
             {
-              "name": "📜・luật-không-ai-đọc",
+              "name": "🚀・khoe-project",
               "type": "text"
             },
             {
-              "name": "🎭・xin-role-xin-lộc",
+              "name": "🔍・review-code",
               "type": "text"
             },
             {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎮 Khu Cày Game",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
+              "name": "📚・tài-liệu-học",
               "type": "text"
             },
             {
-              "name": "🔍・tìm-team-lfg",
+              "name": "💼・việc-làm-freelance",
               "type": "text"
             },
             {
-              "name": "🎬・khoe-clip-pha-xử-lý",
+              "name": "😭・deploy-chiều-thứ-sáu",
               "type": "text"
             },
             {
-              "name": "😭・khóc-lóc-sau-trận",
-              "type": "text"
-            },
-            {
-              "name": "🎲 Phòng Game 1",
+              "name": "🧑‍💻 Phòng Cày Code",
               "type": "voice"
             },
             {
-              "name": "🎲 Phòng Game 2",
-              "type": "voice"
-            },
-            {
-              "name": "🔥 Phòng Rage Quit",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🍕 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-tươi-mới",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-hôm-nay",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🏠 Nhà Chung",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・nhà-chung",
-              "type": "text"
-            },
-            {
-              "name": "📸・ảnh-xấu-của-nhau",
-              "type": "text"
-            },
-            {
-              "name": "🍜・hôm-nay-ăn-gì",
-              "type": "text"
-            },
-            {
-              "name": "🗓️・kế-hoạch-đi-chơi",
-              "type": "text"
-            },
-            {
-              "name": "🛋️ Phòng Khách",
-              "type": "voice"
-            },
-            {
-              "name": "🌙 Phòng Tâm Sự Đêm Khuya",
-              "type": "voice"
-            },
-            {
-              "name": "🎮 Phòng Chơi Game",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎭 Khu Vui Chơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-nội-bộ",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
+              "name": "🦆 Phòng Nói Chuyện Với Vịt",
               "type": "voice"
             }
           ]
         }
       ]
     },
-    "hoc-tap+chill-ban-be": {
-      "label": "Học Mà Như Không Học + Chill Cùng Hội Bạn",
-      "counts": {
-        "roles": 12,
-        "categories": 7,
-        "channels": 30
-      },
-      "rules": 12,
+    {
+      "id": "creator",
+      "label": "Studio Content Creator",
+      "blurb": "Cho streamer, YouTuber, TikToker: ý tưởng, feedback video, lịch livestream, tìm collab và số liệu thật.",
       "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "📚 Học Bá (có chứng nhận từ mẹ)",
-        "🔥 Chiến Thần Deadline",
-        "📋 Thợ Chép Bài",
-        "😴 Ngủ Gật Trong Lớp",
-        "💖 Bạn Thân Cứng",
-        "📷 Thợ Chụp Ảnh Xấu Bạn",
-        "🍜 Hội Ăn Uống",
-        "🦉 Cú Đêm 3 Giờ Sáng"
+        "🎬 Creator Mới Nổi",
+        "📹 Đang Livestream",
+        "✂️ Thợ Dựng Phim",
+        "📈 Đang Chờ Viral"
       ],
+      "extraRules": 2,
       "categories": [
         {
-          "name": "📌 Khu Hành Chính",
+          "name": "🎬 Phòng Thu",
           "staff": false,
           "channels": [
             {
-              "name": "👋・sảnh-chờ-nhận-lương",
+              "name": "💡・ý-tưởng-content",
               "type": "text"
             },
             {
-              "name": "📜・luật-không-ai-đọc",
+              "name": "🎞️・feedback-video",
               "type": "text"
             },
             {
-              "name": "🎭・xin-role-xin-lộc",
+              "name": "📺・lịch-livestream",
               "type": "text"
             },
             {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "📖 Khu Học Tập",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・trà-đá-giữa-giờ",
+              "name": "🤝・tìm-collab",
               "type": "text"
             },
             {
-              "name": "❓・hỏi-bài",
+              "name": "📈・chia-sẻ-số-liệu",
               "type": "text"
             },
             {
-              "name": "⏰・deadline-sắp-cháy",
-              "type": "text"
-            },
-            {
-              "name": "📝・chia-sẻ-tài-liệu",
-              "type": "text"
-            },
-            {
-              "name": "📚 Phòng Học Nhóm",
+              "name": "🎙️ Phòng Thu Âm",
               "type": "voice"
             },
             {
-              "name": "🤫 Phòng Học Im Lặng",
-              "type": "voice"
-            },
-            {
-              "name": "😱 Phòng Ôn Đêm Trước Thi",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "☕ Khu Xả Stress",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-học-đường",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-cho-tỉnh",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🏠 Nhà Chung",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・nhà-chung",
-              "type": "text"
-            },
-            {
-              "name": "📸・ảnh-xấu-của-nhau",
-              "type": "text"
-            },
-            {
-              "name": "🍜・hôm-nay-ăn-gì",
-              "type": "text"
-            },
-            {
-              "name": "🗓️・kế-hoạch-đi-chơi",
-              "type": "text"
-            },
-            {
-              "name": "🛋️ Phòng Khách",
-              "type": "voice"
-            },
-            {
-              "name": "🌙 Phòng Tâm Sự Đêm Khuya",
-              "type": "voice"
-            },
-            {
-              "name": "🎮 Phòng Chơi Game",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎭 Khu Vui Chơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-nội-bộ",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
+              "name": "📡 Phòng Live Thử",
               "type": "voice"
             }
           ]
         }
       ]
     },
-    "gaming+hoc-tap+chill-ban-be": {
-      "label": "Game Thủ Cày Đêm + Học Mà Như Không Học + Chill Cùng Hội Bạn",
-      "counts": {
-        "roles": 16,
-        "categories": 9,
-        "channels": 39
-      },
-      "rules": 14,
+    {
+      "id": "phim-nhac",
+      "label": "Rạp Phim Và Phòng Nhạc",
+      "blurb": "Cho hội xem phim, nghe nhạc: đề cử phim, bình chọn đêm xem chung, chia sẻ playlist và hát hò.",
       "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "🎮 Pro Gamer (tự xưng)",
-        "🥔 Gánh Team Ngược",
-        "💤 AFK Từ 2019",
-        "📹 Streamer 0 View",
-        "📚 Học Bá (có chứng nhận từ mẹ)",
-        "🔥 Chiến Thần Deadline",
-        "📋 Thợ Chép Bài",
-        "😴 Ngủ Gật Trong Lớp",
-        "💖 Bạn Thân Cứng",
-        "📷 Thợ Chụp Ảnh Xấu Bạn",
-        "🍜 Hội Ăn Uống",
-        "🦉 Cú Đêm 3 Giờ Sáng"
+        "🍿 Mọt Phim",
+        "🎧 Hồn Nhạc",
+        "🎬 Giám Khảo Mạng",
+        "🛋️ Khán Giả Ngủ Gật"
       ],
+      "extraRules": 2,
       "categories": [
         {
-          "name": "📌 Khu Hành Chính",
+          "name": "🍿 Rạp Chiếu",
           "staff": false,
           "channels": [
             {
-              "name": "👋・sảnh-chờ-nhận-lương",
+              "name": "🎥・phim-đề-cử",
               "type": "text"
             },
             {
-              "name": "📜・luật-không-ai-đọc",
+              "name": "🗳️・bình-chọn-phim-tối-nay",
               "type": "text"
             },
             {
-              "name": "🎭・xin-role-xin-lộc",
+              "name": "🌟・review-không-spoil",
               "type": "text"
             },
             {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎮 Khu Cày Game",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
-              "type": "text"
-            },
-            {
-              "name": "🔍・tìm-team-lfg",
-              "type": "text"
-            },
-            {
-              "name": "🎬・khoe-clip-pha-xử-lý",
-              "type": "text"
-            },
-            {
-              "name": "😭・khóc-lóc-sau-trận",
-              "type": "text"
-            },
-            {
-              "name": "🎲 Phòng Game 1",
-              "type": "voice"
-            },
-            {
-              "name": "🎲 Phòng Game 2",
-              "type": "voice"
-            },
-            {
-              "name": "🔥 Phòng Rage Quit",
+              "name": "🍿 Rạp Chiếu Chung",
               "type": "voice"
             }
           ]
         },
         {
-          "name": "🍕 Khu Giải Trí",
+          "name": "🎵 Phòng Nhạc",
           "staff": false,
           "channels": [
             {
-              "name": "🐸・meme-tươi-mới",
+              "name": "🎶・playlist-chia-sẻ",
               "type": "text"
             },
             {
-              "name": "🍜・ăn-gì-hôm-nay",
+              "name": "🔥・bài-đang-nghe",
               "type": "text"
             },
             {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "📖 Khu Học Tập",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・trà-đá-giữa-giờ",
-              "type": "text"
-            },
-            {
-              "name": "❓・hỏi-bài",
-              "type": "text"
-            },
-            {
-              "name": "⏰・deadline-sắp-cháy",
-              "type": "text"
-            },
-            {
-              "name": "📝・chia-sẻ-tài-liệu",
-              "type": "text"
-            },
-            {
-              "name": "📚 Phòng Học Nhóm",
+              "name": "🎵 Phòng Nghe Nhạc",
               "type": "voice"
             },
             {
-              "name": "🤫 Phòng Học Im Lặng",
-              "type": "voice"
-            },
-            {
-              "name": "😱 Phòng Ôn Đêm Trước Thi",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "☕ Khu Xả Stress",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-học-đường",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-cho-tỉnh",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🏠 Nhà Chung",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・nhà-chung",
-              "type": "text"
-            },
-            {
-              "name": "📸・ảnh-xấu-của-nhau",
-              "type": "text"
-            },
-            {
-              "name": "🍜・hôm-nay-ăn-gì",
-              "type": "text"
-            },
-            {
-              "name": "🗓️・kế-hoạch-đi-chơi",
-              "type": "text"
-            },
-            {
-              "name": "🛋️ Phòng Khách",
-              "type": "voice"
-            },
-            {
-              "name": "🌙 Phòng Tâm Sự Đêm Khuya",
-              "type": "voice"
-            },
-            {
-              "name": "🎮 Phòng Chơi Game",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎭 Khu Vui Chơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-nội-bộ",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
+              "name": "🎤 Phòng Hát Hò",
               "type": "voice"
             }
           ]
         }
       ]
     },
-    "cong-dong+chill-ban-be": {
-      "label": "Cộng Đồng Tạp Hoá + Chill Cùng Hội Bạn",
-      "counts": {
-        "roles": 12,
-        "categories": 7,
-        "channels": 29
-      },
-      "rules": 12,
+    {
+      "id": "cong-so",
+      "label": "Văn Phòng Một Nhà",
+      "blurb": "Cho team công ty hoặc nhóm dự án: thông báo, việc hôm nay, deadline và chuyện tám giờ nghỉ trưa.",
       "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "💎 VIP (chưa ai biết vì sao)",
-        "👻 Thành Viên Tàng Hình",
-        "🗣️ Cây Chém Gió",
-        "🎨 Hoạ Sĩ Tay Run",
-        "💖 Bạn Thân Cứng",
-        "📷 Thợ Chụp Ảnh Xấu Bạn",
-        "🍜 Hội Ăn Uống",
-        "🦉 Cú Đêm 3 Giờ Sáng"
+        "☕ Hội Cà Phê Sáng",
+        "📎 Chuyên Gia Họp Online",
+        "🏃 Đang Chạy Deadline",
+        "🙈 Đang Giả Vờ Bận"
       ],
+      "extraRules": 2,
       "categories": [
         {
-          "name": "📌 Khu Hành Chính",
+          "name": "🏢 Văn Phòng",
           "staff": false,
           "channels": [
             {
-              "name": "👋・sảnh-chờ-nhận-lương",
+              "name": "📢・thông-báo-công-ty",
               "type": "text"
             },
             {
-              "name": "📜・luật-không-ai-đọc",
+              "name": "📌・việc-hôm-nay",
               "type": "text"
             },
             {
-              "name": "🎭・xin-role-xin-lộc",
+              "name": "⏰・deadline-sát-nút",
               "type": "text"
             },
             {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "💬 Khu Tám Chuyện",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
+              "name": "🧠・ý-tưởng-họp-nhóm",
               "type": "text"
             },
             {
-              "name": "📸・khoe-ảnh-khoe-đồ",
+              "name": "☕・tám-giờ-nghỉ-trưa",
               "type": "text"
             },
             {
-              "name": "🎉・sự-kiện-sắp-tới",
+              "name": "🎂・sinh-nhật-đồng-nghiệp",
               "type": "text"
             },
             {
-              "name": "🗣️ Phòng Tám Chung",
+              "name": "🧑‍💼 Phòng Họp 1",
               "type": "voice"
             },
             {
-              "name": "🗣️ Phòng Tám Riêng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎪 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-tươi-mới",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-hôm-nay",
-              "type": "text"
-            },
-            {
-              "name": "💡・góp-ý-cho-server",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🏠 Nhà Chung",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・nhà-chung",
-              "type": "text"
-            },
-            {
-              "name": "📸・ảnh-xấu-của-nhau",
-              "type": "text"
-            },
-            {
-              "name": "🍜・hôm-nay-ăn-gì",
-              "type": "text"
-            },
-            {
-              "name": "🗓️・kế-hoạch-đi-chơi",
-              "type": "text"
-            },
-            {
-              "name": "🛋️ Phòng Khách",
+              "name": "🧑‍💼 Phòng Họp 2",
               "type": "voice"
             },
             {
-              "name": "🌙 Phòng Tâm Sự Đêm Khuya",
-              "type": "voice"
-            },
-            {
-              "name": "🎮 Phòng Chơi Game",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎭 Khu Vui Chơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-nội-bộ",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
+              "name": "☕ Phòng Pha Cà Phê",
               "type": "voice"
             }
           ]
         }
       ]
     },
-    "gaming+cong-dong+chill-ban-be": {
-      "label": "Game Thủ Cày Đêm + Cộng Đồng Tạp Hoá + Chill Cùng Hội Bạn",
-      "counts": {
-        "roles": 16,
-        "categories": 9,
-        "channels": 35
-      },
-      "rules": 14,
+    {
+      "id": "thu-cung",
+      "label": "Hội Yêu Thú Cưng",
+      "blurb": "Cho người nuôi chó mèo: khoe boss, hỏi cách chăm, tìm nhà cho bé và chuyện nhà các sen.",
       "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "🎮 Pro Gamer (tự xưng)",
-        "🥔 Gánh Team Ngược",
-        "💤 AFK Từ 2019",
-        "📹 Streamer 0 View",
-        "💎 VIP (chưa ai biết vì sao)",
-        "👻 Thành Viên Tàng Hình",
-        "🗣️ Cây Chém Gió",
-        "🎨 Hoạ Sĩ Tay Run",
-        "💖 Bạn Thân Cứng",
-        "📷 Thợ Chụp Ảnh Xấu Bạn",
-        "🍜 Hội Ăn Uống",
-        "🦉 Cú Đêm 3 Giờ Sáng"
+        "🐶 Sen Của Chó",
+        "🐱 Sen Của Mèo",
+        "🐹 Hội Thú Nhỏ",
+        "🐾 Chưa Có Boss Nhưng Muốn"
       ],
+      "extraRules": 2,
       "categories": [
         {
-          "name": "📌 Khu Hành Chính",
+          "name": "🐾 Nhà Của Boss",
           "staff": false,
           "channels": [
             {
-              "name": "👋・sảnh-chờ-nhận-lương",
+              "name": "📸・khoe-boss",
               "type": "text"
             },
             {
-              "name": "📜・luật-không-ai-đọc",
+              "name": "🩺・hỏi-chăm-sóc",
               "type": "text"
             },
             {
-              "name": "🎭・xin-role-xin-lộc",
+              "name": "🏠・tìm-nhà-cho-bé",
               "type": "text"
             },
             {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎮 Khu Cày Game",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
+              "name": "🍖・đồ-ăn-đồ-chơi",
               "type": "text"
             },
             {
-              "name": "🔍・tìm-team-lfg",
+              "name": "😹・chuyện-nhà-các-sen",
               "type": "text"
             },
             {
-              "name": "🎬・khoe-clip-pha-xử-lý",
-              "type": "text"
-            },
-            {
-              "name": "😭・khóc-lóc-sau-trận",
-              "type": "text"
-            },
-            {
-              "name": "🎲 Phòng Game 1",
+              "name": "🐾 Phòng Cho Boss Lên Sóng",
               "type": "voice"
             },
             {
-              "name": "🎲 Phòng Game 2",
-              "type": "voice"
-            },
-            {
-              "name": "🔥 Phòng Rage Quit",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🍕 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-tươi-mới",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-hôm-nay",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "💬 Khu Tám Chuyện",
-          "staff": false,
-          "channels": [
-            {
-              "name": "📸・khoe-ảnh-khoe-đồ",
-              "type": "text"
-            },
-            {
-              "name": "🎉・sự-kiện-sắp-tới",
-              "type": "text"
-            },
-            {
-              "name": "🗣️ Phòng Tám Chung",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️ Phòng Tám Riêng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎪 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💡・góp-ý-cho-server",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🏠 Nhà Chung",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・nhà-chung",
-              "type": "text"
-            },
-            {
-              "name": "📸・ảnh-xấu-của-nhau",
-              "type": "text"
-            },
-            {
-              "name": "🍜・hôm-nay-ăn-gì",
-              "type": "text"
-            },
-            {
-              "name": "🗓️・kế-hoạch-đi-chơi",
-              "type": "text"
-            },
-            {
-              "name": "🛋️ Phòng Khách",
-              "type": "voice"
-            },
-            {
-              "name": "🌙 Phòng Tâm Sự Đêm Khuya",
-              "type": "voice"
-            },
-            {
-              "name": "🎮 Phòng Chơi Game",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎭 Khu Vui Chơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-nội-bộ",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
-              "type": "voice"
-            }
-          ]
-        }
-      ]
-    },
-    "hoc-tap+cong-dong+chill-ban-be": {
-      "label": "Học Mà Như Không Học + Cộng Đồng Tạp Hoá + Chill Cùng Hội Bạn",
-      "counts": {
-        "roles": 16,
-        "categories": 9,
-        "channels": 38
-      },
-      "rules": 14,
-      "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "📚 Học Bá (có chứng nhận từ mẹ)",
-        "🔥 Chiến Thần Deadline",
-        "📋 Thợ Chép Bài",
-        "😴 Ngủ Gật Trong Lớp",
-        "💎 VIP (chưa ai biết vì sao)",
-        "👻 Thành Viên Tàng Hình",
-        "🗣️ Cây Chém Gió",
-        "🎨 Hoạ Sĩ Tay Run",
-        "💖 Bạn Thân Cứng",
-        "📷 Thợ Chụp Ảnh Xấu Bạn",
-        "🍜 Hội Ăn Uống",
-        "🦉 Cú Đêm 3 Giờ Sáng"
-      ],
-      "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "📖 Khu Học Tập",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・trà-đá-giữa-giờ",
-              "type": "text"
-            },
-            {
-              "name": "❓・hỏi-bài",
-              "type": "text"
-            },
-            {
-              "name": "⏰・deadline-sắp-cháy",
-              "type": "text"
-            },
-            {
-              "name": "📝・chia-sẻ-tài-liệu",
-              "type": "text"
-            },
-            {
-              "name": "📚 Phòng Học Nhóm",
-              "type": "voice"
-            },
-            {
-              "name": "🤫 Phòng Học Im Lặng",
-              "type": "voice"
-            },
-            {
-              "name": "😱 Phòng Ôn Đêm Trước Thi",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "☕ Khu Xả Stress",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-học-đường",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-cho-tỉnh",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "💬 Khu Tám Chuyện",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
-              "type": "text"
-            },
-            {
-              "name": "📸・khoe-ảnh-khoe-đồ",
-              "type": "text"
-            },
-            {
-              "name": "🎉・sự-kiện-sắp-tới",
-              "type": "text"
-            },
-            {
-              "name": "🗣️ Phòng Tám Chung",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️ Phòng Tám Riêng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎪 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-tươi-mới",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-hôm-nay",
-              "type": "text"
-            },
-            {
-              "name": "💡・góp-ý-cho-server",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🏠 Nhà Chung",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・nhà-chung",
-              "type": "text"
-            },
-            {
-              "name": "📸・ảnh-xấu-của-nhau",
-              "type": "text"
-            },
-            {
-              "name": "🍜・hôm-nay-ăn-gì",
-              "type": "text"
-            },
-            {
-              "name": "🗓️・kế-hoạch-đi-chơi",
-              "type": "text"
-            },
-            {
-              "name": "🛋️ Phòng Khách",
-              "type": "voice"
-            },
-            {
-              "name": "🌙 Phòng Tâm Sự Đêm Khuya",
-              "type": "voice"
-            },
-            {
-              "name": "🎮 Phòng Chơi Game",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎭 Khu Vui Chơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-nội-bộ",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
-              "type": "voice"
-            }
-          ]
-        }
-      ]
-    },
-    "gaming+hoc-tap+cong-dong+chill-ban-be": {
-      "label": "Game Thủ Cày Đêm + Học Mà Như Không Học + Cộng Đồng Tạp Hoá + Chill Cùng Hội Bạn",
-      "counts": {
-        "roles": 20,
-        "categories": 11,
-        "channels": 44
-      },
-      "rules": 16,
-      "roles": [
-        "👑 Chủ Tịch (tự phong)",
-        "🛡️ Mod Cầm Chổi",
-        "🤖 Bot Nô Lệ",
-        "🐣 Người Mới Chưa Biết Gì",
-        "🎮 Pro Gamer (tự xưng)",
-        "🥔 Gánh Team Ngược",
-        "💤 AFK Từ 2019",
-        "📹 Streamer 0 View",
-        "📚 Học Bá (có chứng nhận từ mẹ)",
-        "🔥 Chiến Thần Deadline",
-        "📋 Thợ Chép Bài",
-        "😴 Ngủ Gật Trong Lớp",
-        "💎 VIP (chưa ai biết vì sao)",
-        "👻 Thành Viên Tàng Hình",
-        "🗣️ Cây Chém Gió",
-        "🎨 Hoạ Sĩ Tay Run",
-        "💖 Bạn Thân Cứng",
-        "📷 Thợ Chụp Ảnh Xấu Bạn",
-        "🍜 Hội Ăn Uống",
-        "🦉 Cú Đêm 3 Giờ Sáng"
-      ],
-      "categories": [
-        {
-          "name": "📌 Khu Hành Chính",
-          "staff": false,
-          "channels": [
-            {
-              "name": "👋・sảnh-chờ-nhận-lương",
-              "type": "text"
-            },
-            {
-              "name": "📜・luật-không-ai-đọc",
-              "type": "text"
-            },
-            {
-              "name": "🎭・xin-role-xin-lộc",
-              "type": "text"
-            },
-            {
-              "name": "📢・thông-báo-quan-trọng",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎮 Khu Cày Game",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・chém-gió-tổng-hợp",
-              "type": "text"
-            },
-            {
-              "name": "🔍・tìm-team-lfg",
-              "type": "text"
-            },
-            {
-              "name": "🎬・khoe-clip-pha-xử-lý",
-              "type": "text"
-            },
-            {
-              "name": "😭・khóc-lóc-sau-trận",
-              "type": "text"
-            },
-            {
-              "name": "🎲 Phòng Game 1",
-              "type": "voice"
-            },
-            {
-              "name": "🎲 Phòng Game 2",
-              "type": "voice"
-            },
-            {
-              "name": "🔥 Phòng Rage Quit",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🍕 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-tươi-mới",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-hôm-nay",
-              "type": "text"
-            },
-            {
-              "name": "🥊・tranh-cãi",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "📖 Khu Học Tập",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・trà-đá-giữa-giờ",
-              "type": "text"
-            },
-            {
-              "name": "❓・hỏi-bài",
-              "type": "text"
-            },
-            {
-              "name": "⏰・deadline-sắp-cháy",
-              "type": "text"
-            },
-            {
-              "name": "📝・chia-sẻ-tài-liệu",
-              "type": "text"
-            },
-            {
-              "name": "📚 Phòng Học Nhóm",
-              "type": "voice"
-            },
-            {
-              "name": "🤫 Phòng Học Im Lặng",
-              "type": "voice"
-            },
-            {
-              "name": "😱 Phòng Ôn Đêm Trước Thi",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "☕ Khu Xả Stress",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-học-đường",
-              "type": "text"
-            },
-            {
-              "name": "🍜・ăn-gì-cho-tỉnh",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "💬 Khu Tám Chuyện",
-          "staff": false,
-          "channels": [
-            {
-              "name": "📸・khoe-ảnh-khoe-đồ",
-              "type": "text"
-            },
-            {
-              "name": "🎉・sự-kiện-sắp-tới",
-              "type": "text"
-            },
-            {
-              "name": "🗣️ Phòng Tám Chung",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️ Phòng Tám Riêng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎪 Khu Giải Trí",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💡・góp-ý-cho-server",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🏠 Nhà Chung",
-          "staff": false,
-          "channels": [
-            {
-              "name": "💬・nhà-chung",
-              "type": "text"
-            },
-            {
-              "name": "📸・ảnh-xấu-của-nhau",
-              "type": "text"
-            },
-            {
-              "name": "🍜・hôm-nay-ăn-gì",
-              "type": "text"
-            },
-            {
-              "name": "🗓️・kế-hoạch-đi-chơi",
-              "type": "text"
-            },
-            {
-              "name": "🛋️ Phòng Khách",
-              "type": "voice"
-            },
-            {
-              "name": "🌙 Phòng Tâm Sự Đêm Khuya",
-              "type": "voice"
-            },
-            {
-              "name": "🎮 Phòng Chơi Game",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🎭 Khu Vui Chơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🐸・meme-nội-bộ",
-              "type": "text"
-            }
-          ]
-        },
-        {
-          "name": "🎧 Phòng Thu Âm Dở Hơi",
-          "staff": false,
-          "channels": [
-            {
-              "name": "🎛️・dj-booth",
-              "type": "text"
-            },
-            {
-              "name": "🎵 Nhạc Cho Đỡ Buồn",
-              "type": "voice"
-            },
-            {
-              "name": "🎤 Karaoke Tone Điếc",
-              "type": "voice"
-            },
-            {
-              "name": "🗣️・chém-gió-bằng-giọng",
-              "type": "text"
-            },
-            {
-              "name": "🔊 Phòng Đọc Chữ Thành Tiếng",
-              "type": "voice"
-            }
-          ]
-        },
-        {
-          "name": "🔒 Hậu Trường Của Mod",
-          "staff": true,
-          "channels": [
-            {
-              "name": "🕵️・mod-bàn-chuyện",
-              "type": "text"
-            },
-            {
-              "name": "📋・nhật-ký-phạt",
-              "type": "text"
-            },
-            {
-              "name": "☕ Phòng Họp Mod",
+              "name": "🛋️ Phòng Sen Tâm Sự",
               "type": "voice"
             }
           ]
         }
       ]
     }
-  }
+  ]
 }

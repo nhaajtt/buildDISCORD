@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.0
+
+- Seven new themes, eleven in total: **Booking Bạn Chơi** (a server for booking a friend to play or talk, with a booking guide, price list, player profiles, free slots, feedback, anti-scam and complaints channels), anime fans, coders, content creators, cinema and music, an office team, and pet lovers.
+- Trust roles in the booking theme (verified player, popular player, regular customer) are handed out by staff and are not in the self-assign picker.
+- Tests for every mix of up to four themes (561): Discord limits, no role key or name shared between themes, no permissions on self-assignable roles.
+- The website shows all eleven themes, caps a mix at four like `/build`, and merges themes in the browser with a port of the bot's merge that a test checks against the bot for every mix.
+- Fixed the command list scrolling sideways on phones.
+
 ## 1.2.0
 
 - Interactive website: a drafting table in the hero that shows the bot's real output for every mix of themes, a working miniature of the blueprint editor, three real AI answers, plan cards, copyable commands, a drafting crosshair and a scroll ruler, in a brighter blueprint style. Reduced motion, touch and no-script all have plain fallbacks.

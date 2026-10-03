@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import gsap from "gsap";
 import type { Dict } from "@/content/types";
-import { ai, plans, textChannelName, type Channel } from "@/content/data";
+import { ai, planFor, textChannelName, type Channel } from "@/content/data";
 
 type Cat = { name: string; locked?: boolean; dj?: boolean; channels: Channel[] };
 
@@ -11,7 +11,7 @@ const reduced = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-
 
 // The same starting point as a real blueprint: the admin area, a themed part from the AI, and the DJ rooms
 function initial(): Cat[] {
-  const base = plans.gaming.categories;
+  const base = planFor(["gaming"]).categories;
   const admin = base[0];
   const dj = base.find((c) => c.channels.some((ch) => ch.name.includes("dj-booth")))!;
   return [

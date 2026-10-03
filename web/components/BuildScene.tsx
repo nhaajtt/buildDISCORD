@@ -4,10 +4,10 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { Dict } from "@/content/types";
-import { plans } from "@/content/data";
+import { planFor } from "@/content/data";
 import SectionHead from "./SectionHead";
 
-const plan = plans.gaming;
+const plan = planFor(["gaming"]);
 const rules = [
   "Cấm spam. Gửi 47 tin nhắn liên tiếp không làm bạn nói đúng hơn, chỉ làm bạn bị mute nhanh hơn.",
   "Mod luôn đúng. Nếu mod sai, xem lại điều 1 của luật này.",

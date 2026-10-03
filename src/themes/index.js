@@ -2,9 +2,16 @@ import gaming from "./gaming.js";
 import hocTap from "./hoc-tap.js";
 import congDong from "./cong-dong.js";
 import chillBanBe from "./chill-ban-be.js";
+import booking from "./booking.js";
+import anime from "./anime.js";
+import devCode from "./dev-code.js";
+import creator from "./creator.js";
+import phimNhac from "./phim-nhac.js";
+import congSo from "./cong-so.js";
+import thuCung from "./thu-cung.js";
 import { baseRoles, baseRules, infoCategory, djCategory, staffCategory } from "./base.js";
 
-export const themes = [gaming, hocTap, congDong, chillBanBe];
+export const themes = [gaming, hocTap, congDong, chillBanBe, booking, anime, devCode, creator, phimNhac, congSo, thuCung];
 
 export function parseThemeIds(value) {
   const list = Array.isArray(value) ? value : String(value).split("+");

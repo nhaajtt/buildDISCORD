@@ -25,9 +25,9 @@ export default function CopyCommand({ name, args, copied, hint }: { name: string
         {name}
         {args
           ? args.split(" ").map((arg) => (
-              <span key={arg} className="arg">
+              <span key={arg}>
                 {" "}
-                {arg}
+                <span className="arg">{arg}</span>
               </span>
             ))
           : null}

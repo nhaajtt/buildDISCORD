@@ -1,33 +1,39 @@
-// Writes the data the website shows, straight from the bot's own code, so the page never drifts from what the bot really builds.
+// Writes the data the website shows, straight from the bot's own theme files, so the page never drifts from what the bot really builds.
 //   node scripts/export-web-data.js          write web/content/themes.data.json (and copy the devlog)
-// test/webdata.test.js fails if the committed files are out of date.
+// The website merges themes with web/lib/compose.mjs, a port of composePlan. test/webdata.test.js fails if the committed data is out
+// of date, and checks the port against the bot for every mix of up to four themes.
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { buildPlan, countPlan, themes } from "../src/themes/index.js";
+import { themes } from "../src/themes/index.js";
+import { baseRoles, baseRules, djCategory, infoCategory, staffCategory } from "../src/themes/base.js";
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 
-// Every non-empty combination of the built-in themes, in the order the themes are listed
+const category = (c) => ({
+  name: c.name,
+  staff: Boolean(c.staff),
+  channels: c.channels.map((ch) => ({ name: ch.name, type: ch.type })),
+});
+
 export function buildWebData() {
-  const ids = themes.map((t) => t.id);
-  const plans = {};
-  for (let mask = 1; mask < 1 << ids.length; mask++) {
-    const picked = ids.filter((_, i) => mask & (1 << i));
-    const plan = buildPlan(picked);
-    plans[picked.join("+")] = {
-      label: plan.label,
-      counts: countPlan(plan),
-      rules: plan.rules.length,
-      roles: plan.roles.map((r) => r.name),
-      categories: plan.categories.map((c) => ({
-        name: c.name,
-        staff: Boolean(c.staff),
-        channels: c.channels.map((ch) => ({ name: ch.name, type: ch.type })),
-      })),
-    };
-  }
-  return { themes: themes.map((t) => ({ id: t.id, label: t.label, blurb: t.blurb })), plans };
+  return {
+    base: {
+      roles: baseRoles.map((r) => r.name),
+      rules: baseRules.length,
+      info: category(infoCategory),
+      dj: category(djCategory),
+      staff: category(staffCategory),
+    },
+    themes: themes.map((t) => ({
+      id: t.id,
+      label: t.label,
+      blurb: t.blurb,
+      roles: t.roles.map((r) => r.name),
+      extraRules: t.extraRules.length,
+      categories: t.categories.map(category),
+    })),
+  };
 }
 
 export const files = {

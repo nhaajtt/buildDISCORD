@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import type { Dict } from "@/content/types";
-import { plans, themes } from "@/content/data";
+import { MAX_MIX, planFor, themes } from "@/content/data";
 
 const reduced = () => typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -12,7 +12,8 @@ export default function Plotter({ dict }: { dict: Dict }) {
   const order = themes.map((t) => t.id);
   const [picked, setPicked] = useState<string[]>([order[0]]);
   const key = order.filter((id) => picked.includes(id)).join("+");
-  const plan = plans[key];
+  const plan = planFor(key.split("+"));
+  const labelOf = (id: string) => dict.themes.items.find((t) => t.id === id)?.label ?? id;
   const [shown, setShown] = useState(plan.counts);
   const [stage, setStage] = useState<"idle" | "building" | "done">("idle");
   const [progress, setProgress] = useState(0);
@@ -21,7 +22,10 @@ export default function Plotter({ dict }: { dict: Dict }) {
 
   const toggle = (id: string) => {
     setStage("idle");
-    setPicked((current) => (current.includes(id) ? (current.length > 1 ? current.filter((x) => x !== id) : current) : [...current, id]));
+    setPicked((current) => {
+      if (current.includes(id)) return current.length > 1 ? current.filter((x) => x !== id) : current;
+      return current.length >= MAX_MIX ? current : [...current, id];
+    });
   };
 
   // A new mix: roll the three counters and plot the rows in
@@ -87,12 +91,19 @@ export default function Plotter({ dict }: { dict: Dict }) {
 
       <div className="chip-row" role="group" aria-label={dict.plotter.chipsLabel}>
         {themes.map((t) => (
-          <button key={t.id} type="button" className="chip-btn" aria-pressed={picked.includes(t.id)} onClick={() => toggle(t.id)}>
-            {t.label}
+          <button
+            key={t.id}
+            type="button"
+            className="chip-btn"
+            aria-pressed={picked.includes(t.id)}
+            disabled={!picked.includes(t.id) && picked.length >= MAX_MIX}
+            onClick={() => toggle(t.id)}
+          >
+            {labelOf(t.id)}
           </button>
         ))}
       </div>
-      <p className="hint">{picked.length > 1 ? dict.plotter.proNote : dict.plotter.hint}</p>
+      <p className="hint">{picked.length >= MAX_MIX ? dict.plotter.limit : picked.length > 1 ? dict.plotter.proNote : dict.plotter.hint}</p>
 
       <dl className="counts">
         <div>

@@ -302,8 +302,12 @@ a {
   cursor: pointer;
   transition: background 0.15s, transform 0.15s;
 }
-.chip-btn:hover {
+.chip-btn:hover:not(:disabled) {
   transform: translateY(-2px);
+}
+.chip-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 .chip-btn[aria-pressed="true"] {
   background: var(--sun);
@@ -843,7 +847,7 @@ a {
 /* ---------- themes ---------- */
 .theme-cards {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
   gap: clamp(12px, 2vw, 20px);
   margin-top: 40px;
 }
@@ -1023,7 +1027,12 @@ a {
   padding: 0;
   cursor: pointer;
 }
+.cmd-copy {
+  max-width: 100%;
+}
 .cmd-copy code {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   font-size: 1.35rem;
   font-weight: 700;
   border-bottom: 2px dashed transparent;
@@ -1315,9 +1324,6 @@ a {
   .hero {
     min-height: 0;
   }
-  .theme-cards {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
   .srv-grid {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1338,9 +1344,6 @@ a {
 @media (max-width: 560px) {
   .nav-end .btn-sm {
     display: none;
-  }
-  .theme-cards {
-    grid-template-columns: minmax(0, 1fr);
   }
   .title-block th {
     white-space: normal;

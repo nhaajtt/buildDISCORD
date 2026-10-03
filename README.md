@@ -12,7 +12,7 @@ Made by [nhaajt](https://github.com/nhaajtt) ([website](https://www.nhaajt.com/)
 
 ## What it does
 
-- **`/build`** builds a whole server from one theme, or from up to four mixed themes (study, games and chill in one server). Four themes ship in the box: late-night gamers, studying without studying, a general-store community, and chill with the crew.
+- **`/build`** builds a whole server from one theme, or from up to four mixed themes (study, games and chill in one server). Eleven themes ship in the box: late-night gamers, studying without studying, a general-store community, chill with the crew, **book a friend** (a server where people book someone to play a game with or talk to), anime fans, coders, content creators, cinema and music, an office team, and pet lovers.
 - **`/thietke`** takes a short description of your group ("eight friends, Valorant on Saturdays, lots of chatting") and asks Google Gemini to design the server. You pick how funny it should be: gentle, troll or absurd.
 - **A blueprint you can edit.** Both commands show a tree of everything before anything is built. Remove a category, rename one, add a channel, then confirm. Nothing is created without a click.
 - **Safe to run twice.** Existing channels and roles with the same name are skipped, and rules and the welcome message are not posted again.
@@ -110,7 +110,7 @@ src/
   index.js, config.js, db.js, store.js, license.js, builder.js
   commands/      one file per slash command
   events/        ready, interactionCreate, guildCreate
-  themes/        shared parts + the four themes, and the merge into one plan
+  themes/        shared parts + the eleven themes, and the merge into one plan
   ai/            Gemini client, the designer prompt, and the validator that cleans its answer
   ui/editor.js   blueprint view and its buttons, menus and modals
   blueprints.js  the plan being edited (in memory, 15 minutes)
@@ -144,7 +144,7 @@ The builder, licenses, blueprint editing, validator and Gemini client are plain 
 - **Testing without the network.** A fake guild, a stubbed `fetch` and injectable time keep the suite independent of Discord and Google: `test/builder.test.js`, `test/ai.test.js`, `test/license.test.js`.
 - **A website that cannot drift from the bot.** The theme data shown on the site is generated from the bot's own code and checked by a test: `scripts/export-web-data.js`, `test/webdata.test.js`.
 
-**Numbers:** about 1,850 lines of bot code in 35 files, 35 tests in 5 files that run in about 2.5 seconds, 8 slash commands, 3 database tables, 2 runtime dependencies, a 186 MB arm64 Docker image, and 4 themes that combine into 15 plans of up to 20 roles, 11 categories and 44 channels. The full story, including what is still missing, is in [docs/devlog.md](docs/devlog.md).
+**Numbers:** about 1,850 lines of bot code in 35 files, 40 tests in 5 files that run in about 3 seconds, 8 slash commands, 3 database tables, 2 runtime dependencies, a 186 MB arm64 Docker image, and 11 themes that combine into 561 plans (any mix of up to four) of up to 22 roles, 13 categories and 54 channels. The full story, including what is still missing, is in [docs/devlog.md](docs/devlog.md).
 
 ## Roadmap
 
