@@ -3,10 +3,14 @@ import { config } from "../config.js";
 const BASE = "https://generativelanguage.googleapis.com/v1beta";
 const PER_MINUTE = 10;
 
+// Waits before retrying when Google itself is overloaded (HTTP 5xx). Tests set these to zero.
+export const retry = { delays: [1500, 4000] };
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export class AiError extends Error {
   constructor(kind, message) {
     super(message);
-    this.kind = kind; // off | key | quota | busy | bad
+    this.kind = kind; // off | key | quota | busy | unavailable | model | bad
   }
 }
 
@@ -45,6 +49,7 @@ async function call(path, init = {}) {
     if (/API key|PERMISSION|UNAUTHENTICATED/i.test(body) || response.status !== 400) throw new AiError("key", "Gemini rejected the API key");
     throw new AiError("bad", `Gemini rejected the request: ${body.slice(0, 200)}`);
   }
+  if (response.status >= 500) throw new AiError("unavailable", `Gemini returned ${response.status}`);
   throw new AiError(response.status === 404 ? "model" : "bad", `Gemini returned ${response.status}`);
 }
 
@@ -94,14 +99,20 @@ export async function generateJson({ system, prompt, schema }) {
     }
   };
 
-  try {
-    return await attempt();
-  } catch (error) {
-    if (error.kind === "model" && !config.geminiModel) {
-      cachedModel = null;
-      return attempt();
+  for (let tries = 0; ; tries++) {
+    try {
+      return await attempt();
+    } catch (error) {
+      if (error.kind === "model" && !config.geminiModel && tries === 0) {
+        cachedModel = null;
+        continue;
+      }
+      if (error.kind === "bad" && tries === 0) continue;
+      if (error.kind === "unavailable" && tries < retry.delays.length) {
+        await wait(retry.delays[tries]);
+        continue;
+      }
+      throw error;
     }
-    if (error.kind === "bad") return attempt();
-    throw error;
   }
 }

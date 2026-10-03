@@ -14,7 +14,7 @@ import * as humor from "./humor/lines.js";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 // Small gap between creations keeps well clear of Discord's rate limits
-const STEP_DELAY = 350;
+const STEP_DELAY = config.stepDelayMs;
 
 export function planSummary(themeId) {
   const plan = buildPlan(themeId);
@@ -157,25 +157,29 @@ export async function buildServer(guild, planOrThemeIds, onProgress = async () =
   };
 
   const roleByKey = {};
-  for (const def of plan.roles) {
-    const role = await ensureRole(guild, def, record);
-    roleByKey[def.key] = role;
-    if (def.pick && !record.pickRoles.includes(role.id)) record.pickRoles.push(role.id);
-    await step();
-  }
-
   const toFill = [];
-  for (const categoryDef of plan.categories) {
-    const category = await ensureCategory(guild, categoryDef, record, roleByKey);
-    await step();
-    for (const channelDef of categoryDef.channels) {
-      const { channel, created } = await ensureChannel(guild, channelDef, category, record, roleByKey);
-      // Only newly made channels get content, so re-running /build never posts duplicates
-      if (channelDef.kind && created) toFill.push({ kind: channelDef.kind, channel });
+  try {
+    for (const def of plan.roles) {
+      const role = await ensureRole(guild, def, record);
+      roleByKey[def.key] = role;
+      if (def.pick && !record.pickRoles.includes(role.id)) record.pickRoles.push(role.id);
       await step();
     }
+
+    for (const categoryDef of plan.categories) {
+      const category = await ensureCategory(guild, categoryDef, record, roleByKey);
+      await step();
+      for (const channelDef of categoryDef.channels) {
+        const { channel, created } = await ensureChannel(guild, channelDef, category, record, roleByKey);
+        // Only newly made channels get content, so re-running /build never posts duplicates
+        if (channelDef.kind && created) toFill.push({ kind: channelDef.kind, channel });
+        await step();
+      }
+    }
+  } finally {
+    // Saved even when a step throws, so /nuke still knows about whatever a half-finished build created
+    saveRecord(guild.id, record);
   }
-  saveRecord(guild.id, record);
 
   for (const { kind, channel } of toFill) {
     await fillChannel(kind, channel, plan, roleByKey, record).catch((error) => console.error(`Fill ${kind} failed:`, error));

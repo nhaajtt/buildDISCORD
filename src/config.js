@@ -15,6 +15,8 @@ export const config = {
   ttsInviteUrl: process.env.TTS_BOT_INVITE_URL || null,
   // Where the record of what was built per server is stored (mount as a volume)
   dataDir: process.env.DATA_DIR || "data",
+  // Pause after each created channel or role, to stay well inside Discord's rate limits (tests set 0)
+  stepDelayMs: process.env.BUILD_STEP_DELAY_MS && Number.isFinite(Number(process.env.BUILD_STEP_DELAY_MS)) ? Number(process.env.BUILD_STEP_DELAY_MS) : 350,
   // Discord user IDs allowed to use /admin (comma separated)
   ownerIds: (process.env.OWNER_IDS || "").split(",").map((id) => id.trim()).filter(Boolean),
   // Shown by /goi so customers know how to buy a code

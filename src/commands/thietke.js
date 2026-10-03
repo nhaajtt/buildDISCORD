@@ -12,6 +12,7 @@ const failure = {
   key: "AI đang bị từ chối (khoá API có vấn đề). Chủ bot cần kiểm tra lại. Lượt của bạn không bị tính.",
   quota: "AI hết hạn mức hôm nay, nó đi ngủ rồi. Thử lại sau hoặc dùng `/build` với theme có sẵn. Lượt của bạn không bị tính.",
   busy: "Nhiều người đang nhờ AI cùng lúc, đợi một phút rồi gõ lại nhé. Lượt của bạn không bị tính.",
+  unavailable: "AI của Google đang quá tải, thử lại sau vài phút nhé. Lượt của bạn không bị tính.",
   bad: "AI nghĩ ra thứ không dùng được. Thử mô tả rõ hơn, hoặc dùng `/build` với theme có sẵn. Lượt của bạn không bị tính.",
 };
 

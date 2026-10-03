@@ -1,0 +1,241 @@
+{
+  "description": "Nhóm 8 người bạn đại học, hay chơi Valorant tối thứ Bảy và tám chuyện",
+  "model": "gemini-3.8-flash",
+  "generatedAt": "2026-10-03",
+  "samples": {
+    "nhe": {
+      "label": "Góc Tán Dóc & Bắn Gà Thứ Bảy",
+      "welcome": "Chào mừng {user} đã gia nhập động, nhớ cất bằng cử nhân sang một bên và nạp đạn chuẩn bị gánh tạ.",
+      "roles": [
+        "Tay Súng Trầm Cảm",
+        "Chiến Thần Tám Chuyện",
+        "Gánh Đội Bằng Niềm Tin",
+        "Chuyên Gia Đổ Lỗi Mạng",
+        "Thực Tập Sinh Thức Khuya"
+      ],
+      "rules": [
+        "Bắn trượt được quyền đổ lỗi do chuột rít, mạng lag hoặc thời tiết, cấm đổ lỗi cho nhân phẩm.",
+        "Tối thứ Bảy lên sảnh đúng giờ, trễ hẹn 15 phút tự động tài trợ nước ngọt cho cả team.",
+        "Tám chuyện thoải mái nhưng tránh nhắc hạn nộp đồ án tốt nghiệp để giữ gìn hòa khí.",
+        "Ăn đêm trong lúc on mic cần tắt tính năng nhai giòn rụm để bảo vệ tai đồng đội."
+      ],
+      "categories": [
+        {
+          "name": "🎓 Ký Túc Xá Online",
+          "channels": [
+            {
+              "name": "💬・buon-chuyen-giang-duong",
+              "type": "text"
+            },
+            {
+              "name": "📸・anh-dim-thoi-sinh-vien",
+              "type": "text"
+            },
+            {
+              "name": "☕ Trà Đá Vỉa Hè",
+              "type": "voice"
+            },
+            {
+              "name": "🛋️ Phòng Nằm Than Thở",
+              "type": "voice"
+            }
+          ]
+        },
+        {
+          "name": "🎯 Tác Chiến Thứ Bảy",
+          "channels": [
+            {
+              "name": "🔫・goc-lineup-mu-mat",
+              "type": "text"
+            },
+            {
+              "name": "🎬・pha-clutch-nho-may-man",
+              "type": "text"
+            },
+            {
+              "name": "💣 Sảnh Đấu Nghiêm Túc",
+              "type": "voice"
+            },
+            {
+              "name": "🍿 Khán Đài Xem Tấu Hài",
+              "type": "voice"
+            }
+          ]
+        },
+        {
+          "name": "🍜 Tiếp Tế Đêm Khuya",
+          "channels": [
+            {
+              "name": "🍕・menu-cuu-doi",
+              "type": "text"
+            },
+            {
+              "name": "🌙 Tâm Sự Hai Giờ Sáng",
+              "type": "voice"
+            },
+            {
+              "name": "📻 Trạm Ru Ngủ",
+              "type": "voice"
+            }
+          ]
+        }
+      ]
+    },
+    "troll": {
+      "label": "Gánh Còng Lưng Tối Thứ 7",
+      "welcome": "Alo alo {user} đã hạ cánh an toàn, chuẩn bị tinh thần bị dí KPI bắn Valorant gãy tay nhé!",
+      "roles": [
+        "Chiến Thần Đáy Biển",
+        "Bậc Thầy Bán Máu",
+        "Chuyên Viên Đấu Mõm",
+        "Con Sen Chạy Bo",
+        "Thực Tập Sinh Trầm Cảm"
+      ],
+      "rules": [
+        "Cấm sủi kèo tối thứ Bảy trừ khi có giấy chứng nhận mất trí nhớ tạm thời.",
+        "Bắn hụt thì tự giác nhận do chuột hỏng hoặc mạng lag, không đổ tại đồng đội.",
+        "Tuyệt đối không mang bài tập lớn ra dọa dẫm anh em trong lúc đang clutch.",
+        "Tám chuyện có văn hóa, leak bồ cũ phải kèm hình ảnh minh họa chân thực."
+      ],
+      "categories": [
+        {
+          "name": "☕・Góc Buôn Dưa Giờ Hành Chính",
+          "channels": [
+            {
+              "name": "💬・tong-dai-chuyen-tro",
+              "type": "text"
+            },
+            {
+              "name": "📸・khoe-anh-song-ao",
+              "type": "text"
+            },
+            {
+              "name": "🎧 Trà Đá Vỉa Hè",
+              "type": "voice"
+            },
+            {
+              "name": "📢 Phòng Họp Căng Thẳng",
+              "type": "voice"
+            }
+          ]
+        },
+        {
+          "name": "🎯・Đại Bản Doanh Tối Thứ Bảy",
+          "channels": [
+            {
+              "name": "🔫・keo-valo-bat-on",
+              "type": "text"
+            },
+            {
+              "name": "🤡・highlight-va-hai-kich",
+              "type": "text"
+            },
+            {
+              "name": "🎮 Phòng Bắn Rank Căng Đét",
+              "type": "voice"
+            },
+            {
+              "name": "💀 Phòng Khóc Thuê Đáy Xã Hội",
+              "type": "voice"
+            }
+          ]
+        },
+        {
+          "name": "📚・Góc Vượt Qua Môn Học",
+          "channels": [
+            {
+              "name": "🆘・cuu-tro-deadline",
+              "type": "text"
+            },
+            {
+              "name": "💸・tim-viec-nuoi-than",
+              "type": "text"
+            },
+            {
+              "name": "🧠 Ôn Thi Tự Kỷ",
+              "type": "voice"
+            }
+          ]
+        }
+      ]
+    },
+    "nham": {
+      "label": "Chiến Thần Tạ Rank",
+      "welcome": "Cảnh báo đỏ! Sinh vật {user} vừa rơi từ trên trời xuống, mau bật game nộp mạng Valorant!",
+      "roles": [
+        "Vua Bắn Hụt",
+        "Cử Nhân Chém Gió",
+        "Chiến Thần Hóng Hớt",
+        "Thợ Đổ Lỗi Mạng Lag",
+        "Chúa Tể Mua Súng Xịn"
+      ],
+      "rules": [
+        "Tuyệt đối không được bắn trúng đầu địch quá 2 lần một trận để bảo vệ sự tự ái của đồng đội.",
+        "Bắn hụt thì đổ lỗi cho chuột hỏng hoặc phong thủy, cấm nhận do tay yếu.",
+        "Đang combat căng thẳng cấm nhai tóp mỡ hoặc hút trà sữa sột soạt vào mic.",
+        "Tối thứ Bảy cấm bàn chuyện tương lai và đồ án tốt nghiệp, chỉ bàn cách gỡ chuỗi thua."
+      ],
+      "categories": [
+        {
+          "name": "🎓・viện hàn lâm vô tri",
+          "channels": [
+            {
+              "name": "💬・chuyen-tren-troi-duoi-dat",
+              "type": "text"
+            },
+            {
+              "name": "🍜・so-tay-an-khuya",
+              "type": "text"
+            },
+            {
+              "name": "📢 Họp Lớp Toàn Thể",
+              "type": "voice"
+            },
+            {
+              "name": "💤 Giả Vờ Học Nhóm",
+              "type": "voice"
+            }
+          ]
+        },
+        {
+          "name": "🎯・valorant thứ bảy phục hận",
+          "channels": [
+            {
+              "name": "🔫・kho-clip-mu-mat",
+              "type": "text"
+            },
+            {
+              "name": "🤡・tim-nguoi-ganh-cuc-manh",
+              "type": "text"
+            },
+            {
+              "name": "🎮 Hét Vào Mic Khi Mất Site",
+              "type": "voice"
+            },
+            {
+              "name": "🕊️ Phòng Hồi Sức Cấp Cứu",
+              "type": "voice"
+            }
+          ]
+        },
+        {
+          "name": "📻・đài phát thanh tam sao thất bản",
+          "channels": [
+            {
+              "name": "💅・ke-chuyen-thien-ha",
+              "type": "text"
+            },
+            {
+              "name": "🎤 Hát Ru Đồng Đội Rớt Hạng",
+              "type": "voice"
+            },
+            {
+              "name": "🍿 Góc Buôn Dưa Bất Tử",
+              "type": "voice"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

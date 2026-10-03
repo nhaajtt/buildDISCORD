@@ -11,7 +11,7 @@ process.env.GEMINI_API_KEY = "test-key";
 process.env.GEMINI_MODEL = "";
 
 const { sanitizeDesign, DesignError, textChannelName } = await import("../src/ai/validate.js");
-const { generateJson, resolveModel, resetAiState, AiError } = await import("../src/ai/gemini.js");
+const { generateJson, resolveModel, resetAiState, retry, AiError } = await import("../src/ai/gemini.js");
 const { designServer } = await import("../src/ai/designer.js");
 const { composePlan, countPlan } = await import("../src/themes/index.js");
 const { createBlueprint, getBlueprint, removeCategory, renameCategory, addChannel } = await import("../src/blueprints.js");
@@ -178,4 +178,37 @@ test("blueprint edits: remove, rename, add, expiry", () => {
   const id = createBlueprint({ guildId: "g", userId: "u", plan }, t0);
   assert.ok(getBlueprint(id, t0 + 14 * 60 * 1000));
   assert.equal(getBlueprint(id, t0 + 16 * 60 * 1000), null);
+});
+
+test("an overloaded Google (5xx) is retried with a pause, then reported as unavailable", async () => {
+  const saved = retry.delays;
+  retry.delays = [0, 0];
+  try {
+    let calls = 0;
+    stubFetch((url) => {
+      if (!url.includes(":generateContent")) return modelList;
+      calls++;
+      return calls < 3 ? { status: 503, body: {} } : geminiAnswer({ ok: true });
+    });
+    assert.deepEqual(await generateJson({ system: "s", prompt: "p", schema: {} }), { ok: true });
+    assert.equal(calls, 3);
+
+    resetAiState();
+    calls = 0;
+    stubFetch((url) => (url.includes(":generateContent") ? (calls++, { status: 503, body: {} }) : modelList));
+    await assert.rejects(generateJson({ system: "s", prompt: "p", schema: {} }), (e) => e instanceof AiError && e.kind === "unavailable");
+    assert.equal(calls, 3, "one try plus two retries");
+  } finally {
+    retry.delays = saved;
+  }
+});
+
+test("the word filter blocks real words but not innocent look-alikes", () => {
+  const channelOf = (name) => sanitizeDesign({ categories: [{ name: "Khu", channels: [{ name, type: "text" }] }] }).categories[0].channels[0].name;
+  for (const innocent of ["bạn đụng xe", "Essex club", "dịt-nhẹ-thôi-nhé", "sextet"]) {
+    assert.doesNotThrow(() => channelOf(innocent), innocent);
+  }
+  for (const blocked of ["đụ má", "Sex party", "lồn", "thích đéo gì", "fuck-room", "porn"]) {
+    assert.throws(() => channelOf(blocked), DesignError, blocked);
+  }
 });

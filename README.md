@@ -132,6 +132,19 @@ cd web && npm install && npm run dev
 
 The builder, licenses, blueprint editing, validator and Gemini client are plain modules tested with a fake Discord server and a fake `fetch`. Only `src/index.js` and the event files touch the real Discord gateway.
 
+## Engineering highlights
+
+- **Idempotent builds and safe undo.** Creation reports whether it made anything, so a second `/build` creates and posts nothing twice, and `/nuke` deletes only recorded IDs: `src/builder.js`.
+- **Defence against forged interactions.** Every select, modal and button re-checks the guild, the person and the administrator permission, and role buttons only grant recorded roles: `src/ui/editor.js`, `src/events/interactionCreate.js`.
+- **An LLM treated as untrusted input.** Schema-constrained output, a sanitiser, a per-minute bot-wide limit, a per-server monthly quota, a typed error taxonomy and retries: `src/ai/gemini.js`, `src/ai/validate.js`, `src/ai/designer.js`.
+- **Licensing without a payment gateway.** Single-use codes over an unambiguous alphabet, plans derived from licenses so nothing needs to expire, and every rule tested with an injected clock: `src/license.js`, `src/utils/gate.js`.
+- **Storage that grew with the product.** A move from JSON files to the SQLite module built into Node with an automatic, non-destructive import, WAL mode and daily `VACUUM INTO` copies: `src/db.js`, `src/backup.js`.
+- **Operations you can leave alone.** A heartbeat-based Docker health check, alerts that cannot flood a channel, graceful shutdown, and a self-update that rolls back unless the new version becomes healthy: `src/healthcheck.js`, `src/alerts.js`, `scripts/update.sh`.
+- **Testing without the network.** A fake guild, a stubbed `fetch` and injectable time keep the suite independent of Discord and Google: `test/builder.test.js`, `test/ai.test.js`, `test/license.test.js`.
+- **A website that cannot drift from the bot.** The theme data shown on the site is generated from the bot's own code and checked by a test: `scripts/export-web-data.js`, `test/webdata.test.js`.
+
+**Numbers:** about 1,850 lines of bot code in 35 files, 35 tests in 5 files that run in about 2.5 seconds, 8 slash commands, 3 database tables, 2 runtime dependencies, a 186 MB arm64 Docker image, and 4 themes that combine into 15 plans of up to 20 roles, 11 categories and 44 channels. The full story, including what is still missing, is in [docs/devlog.md](docs/devlog.md).
+
 ## Roadmap
 
 - Humor level for the built-in themes, and saving a blueprint as your own theme

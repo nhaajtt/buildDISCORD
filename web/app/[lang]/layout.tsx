@@ -6,9 +6,10 @@ import "../globals.css";
 
 const display = Big_Shoulders({
   subsets: ["latin", "latin-ext", "vietnamese"],
-  weight: ["800", "900"],
+  weight: ["700", "800", "900"],
   variable: "--font-display",
   display: "swap",
+  adjustFontFallback: false,
 });
 
 const body = Be_Vietnam_Pro({
@@ -36,8 +37,8 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
   };
 }
 
-// Sets the theme before first paint so there is no flash between light and dark
-const themeScript = `try{var t=localStorage.getItem("theme");if(!t){t=matchMedia("(prefers-color-scheme: light)").matches?"light":"dark"}document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme="dark"}`;
+// Runs before first paint: light is the default (a saved choice wins), and "js" lets the CSS hide only what script will reveal
+const bootScript = `try{var t=localStorage.getItem("theme");document.documentElement.dataset.theme=t==="dark"||t==="light"?t:"light"}catch(e){document.documentElement.dataset.theme="light"}document.documentElement.classList.add("js")`;
 
 export default async function RootLayout({
   children,
@@ -50,7 +51,7 @@ export default async function RootLayout({
   return (
     <html lang={lang === "en" ? "en" : "vi"} className={`${display.variable} ${body.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+        <script dangerouslySetInnerHTML={{ __html: bootScript }} />
       </head>
       <body>{children}</body>
     </html>

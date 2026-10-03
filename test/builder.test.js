@@ -8,6 +8,7 @@ import { Collection } from "discord.js";
 process.env.DISCORD_TOKEN = "x";
 process.env.CLIENT_ID = "1";
 process.env.DATA_DIR = mkdtempSync(path.join(tmpdir(), "build-test-"));
+process.env.BUILD_STEP_DELAY_MS = "0";
 const { buildServer, nukeServer } = await import("../src/builder.js");
 const { loadRecord } = await import("../src/store.js");
 const { buildPlan, countPlan } = await import("../src/themes/index.js");
@@ -75,4 +76,25 @@ test("nuke removes what was built", async () => {
   assert.equal(guild.roles.cache.size, 0);
   assert.equal(guild.channels.cache.size, 0);
   assert.equal(loadRecord("g1").roles.length, 0);
+});
+
+test("a build that fails halfway still records what it created, so nuke can clean it up", async () => {
+  const guild = fakeGuild();
+  guild.id = "g-partial";
+  const create = guild.channels.create;
+  let calls = 0;
+  guild.channels.create = async (options) => {
+    if (++calls === 6) throw new Error("Discord said no");
+    return create(options);
+  };
+
+  await assert.rejects(buildServer(guild, "gaming"), /Discord said no/);
+  const record = loadRecord("g-partial");
+  assert.ok(record.roles.length > 0, "roles created before the failure are recorded");
+  assert.equal(record.channels.length + record.categories.length, 5, "everything created before the failing call is recorded");
+
+  const removed = await nukeServer(guild);
+  assert.equal(removed, record.roles.length + 5);
+  assert.equal(guild.roles.cache.size, 0);
+  assert.equal(guild.channels.cache.size, 0);
 });
