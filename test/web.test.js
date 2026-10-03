@@ -890,7 +890,7 @@ test("the orders endpoint lists only this guild's orders and never a checkout li
   assert.ok(!raw.includes(PLAIN));
   const { orders } = res.json();
   assert.equal(orders.length, 1);
-  assert.deepEqual(Object.keys(orders[0]).sort(), ["amount", "code", "createdAt", "days", "paidAt", "plan", "status"]);
+  assert.deepEqual(Object.keys(orders[0]).sort(), ["amount", "code", "createdAt", "currency", "days", "paidAt", "plan", "status"]);
   assert.equal(orders[0].plan, "plus");
   assert.equal(orders[0].status, "PENDING");
   assert.ok(!(await b.req("GET", guildUrl(G2))).text.match(/SECRET|checkout/), "the guild view hides them as well");

@@ -46,7 +46,7 @@ export default {
     if (sub === "donhang") {
       const rows = recentOrders(10);
       if (!rows.length) return reply("Chưa có đơn thanh toán nào.");
-      return reply(rows.map((o) => `\`${o.order_code}\` ${o.plan} ${o.days} ngày, ${o.amount.toLocaleString("vi-VN")}đ, ${o.status}, server ${o.guild_id}, <t:${Math.floor(o.created_at / 1000)}:R>`).join("\n"));
+      return reply(rows.map((o) => `\`${o.order_code}\` ${o.plan} ${o.days} ngày, ${o.provider === "stripe" ? `$${(o.amount / 100).toFixed(2)}` : `${o.amount.toLocaleString("vi-VN")}đ`}, ${o.status}, server ${o.guild_id}, <t:${Math.floor(o.created_at / 1000)}:R>`).join("\n"));
     }
     const counts = planCounts(interaction.client.guilds.cache.keys());
     return reply(`Bot đang ở ${interaction.client.guilds.cache.size} server: ${counts.free} miễn phí, ${counts.pro} Pro, ${counts.plus} Plus.`);

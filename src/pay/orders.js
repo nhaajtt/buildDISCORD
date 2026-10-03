@@ -5,6 +5,15 @@ import { grant } from "../license.js";
 // List prices in US dollars per 30 days. The amount charged is in dong, converted at config.usdVndRate.
 export const PRICES_USD = { pro: 9.99, plus: 19.99 };
 export const DAY_CHOICES = [30, 90, 180];
+export const PROVIDERS = ["stripe", "payos"];
+
+// What Stripe charges, in cents. Dollar prices are exact, so there is no rate and no rounding to a thousand.
+export function amountCents(plan, days) {
+  const usd = PRICES_USD[plan];
+  if (!usd) throw new Error(`No price for plan ${plan}`);
+  if (!DAY_CHOICES.includes(days)) throw new Error(`Unsupported number of days: ${days}`);
+  return Math.round(usd * (days / 30) * 100);
+}
 
 // How long a payment link stays worth polling
 export const ORDER_TTL_MS = 35 * 60 * 1000;
@@ -23,10 +32,16 @@ export function newOrderCode(now = Date.now(), random = Math.random) {
 }
 export const describeOrder = (orderCode) => `THAU${String(orderCode % 100000).padStart(5, "0")}`;
 
-export function createOrder({ orderCode, guildId, userId, channelId, plan, days, amount, now = Date.now() }) {
+// `amount` is in the provider's own unit: dong for payOS, cents for Stripe
+export function createOrder({ orderCode, guildId, userId, channelId, plan, days, amount, provider = "payos", now = Date.now() }) {
+  if (!PROVIDERS.includes(provider)) throw new Error(`Unknown payment provider: ${provider}`);
   getDb()
-    .prepare("INSERT INTO orders (order_code, guild_id, user_id, channel_id, plan, days, amount, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)")
-    .run(orderCode, guildId, userId, channelId ?? null, plan, days, amount, now);
+    .prepare("INSERT INTO orders (order_code, guild_id, user_id, channel_id, plan, days, amount, provider, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)")
+    .run(orderCode, guildId, userId, channelId ?? null, plan, days, amount, provider, now);
+}
+
+export function setProviderRef(orderCode, ref) {
+  getDb().prepare("UPDATE orders SET provider_ref = ? WHERE order_code = ?").run(ref, orderCode);
 }
 
 export function setCheckoutUrl(orderCode, url) {
@@ -43,7 +58,7 @@ export function pendingOrders(now = Date.now()) {
 
 // Newest first. With a guild id only that server's orders come back; without one, every server's (for the bot owner).
 export function recentOrders(limit = 10, guildId = undefined) {
-  const columns = "order_code, guild_id, plan, days, amount, status, created_at, paid_at";
+  const columns = "order_code, guild_id, plan, days, amount, provider, status, created_at, paid_at";
   if (guildId === undefined) return getDb().prepare(`SELECT ${columns} FROM orders ORDER BY created_at DESC LIMIT ?`).all(limit);
   return getDb().prepare(`SELECT ${columns} FROM orders WHERE guild_id = ? ORDER BY created_at DESC LIMIT ?`).all(guildId, limit);
 }

@@ -136,6 +136,10 @@ export function getDb() {
   db = new DatabaseSync(path.join(config.dataDir, "thauxaydung.db"));
   db.exec("PRAGMA journal_mode = WAL;");
   db.exec(schema);
+  // Columns added after the first release, for databases that already exist. 'payos' is what every earlier order used.
+  const orderColumns = db.prepare("PRAGMA table_info(orders)").all().map((c) => c.name);
+  if (!orderColumns.includes("provider")) db.exec("ALTER TABLE orders ADD COLUMN provider TEXT NOT NULL DEFAULT 'payos'");
+  if (!orderColumns.includes("provider_ref")) db.exec("ALTER TABLE orders ADD COLUMN provider_ref TEXT");
   migrateJson(db);
   return db;
 }

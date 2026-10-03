@@ -37,7 +37,7 @@ Made by [nhaajt](https://github.com/nhaajtt) ([website](https://www.nhaajt.com/)
 
 **Run it as a business**
 - **Plans per server** (free, Pro, Plus) with limits for everything above. See [Plans](#plans).
-- **Automatic payments.** `/mua` creates a payOS payment link with a QR code; the bot polls its own open orders and switches the plan on when the money arrives. Activation codes still work for buying by hand.
+- **Automatic payments.** `/mua` creates a Stripe Checkout link (card, in dollars) or a payOS link (Vietnamese bank QR code, in dong); the bot polls its own open orders and switches the plan on when the money arrives. Activation codes still work for buying by hand.
 
 The bot never reads message content and uses no privileged intent. Discord does not let a bot add another bot, so the music and text-to-speech rooms come with an invite button for the bots you configure.
 
@@ -88,7 +88,7 @@ The bot never reads message content and uses no privileged intent. Discord does 
 
 ### Payments
 
-`/mua goi:pro` records an order, asks payOS for a payment link and shows it with a Pay button. The amount in dong is the dollar price converted at `USD_VND_RATE`, rounded to a thousand. There is no public address for payOS to call, so a job asks payOS about the open orders every 30 seconds; the order's status change from pending to paid is the guard that grants the plan exactly once, and the customer gets a message in the channel where they ran the command. Orders expire after 35 minutes. Without the payOS keys `/mua` says how to buy by hand.
+`/mua goi:pro` records an order, asks the gateway for a payment link and shows it with a Pay button. The `cach` option picks the gateway (Stripe by default when its key is set). Stripe charges the list price in dollars; for payOS the amount in dong is the dollar price converted at `USD_VND_RATE`, rounded to a thousand. There is no public address for the gateways to call, so a job asks each gateway about the open orders every 30 seconds, and a Stripe session is only accepted when its order reference, amount and currency match the order; the order's status change from pending to paid is the guard that grants the plan exactly once, and the customer gets a message in the channel where they ran the command. Orders expire after 35 minutes. Without the payOS keys `/mua` says how to buy by hand.
 
 Buying by hand still works: the owner makes a code with `npm run license -- new pro 30d` (or `/admin taoma`), the customer runs `/kichhoat`, and the plan ends by itself when the days run out. Codes are single use, and a second code of the same plan adds its days after the current expiry.
 
@@ -151,9 +151,10 @@ The dashboard runs inside the bot process and is off until `DISCORD_CLIENT_SECRE
 | `UNLOCKED_GUILD_IDS` | no | Comma separated server IDs that get every feature with no license (your own and test servers) |
 | `GEMINI_API_KEY` | no | Key from [Google AI Studio](https://aistudio.google.com/apikey). Without it `/thietke` stays off |
 | `GEMINI_MODEL` | no | Force a model name. Empty means the bot picks the newest stable flash model your key can use |
+| `STRIPE_SECRET_KEY` | no | Stripe secret or restricted key (`sk_...` or `rk_...`). Switches card payments on |
 | `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY` | no | payOS credentials. All three switch `/mua` on |
 | `USD_VND_RATE` | no | Dong per dollar for the price charged (default 26000). Update it when the rate moves |
-| `SITE_URL` | no | Where payOS sends a customer after paying or cancelling |
+| `SITE_URL` | no | Where the gateway sends a customer after paying or cancelling |
 | `TIMEZONE` | no | Time zone for check-in days and recurring events (default `Asia/Ho_Chi_Minh`) |
 | `CONTACT_TEXT` | no | Shown by `/goi`: how a customer buys by hand |
 | `ALERT_WEBHOOK_URL` | no | Discord webhook that receives errors and a "started" message |
@@ -178,7 +179,7 @@ src/
   ai/            Gemini client, the designer prompt, and the validator that cleans its answer
   backups/       snapshot, validation, restore planning and execution
   games/         points, levels, the three mini-games, the question bank, the event schedule
-  pay/           payOS client and the order lifecycle
+  pay/           Stripe and payOS clients and the order lifecycle
   ui/editor.js   blueprint view and its buttons, menus and modals
   blueprints.js  the plan being edited (in memory, 15 minutes)
   humor/         every line the bot says

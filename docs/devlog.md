@@ -418,6 +418,7 @@ The same phase added two growth features: a one-time seven day Pro trial (`/dung
 | Poll payOS from the bot | A webhook on a serverless function; a public tunnel to the Pi | No public address is needed, no endpoint to attack, and every secret stays on one machine. The price is up to 30 seconds of delay |
 | Levels change words, not structure | A separate set of themes per level | The builder is idempotent by name, so identical structure means a rebuild at another level duplicates nothing, and there is one copy of every channel to maintain |
 | Restore only creates | Restore as an exact copy that also deletes | Deleting from a file is the most dangerous thing a bot can do. Creating what is missing is safe to repeat and easy to undo with `/nuke` |
+| Stripe Checkout polled from the bot, next to payOS | Stripe webhooks; payOS only; PayPal | payOS needs a Vietnamese bank account, which the owner does not have, so cards through Stripe became the main way to pay. Polling keeps the rule of no public endpoint. A session only counts when its order reference, amount and currency match the order, so a mixed up id cannot switch a plan on. payOS stays for buyers in Vietnam |
 | Components routed by `customId` prefix | A generic router library | About ten lines, and the prefix makes the owner of each id obvious |
 
 ## What I would do next and known limitations

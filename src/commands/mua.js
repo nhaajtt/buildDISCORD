@@ -3,11 +3,15 @@ import { config } from "../config.js";
 import { PLANS } from "../license.js";
 import { alert } from "../alerts.js";
 import { PayError, createPaymentLink, payosEnabled } from "../pay/payos.js";
-import { DAY_CHOICES, PRICES_USD, amountVnd, closeOrder, createOrder, describeOrder, newOrderCode, setCheckoutUrl } from "../pay/orders.js";
+import { StripeError, createCheckoutSession, stripeEnabled } from "../pay/stripe.js";
+import { DAY_CHOICES, PRICES_USD, amountCents, amountVnd, closeOrder, createOrder, describeOrder, newOrderCode, setCheckoutUrl, setProviderRef } from "../pay/orders.js";
 import { isAdmin } from "../utils/guards.js";
 import * as humor from "../humor/lines.js";
 
 const vnd = (n) => `${n.toLocaleString("vi-VN")}đ`;
+const usd = (cents) => `$${(cents / 100).toFixed(2)}`;
+
+const enabled = { stripe: stripeEnabled, payos: payosEnabled };
 
 export default {
   data: new SlashCommandBuilder()
@@ -20,44 +24,66 @@ export default {
     )
     .addIntegerOption((option) =>
       option.setName("ngay").setDescription("Số ngày (mặc định 30)").addChoices(...DAY_CHOICES.map((d) => ({ name: `${d} ngày`, value: d }))),
+    )
+    .addStringOption((option) =>
+      option
+        .setName("cach")
+        .setDescription("Cách trả tiền (mặc định: thẻ qua Stripe)")
+        .addChoices({ name: "Thẻ quốc tế (Stripe, tính bằng đô)", value: "stripe" }, { name: "QR ngân hàng Việt Nam (payOS, tính bằng đồng)", value: "payos" }),
     ),
 
   async execute(interaction) {
     const reply = (content) => interaction.reply({ content, flags: MessageFlags.Ephemeral });
     if (!isAdmin(interaction.member)) return reply(humor.pick(humor.noPermissionLines));
-    if (!payosEnabled()) {
+    if (!stripeEnabled() && !payosEnabled()) {
       return reply(`Thanh toán tự động chưa được bật trên bot này. ${config.contactText} Có mã rồi thì gõ \`/kichhoat\`.`);
+    }
+    const asked = interaction.options.getString("cach");
+    const provider = asked ?? (stripeEnabled() ? "stripe" : "payos");
+    if (!enabled[provider]()) {
+      return reply(`Cách trả tiền này chưa được bật trên bot. ${stripeEnabled() || payosEnabled() ? "Chọn cách khác trong ô `cach`." : ""} ${config.contactText}`.trim());
     }
 
     const plan = interaction.options.getString("goi");
     const days = interaction.options.getInteger("ngay") ?? 30;
-    const amount = amountVnd(plan, days);
+    const amount = provider === "stripe" ? amountCents(plan, days) : amountVnd(plan, days);
     const orderCode = newOrderCode();
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    createOrder({ orderCode, guildId: interaction.guildId, userId: interaction.user.id, channelId: interaction.channelId, plan, days, amount });
+    createOrder({ orderCode, guildId: interaction.guildId, userId: interaction.user.id, channelId: interaction.channelId, plan, days, amount, provider });
     try {
-      const link = await createPaymentLink({
-        orderCode,
-        amount,
-        description: describeOrder(orderCode),
-        returnUrl: `${config.siteUrl}/?thanhtoan=ok`,
-        cancelUrl: `${config.siteUrl}/?thanhtoan=huy`,
-      });
+      const urls = { returnUrl: `${config.siteUrl}/?thanhtoan=ok`, cancelUrl: `${config.siteUrl}/?thanhtoan=huy` };
+      let link;
+      if (provider === "stripe") {
+        const session = await createCheckoutSession({
+          orderCode,
+          guildId: interaction.guildId,
+          productName: `Thầu Xây Dựng ${PLANS[plan].label}, ${days} ngày`,
+          amountCents: amount,
+          successUrl: urls.returnUrl,
+          cancelUrl: urls.cancelUrl,
+        });
+        setProviderRef(orderCode, session.sessionId);
+        link = session;
+      } else {
+        link = await createPaymentLink({ orderCode, amount, description: describeOrder(orderCode), ...urls });
+      }
       setCheckoutUrl(orderCode, link.checkoutUrl);
-      const usd = PRICES_USD[plan] * (days / 30);
+      const listUsd = PRICES_USD[plan] * (days / 30);
       const embed = new EmbedBuilder()
         .setColor(0xf5c518)
         .setTitle(`💳 Mua gói ${PLANS[plan].label}, ${days} ngày`)
         .setDescription(
-          `Số tiền: **${vnd(amount)}** (khoảng ${usd.toFixed(2)} đô, quy đổi theo tỷ giá của thầu).\nBấm nút bên dưới, quét mã QR bằng app ngân hàng. Tiền về là gói tự bật trong chừng một phút, không cần nhập mã. Liên kết sống 30 phút.`,
+          provider === "stripe"
+            ? `Số tiền: **${usd(amount)}**.\nBấm nút bên dưới, nhập thẻ trên trang thanh toán của Stripe (thầu không thấy số thẻ của bạn). Tiền về là gói tự bật trong chừng một phút, không cần nhập mã. Liên kết sống 30 phút.`
+            : `Số tiền: **${vnd(amount)}** (khoảng ${listUsd.toFixed(2)} đô, quy đổi theo tỷ giá của thầu).\nBấm nút bên dưới, quét mã QR bằng app ngân hàng. Tiền về là gói tự bật trong chừng một phút, không cần nhập mã. Liên kết sống 30 phút.`,
         )
         .setFooter({ text: `Mã đơn ${orderCode}` });
       const row = new ActionRowBuilder().addComponents(new ButtonBuilder().setLabel("Thanh toán").setStyle(ButtonStyle.Link).setURL(link.checkoutUrl));
       await interaction.editReply({ embeds: [embed], components: [row] });
     } catch (error) {
       closeOrder(orderCode, "FAILED");
-      if (!(error instanceof PayError)) console.error("Could not create an order:", error);
+      if (!(error instanceof PayError || error instanceof StripeError)) console.error("Could not create an order:", error);
       else alert(`Tạo link thanh toán lỗi: ${error.message}`);
       await interaction.editReply({ content: `Cổng thanh toán đang trục trặc, chưa tạo được link. Thử lại sau chút, hoặc ${config.contactText.toLowerCase()}` });
     }

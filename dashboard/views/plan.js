@@ -48,7 +48,7 @@ export function planTab({ detail }) {
               "table",
               { class: "table" },
               h("thead", {}, h("tr", {}, ...["Mã", "Gói", "Số ngày", "Số tiền", "Trạng thái", "Ngày"].map((t) => h("th", { scope: "col", text: t })))),
-              h("tbody", {}, ...orders.map((o) => h("tr", {}, h("td", { text: o.code }), h("td", { text: o.plan }), h("td", { text: String(o.days) }), h("td", { text: fmtMoney(o.amount) }), h("td", { text: STATUS[o.status] ?? o.status }), h("td", { text: fmtDate(o.createdAt) })))),
+              h("tbody", {}, ...orders.map((o) => h("tr", {}, h("td", { text: o.code }), h("td", { text: o.plan }), h("td", { text: String(o.days) }), h("td", { text: fmtMoney(o.amount, o.currency) }), h("td", { text: STATUS[o.status] ?? o.status }), h("td", { text: fmtDate(o.createdAt) })))),
             ),
           )
         : h("p", { text: "Chưa có đơn nào." }),
@@ -57,9 +57,11 @@ export function planTab({ detail }) {
       "article",
       { class: "card" },
       h("h3", { text: "Cách mua" }),
-      buy.payosEnabled ? h("p", { text: "Gõ /mua trong server, chọn gói và số ngày, thầu gửi mã QR chuyển khoản. Trả xong gói tự bật, khỏi nhập mã." }) : h("p", { text: buy.contact }),
+      buy.stripeEnabled || buy.payosEnabled
+        ? h("p", { text: `Gõ /mua trong server, chọn gói và số ngày, rồi trả bằng ${[buy.stripeEnabled && "thẻ qua Stripe", buy.payosEnabled && "QR ngân hàng Việt Nam qua payOS"].filter(Boolean).join(" hoặc ")}. Trả xong gói tự bật, khỏi nhập mã.` })
+        : h("p", { text: buy.contact }),
       h("p", { text: "Có mã kích hoạt rồi thì gõ /kichhoat trong server." }),
-      h("ul", { class: "plain rows" }, buy.offers.map((o) => h("li", {}, `${o.label}, ${o.days} ngày: `, h("strong", { text: fmtMoney(o.amount) })))),
+      h("ul", { class: "plain rows" }, buy.offers.map((o) => h("li", {}, `${o.label}, ${o.days} ngày: `, h("strong", { text: buy.stripeEnabled ? fmtMoney(o.usd, "USD") : fmtMoney(o.amount) })))),
     ),
   );
 }

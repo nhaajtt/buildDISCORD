@@ -34,6 +34,8 @@ export const config = {
     apiKey: process.env.PAYOS_API_KEY || null,
     checksumKey: process.env.PAYOS_CHECKSUM_KEY || null,
   },
+  // Card payments through Stripe (a secret or restricted key; it switches them on)
+  stripe: { secretKey: process.env.STRIPE_SECRET_KEY || null },
   usdVndRate: Number(process.env.USD_VND_RATE) > 0 ? Number(process.env.USD_VND_RATE) : 26000,
   siteUrl: process.env.SITE_URL || "https://builddiscord.vercel.app",
   // Pause after each created channel or role, to stay well inside Discord's rate limits (tests set 0)

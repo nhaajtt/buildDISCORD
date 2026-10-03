@@ -31,7 +31,7 @@ const planSummary = (guildId) => {
 
 // Never selects the checkout link, the buyer or the channel: a page that lists orders has no use for them
 const ordersOf = (guildId, limit) =>
-  recentOrders(limit, guildId).map((o) => ({ code: describeOrder(o.order_code), plan: o.plan, days: o.days, amount: o.amount, status: o.status, createdAt: o.created_at, paidAt: o.paid_at ?? null }));
+  recentOrders(limit, guildId).map((o) => ({ code: describeOrder(o.order_code), plan: o.plan, days: o.days, amount: o.provider === "stripe" ? o.amount / 100 : o.amount, currency: o.provider === "stripe" ? "USD" : "VND", status: o.status, createdAt: o.created_at, paidAt: o.paid_at ?? null }));
 
 function pickers(guild) {
   const top = guild.members?.me?.roles?.highest?.position ?? -1;
@@ -81,7 +81,8 @@ function ticketsView(guild, settings) {
 const buyInfo = () => ({
   contact: config.contactText,
   payosEnabled: Boolean(config.payos.clientId && config.payos.apiKey && config.payos.checksumKey),
-  offers: Object.keys(PRICES_USD).flatMap((plan) => DAY_CHOICES.map((days) => ({ plan, label: PLANS[plan].label, days, amount: amountVnd(plan, days) }))),
+  stripeEnabled: Boolean(config.stripe.secretKey),
+  offers: Object.keys(PRICES_USD).flatMap((plan) => DAY_CHOICES.map((days) => ({ plan, label: PLANS[plan].label, days, amount: amountVnd(plan, days), usd: Math.round(PRICES_USD[plan] * (days / 30) * 100) / 100 }))),
 });
 
 export function me(session, client, ctx) {

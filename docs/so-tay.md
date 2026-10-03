@@ -11,7 +11,9 @@ Các địa chỉ cần dùng, gom một chỗ:
 | Bảng điều khiển trên web | https://nhaajt.tailc4c5ef.ts.net:10000 |
 | Trang quản lý ứng dụng bot của Discord | https://discord.com/developers/applications |
 | Mã nguồn | https://github.com/nhaajtt/buildDISCORD |
-| Trang quản lý thanh toán payOS | https://my.payos.vn |
+| Trang quản lý Stripe (thẻ) | https://dashboard.stripe.com |
+| Khoá API của Stripe | https://dashboard.stripe.com/apikeys |
+| Trang quản lý payOS (QR ngân hàng Việt Nam) | https://my.payos.vn |
 | Hướng dẫn của payOS | https://payos.vn/docs/ |
 
 ## Mục lục
@@ -30,7 +32,8 @@ Các địa chỉ cần dùng, gom một chỗ:
 12. Dành cho chủ bot: vận hành bot trên Raspberry Pi
 13. Chuyện gì xảy ra khi có sự cố
 14. Bảng tất cả các lệnh
-15. Phụ lục: cài đặt payOS từng bước
+15. Phụ lục A: cài đặt Stripe từng bước (thẻ, tính bằng đô)
+16. Phụ lục B: cài đặt payOS (QR ngân hàng Việt Nam)
 
 ---
 
@@ -377,17 +380,17 @@ Gõ `/goi` bất cứ lúc nào để xem gói hiện tại, hạn dùng và s�
 
 Gõ `/dungthu` (cần quyền Administrator). Server nhận **7 ngày Pro miễn phí, một lần duy nhất cho mỗi server**. Không cần thẻ, không tự gia hạn. Hết 7 ngày về Miễn phí. Dùng rồi thì không dùng lại được kể cả khi xoá dữ liệu.
 
-### 10.3. Mua bằng chuyển khoản (tự động): `/mua`
+### 10.3. Mua bằng thẻ hoặc QR (tự động): `/mua`
 
-1. Gõ `/mua goi:<pro hoặc plus> [ngay:<30, 90 hoặc 180>]`. Mặc định 30 ngày.
-2. Bot hiện số tiền bằng đồng Việt Nam (quy từ giá đô theo tỷ giá bot đang dùng, làm tròn đến nghìn đồng, tối thiểu 2.000 đồng) kèm nút **Thanh toán**.
-3. Bấm nút, trang thanh toán mở ra với mã QR. Dùng app ngân hàng quét mã và chuyển khoản **đúng số tiền**, không sửa nội dung.
+1. Gõ `/mua goi:<pro hoặc plus> [ngay:<30, 90 hoặc 180>] [cach:<stripe hoặc payos>]`. Mặc định 30 ngày. Ô `cach` chọn cách trả: **Stripe** (thẻ quốc tế, tính bằng đô, là mặc định khi Stripe đã bật) hoặc **payOS** (QR ngân hàng Việt Nam, tính bằng đồng).
+2. Bot hiện số tiền kèm nút **Thanh toán**. Với Stripe là giá đúng như bảng giá (ví dụ $9.99). Với payOS, số đồng được quy từ giá đô theo tỷ giá bot đang dùng, làm tròn đến nghìn đồng, tối thiểu 2.000 đồng.
+3. Bấm nút. Với Stripe, trang thanh toán của Stripe mở ra, bạn nhập thẻ ở đó (bot không bao giờ thấy số thẻ). Với payOS, trang hiện mã QR, bạn quét bằng app ngân hàng và chuyển **đúng số tiền**, không sửa nội dung.
 4. Tiền về, trong khoảng một phút bot tự bật gói và nhắn vào kênh nơi bạn gõ lệnh. Không cần nhập mã.
 5. Liên kết thanh toán **sống 30 phút**. Quá giờ thì gõ `/mua` lại để lấy liên kết mới.
 
 Mua gia hạn thì số ngày được **cộng nối vào hạn hiện tại**.
 
-Nếu bot nói "Thanh toán tự động chưa được bật": chủ bot chưa cài payOS (xem phụ lục). Dùng mã kích hoạt ở mục dưới.
+Nếu bot nói "Thanh toán tự động chưa được bật": chủ bot chưa cài Stripe hay payOS (xem phụ lục A và B). Dùng mã kích hoạt ở mục dưới.
 
 ### 10.4. Mua bằng mã kích hoạt: `/kichhoat`
 
@@ -462,7 +465,8 @@ Tệp `~/buildDISCORD/.env` giữ bí mật của bot. **Không gửi tệp này
 | `MUSIC_BOT_INVITE_URL`, `TTS_BOT_INVITE_URL` | không | Đường dẫn mời bot nhạc và bot đọc chữ, hiện thành nút trong kênh DJ và TTS |
 | `GEMINI_API_KEY` | không | Khoá của Google AI Studio (https://aistudio.google.com/apikey). Không có thì `/thietke` tắt |
 | `GEMINI_MODEL` | không | Tên mô hình AI. Để trống thì bot tự chọn mô hình flash ổn định mới nhất |
-| `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY` | không | Ba khoá payOS. Điền đủ ba thì `/mua` bật |
+| `STRIPE_SECRET_KEY` | không | Khoá bí mật hoặc khoá giới hạn của Stripe (bắt đầu bằng `sk_` hoặc `rk_`). Có khoá này thì `/mua` nhận thẻ |
+| `PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY` | không | Ba khoá payOS (QR ngân hàng Việt Nam). Điền đủ ba thì cách trả payOS bật |
 | `USD_VND_RATE` | không | Số đồng một đô, mặc định 26000. Cập nhật khi tỷ giá lệch nhiều |
 | `SITE_URL` | không | Nơi payOS đưa khách về sau khi trả hoặc huỷ |
 | `TIMEZONE` | không | Múi giờ cho điểm danh và sự kiện, mặc định `Asia/Ho_Chi_Minh` |
@@ -527,8 +531,8 @@ Nếu bạn đổi địa chỉ, cập nhật cả Redirects và `DASHBOARD_URL`
 | Nút xác minh không cấp role | Role xác minh nằm cao hơn role bot, hoặc có quyền nguy hiểm | Kéo role bot lên cao hơn role đó, bỏ quyền nguy hiểm khỏi role |
 | AutoMod không tạo được luật | Bot thiếu quyền quản lý server hoặc Moderate Members | Mời lại với quyền Administrator |
 | Ticket không mở được | Thiếu danh mục hoặc kênh | Chạy lại `/ticket caidat`, rồi `/ticket dang` |
-| `/mua` báo "chưa bật" | Chưa điền khoá payOS | Chủ bot làm phụ lục 15 |
-| Đã trả tiền mà gói chưa bật | Bot đợi tối đa vài chục giây, hoặc chuyển sai số tiền | Đợi 2 phút. Quá lâu thì chủ bot gõ `/admin donhang` xem đơn, rồi `/admin cap` cấp tay nếu tiền đã về |
+| `/mua` báo "chưa bật" | Chưa điền khoá Stripe hay payOS | Chủ bot làm phụ lục A (hoặc B) |
+| Đã trả tiền mà gói chưa bật | Bot đợi tối đa vài chục giây, hoặc (payOS) chuyển sai số tiền | Đợi 2 phút. Quá lâu thì chủ bot gõ `/admin donhang` xem đơn, đối chiếu với Stripe hoặc payOS, rồi `/admin cap` cấp tay nếu tiền đã về |
 | Trang web bảng điều khiển không mở | Funnel tắt, hoặc bot chưa chạy | Chủ bot: `tailscale funnel status`, `docker logs thauxaydung --tail 20` (phải có dòng `Dashboard:`) |
 | Đăng nhập web báo "invalid redirect_uri" | Redirect trong Developer Portal chưa lưu đúng | Thêm đúng dòng ở phần 12.7 rồi bấm Lưu |
 | Đăng nhập web xong không thấy server nào | Bạn không phải Administrator, hoặc bot chưa ở trong server đó | Kiểm tra quyền, mời bot |
@@ -558,7 +562,7 @@ Cột "Ai dùng" cho biết quyền cần có. **Admin** nghĩa là cần quyề
 | `/ticket caidat, loai them, loai xoa, dang, danhsach, tat` | Admin | Pro | Ticket hỗ trợ |
 | `/goi` | Mọi người | Mọi gói | Xem gói và hạn |
 | `/dungthu` | Admin | Free | Thử Pro 7 ngày, một lần |
-| `/mua goi [ngay]` | Admin | Free | Mua gói bằng QR |
+| `/mua goi [ngay] [cach]` | Admin | Free | Mua gói bằng thẻ (Stripe) hoặc QR (payOS) |
 | `/kichhoat ma` | Admin | Free | Kích hoạt bằng mã |
 | `/nuke` | Admin | Mọi gói | Gỡ những gì bot đã xây |
 | `/xoadulieu` | Admin | Mọi gói | Bot quên dữ liệu về server |
@@ -566,11 +570,114 @@ Cột "Ai dùng" cho biết quyền cần có. **Admin** nghĩa là cần quyề
 
 ---
 
-## 15. Phụ lục: cài đặt payOS từng bước
+## 15. Phụ lục A: cài đặt Stripe từng bước (thẻ, tính bằng đô)
 
-payOS là cổng thanh toán Việt Nam cho phép nhận tiền bằng mã QR về tài khoản ngân hàng của bạn. Bot dùng payOS để `/mua` tự động.
+Stripe là cổng thanh toán thẻ. Bạn ở Mỹ nên đây là cách chính: khách trả bằng thẻ tín dụng hoặc thẻ ghi nợ, tiền về tài khoản ngân hàng Mỹ của bạn.
 
 ### 15.1. Tiền đi như thế nào
+
+1. Khách gõ `/mua`. Bot nhờ Stripe tạo một **trang thanh toán (Checkout Session)** cho đúng số đô của gói.
+2. Khách nhập thẻ trên trang của Stripe. Số thẻ **không bao giờ đi qua bot** hay Discord.
+3. Stripe chuyển tiền (trừ phí) vào tài khoản ngân hàng của bạn theo lịch chi trả của Stripe.
+4. Cứ 30 giây bot hỏi Stripe: "phiên này trả chưa?". Khi Stripe trả lời "đã thu tiền", bot kiểm tra thêm mã đơn, số tiền và đơn vị tiền khớp với đơn của mình rồi mới bật gói, đúng một lần.
+
+Không cần webhook, không cần mở cổng nào cho bên ngoài gọi vào.
+
+### 15.2. Cần chuẩn bị
+
+- Một địa chỉ email và số điện thoại.
+- Một **tài khoản ngân hàng Mỹ** đứng tên bạn (số routing và số tài khoản) để nhận tiền.
+- Thông tin xác minh cá nhân do Stripe yêu cầu: họ tên, ngày sinh, địa chỉ ở Mỹ, và số SSN (hoặc EIN nếu bạn có công ty). Loại hình đơn giản nhất cho một người làm một mình là **cá nhân kinh doanh tự do (individual / sole proprietor)**.
+- Mô tả ngắn về sản phẩm khi Stripe hỏi, ví dụ: "Subscriptions to a Discord bot that builds and manages community servers".
+
+### 15.3. Bước 1: tạo tài khoản
+
+1. Mở https://dashboard.stripe.com/register.
+2. Điền email, tên, mật khẩu, rồi xác nhận email.
+3. Bạn vào dashboard ở chế độ thử (**Test mode**, hoặc **Sandbox** tuỳ giao diện hiện tại). Ở chế độ này không có tiền thật.
+
+### 15.4. Bước 2: lấy khoá và thử trước ở chế độ thử
+
+1. Vẫn ở chế độ thử, mở https://dashboard.stripe.com/test/apikeys.
+2. Có **hai cách lấy khoá**:
+   - **Đơn giản:** copy **Secret key** (bắt đầu bằng `sk_test_`). Bấm **Reveal** để xem.
+   - **An toàn hơn (nên dùng cho khoá thật):** bấm **Create restricted key** (tạo khoá giới hạn), đặt tên `thau-bot`, và chỉ cấp quyền **Checkout Sessions** ở mức **Write**. Để mọi quyền khác ở **None**. Khoá này (bắt đầu bằng `rk_`) chỉ làm được đúng việc bot cần, nên lộ ra cũng ít thiệt hại hơn.
+3. **Giữ bí mật như mật khẩu.** Ai có khoá có thể tạo thanh toán dưới tên bạn. Đừng gửi qua tin nhắn, đừng đưa lên GitHub.
+
+### 15.5. Bước 3: đưa khoá vào bot
+
+Trên Pi (hoặc qua SSH):
+
+```bash
+cd ~/buildDISCORD
+nano .env
+```
+
+Thêm hoặc điền dòng này (không dấu cách, không ngoặc):
+
+```
+STRIPE_SECRET_KEY=sk_test_xxxxxxxxxxxxxxxx
+```
+
+Lưu bằng Ctrl+O, Enter, thoát Ctrl+X. Rồi chạy lại bot:
+
+```bash
+docker compose up -d
+```
+
+Gõ `/mua goi:pro` trên một server **không** nằm trong `UNLOCKED_GUILD_IDS` (server được mở khoá không cần mua). Thấy số tiền **$9.99** và nút **Thanh toán** là bot đã nối được Stripe.
+
+### 15.6. Bước 4: thử bằng thẻ giả
+
+1. Bấm **Thanh toán**, trang Stripe mở ra.
+2. Nhập thẻ thử: số `4242 4242 4242 4242`, ngày hết hạn là bất kỳ ngày nào trong tương lai, CVC bất kỳ ba số, mã ZIP bất kỳ.
+3. Bấm trả. Đợi tối đa vài chục giây. Bot nhắn "Thanh toán thành công" và bật gói. Gõ `/goi` kiểm tra.
+4. Chủ bot gõ `/admin donhang`: đơn hiện với số đô (ví dụ `$9.99`) và trạng thái đã trả.
+5. Trong dashboard Stripe, mục **Payments** (chế độ thử), bạn thấy giao dịch.
+
+Muốn thử trường hợp thất bại: dùng thẻ `4000 0000 0000 0002` (bị từ chối). Gói không bật, và sau 30 phút đơn hết hạn.
+
+### 15.7. Bước 5: kích hoạt tài khoản để nhận tiền thật
+
+1. Trong dashboard Stripe, bấm **Activate your account** (kích hoạt tài khoản).
+2. Điền thông tin doanh nghiệp (chọn cá nhân kinh doanh tự do nếu bạn một mình), thông tin cá nhân, tài khoản ngân hàng để nhận tiền, và mô tả sản phẩm.
+3. Chờ Stripe xác minh. Có thể mất từ vài phút đến vài ngày. Stripe có thể hỏi thêm giấy tờ.
+4. Khi xong, tắt chế độ thử để sang chế độ thật (**Live mode**).
+
+### 15.8. Bước 6: chuyển sang khoá thật
+
+1. Ở chế độ thật, mở https://dashboard.stripe.com/apikeys, tạo **khoá giới hạn** như ở mục 15.4 (quyền **Checkout Sessions: Write**), hoặc copy Secret key `sk_live_`.
+2. Trên Pi, sửa `.env`, thay dòng `STRIPE_SECRET_KEY=` bằng khoá thật.
+3. `docker compose up -d`.
+4. Khoá thử và khoá thật **khác nhau hoàn toàn**: đơn tạo bằng khoá thử không đọc được bằng khoá thật. Nếu còn đơn đang chờ lúc đổi khoá, chúng báo lỗi trong log rồi hết hạn sau 35 phút, không gây hại.
+5. Thử một đơn thật nhỏ của chính bạn (gói Pro 30 ngày, $9.99) trên một server không mở khoá, rồi hoàn lại tiền trong dashboard Stripe.
+
+### 15.9. Phí, thuế, hoàn tiền, tranh chấp
+
+- **Phí:** Stripe thu phí mỗi giao dịch thẻ. Mức phí hiện tại xem ở https://stripe.com/pricing (ở Mỹ, giá chuẩn thường là một tỷ lệ phần trăm cộng một khoản cố định vài chục xu). Với gói $9,99 phí khoảng vài chục xu, nên giá thực nhận thấp hơn giá niêm yết.
+- **Hoàn tiền:** làm thủ công trong dashboard Stripe, mục **Payments**, chọn giao dịch, bấm **Refund**. Bot không tự thu hồi gói. Nếu muốn gỡ gói, chủ bot gõ `/admin thuhoi server:<ID>`.
+- **Tranh chấp (chargeback):** khi khách khiếu nại với ngân hàng, Stripe báo qua email và dashboard. Trả lời trong hạn Stripe cho. Bot không xử lý phần này.
+- **Thuế:** thu tiền bán dịch vụ số ở California và liên bang có nghĩa vụ thuế riêng. Stripe có công cụ **Stripe Tax** để tính và thu thuế bán hàng, nhưng tôi không phải cố vấn thuế. Hãy hỏi một kế toán hoặc người am hiểu trước khi bán nhiều.
+- **Khách ngoài nước Mỹ:** trả được bằng thẻ quốc tế. Giá luôn bằng đô.
+
+### 15.10. Khi Stripe gặp sự cố
+
+| Triệu chứng | Xử lý |
+| --- | --- |
+| `/mua` báo cổng thanh toán trục trặc | Xem `docker logs thauxaydung --tail 30`. Thường do khoá sai, thiếu quyền Checkout Sessions, hoặc Stripe đang lỗi |
+| Log báo `Stripe answered 401` | Khoá sai hoặc đã bị thu hồi. Tạo khoá mới |
+| Log báo `Stripe answered 403` | Khoá giới hạn thiếu quyền. Bật Checkout Sessions: Write |
+| Trả tiền xong gói không bật | Đợi 2 phút. Rồi `/admin donhang` xem trạng thái. Đối chiếu Payments trong Stripe. Tiền đã về thì `/admin cap` cấp tay |
+| Log báo `does not match order` | Phiên Stripe không khớp đơn (khác mã đơn hoặc số tiền). Bot cố ý không bật gói. Kiểm tra giao dịch trong Stripe |
+| Liên kết hết hạn | Liên kết sống 30 phút. Gõ `/mua` lại |
+
+## 16. Phụ lục B: cài đặt payOS (QR ngân hàng Việt Nam)
+
+**Phần này chỉ dành cho người có tài khoản ngân hàng Việt Nam.** Bạn ở Mỹ thì dùng Stripe ở phụ lục A. payOS vẫn có ích nếu bạn muốn khách ở Việt Nam trả bằng QR, nhưng chủ tài khoản payOS phải là người có giấy tờ và ngân hàng Việt Nam.
+
+payOS là cổng thanh toán Việt Nam cho phép nhận tiền bằng mã QR về tài khoản ngân hàng của bạn. Bot dùng payOS cho cách trả `cach:payos` của `/mua`.
+
+### 16.1. Tiền đi như thế nào
 
 1. Khách gõ `/mua`. Bot nhờ payOS tạo một **liên kết thanh toán** (có mã QR) cho số tiền cố định.
 2. Khách quét QR bằng app ngân hàng và chuyển tiền.
@@ -579,14 +686,14 @@ payOS là cổng thanh toán Việt Nam cho phép nhận tiền bằng mã QR v�
 
 Bot **không cần địa chỉ webhook** và không nhận dữ liệu từ bên ngoài, nên không có cổng nào để kẻ xấu tấn công.
 
-### 15.2. Cần chuẩn bị
+### 16.2. Cần chuẩn bị
 
 - Một **tài khoản ngân hàng** đứng tên bạn, thuộc ngân hàng payOS hỗ trợ. Theo tài liệu payOS, cá nhân liên kết được với MB, OCB, KienlongBank, ACB, BIDV (danh sách có thể thay đổi, xem trang của payOS).
 - Thông tin xác minh (căn cước công dân, hoặc giấy tờ doanh nghiệp nếu đăng ký tổ chức).
 - Một email dùng được, và điện thoại có app ngân hàng.
 - Phí và thời gian duyệt do payOS quy định. Xem trực tiếp ở https://payos.vn trước khi đăng ký, vì tôi không có số liệu cập nhật.
 
-### 15.3. Bước 1: tạo tài khoản payOS
+### 16.3. Bước 1: tạo tài khoản payOS
 
 1. Mở https://my.payos.vn/login.
 2. Chọn **Đăng ký**, điền đủ thông tin, bấm **Tạo tài khoản**.
@@ -595,17 +702,17 @@ Bot **không cần địa chỉ webhook** và không nhận dữ liệu từ bê
 
 Hướng dẫn gốc của payOS: https://payos.vn/docs/huong-dan-su-dung/tao-tai-khoan-payos/
 
-### 15.4. Bước 2: xác thực tổ chức hoặc cá nhân
+### 16.4. Bước 2: xác thực tổ chức hoặc cá nhân
 
 Ở trang quản lý, làm theo mục **Xác thực tổ chức** (cá nhân hay doanh nghiệp đều được hướng dẫn khai giấy tờ phù hợp) để khai thông tin và giấy tờ. Chờ payOS duyệt. Chưa duyệt xong thì chưa tạo được kênh thanh toán.
 
-### 15.5. Bước 3: liên kết tài khoản ngân hàng
+### 16.5. Bước 3: liên kết tài khoản ngân hàng
 
 Ở mục **Kết nối tài khoản ngân hàng**, chọn ngân hàng của bạn và làm theo hướng dẫn trên màn hình. payOS liên kết qua ứng dụng **Cas** (một app của hệ sinh thái payOS dùng để xác nhận tài khoản): cài app, đăng nhập, cho phép liên kết với ngân hàng, rồi tài khoản xuất hiện trong danh sách của payOS.
 
 Trang hướng dẫn theo từng ngân hàng nằm trong mục "Hướng dẫn sử dụng" ở https://payos.vn/docs/ . Đúng từng bước tuỳ ngân hàng bạn chọn, nên hãy đọc trang của ngân hàng đó. Giao diện của payOS thỉnh thoảng đổi, nên nhãn nút có thể hơi khác chữ tôi ghi.
 
-### 15.6. Bước 4: tạo kênh thanh toán
+### 16.6. Bước 4: tạo kênh thanh toán
 
 1. Trong dashboard, vào mục **Kênh thanh toán** (kênh thu).
 2. Bấm **Tạo kênh thanh toán**.
@@ -613,7 +720,7 @@ Trang hướng dẫn theo từng ngân hàng nằm trong mục "Hướng dẫn s
 4. Đặt tên, ví dụ `Thầu Xây Dựng`.
 5. Lưu.
 
-### 15.7. Bước 5: lấy ba khoá
+### 16.7. Bước 5: lấy ba khoá
 
 Mở kênh vừa tạo, tìm phần thông tin tích hợp (khoá hệ thống). Có **ba giá trị**:
 
@@ -623,7 +730,7 @@ Mở kênh vừa tạo, tìm phần thông tin tích hợp (khoá hệ thống).
 
 Giữ chúng **bí mật như mật khẩu**. Ai có ba khoá này có thể tạo thanh toán dưới tên bạn. Đừng gửi qua tin nhắn, đừng đưa lên GitHub.
 
-### 15.8. Bước 6: đưa ba khoá vào bot
+### 16.8. Bước 6: đưa ba khoá vào bot
 
 SSH vào Pi (hoặc mở terminal trên Pi):
 
@@ -648,7 +755,7 @@ docker compose up -d
 
 Kiểm tra: gõ `/mua goi:pro` trong Discord. Nếu thấy số tiền và nút **Thanh toán** thì payOS đã nối thành công. Còn nếu bot báo "chưa được bật" thì ba khoá chưa vào, kiểm tra `.env`.
 
-### 15.9. Bước 7: thử bằng đơn nhỏ
+### 16.9. Bước 7: thử bằng đơn nhỏ
 
 Thử trước khi bán thật, để chắc chắn tiền về đúng và gói tự bật.
 
@@ -660,7 +767,7 @@ Thử trước khi bán thật, để chắc chắn tiền về đúng và gói 
 6. Vào dashboard payOS, xem giao dịch.
 7. **Xoá dòng `USD_VND_RATE=200`** khỏi `.env` (hoặc đặt lại 26000), rồi `docker compose up -d`. Quên bước này là bán gói Pro giá 2.000 đồng cho mọi người.
 
-### 15.10. Khi thanh toán gặp sự cố
+### 16.10. Khi thanh toán gặp sự cố
 
 | Triệu chứng | Xử lý |
 | --- | --- |
@@ -670,9 +777,9 @@ Thử trước khi bán thật, để chắc chắn tiền về đúng và gói 
 | Khách chỉ trả một phần | Bot không tự hoàn tiền hay bật gói, vì payOS không có chức năng đó cho bot. Chủ bot tự xử lý: cấp gói tay nếu đủ, hoặc hoàn tiền tay |
 | Cần hoàn tiền cho khách | Làm **thủ công** từ ngân hàng của bạn, rồi `/admin thuhoi server:<ID>` nếu muốn gỡ gói |
 
-### 15.11. Lưu ý quan trọng
+### 16.11. Lưu ý quan trọng
 
-- Phần nối payOS của bot được viết theo tài liệu payOS và **kiểm tra bằng giả lập**, chưa chạy với tài khoản thật. Vì vậy đơn thử ở mục 15.9 là bắt buộc.
+- Phần nối payOS của bot được viết theo tài liệu payOS và **kiểm tra bằng giả lập**, chưa chạy với tài khoản thật. Vì vậy đơn thử ở mục 16.9 là bắt buộc.
 - Bot kiểm tra trạng thái đơn mỗi 30 giây, nên gói có thể bật chậm đến khoảng một phút sau khi tiền về.
 - Giá niêm yết bằng đô (9,99 và 19,99). Thu bằng đồng theo `USD_VND_RATE`. Khi tỷ giá lệch nhiều, sửa biến này.
 - Thuế, hoá đơn và quy định kinh doanh khi bán dịch vụ là việc của bạn. Hỏi người am hiểu nếu bán nhiều.

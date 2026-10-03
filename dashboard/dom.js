@@ -67,4 +67,4 @@ let counter = 0;
 export const uid = (prefix = "f") => `${prefix}${(counter += 1)}`;
 
 export const fmtDate = (ms) => (ms ? new Date(ms).toLocaleString("vi-VN", { dateStyle: "short", timeStyle: "short" }) : "");
-export const fmtMoney = (n) => `${Number(n).toLocaleString("vi-VN")} đ`;
+export const fmtMoney = (n, currency = "VND") => (currency === "USD" ? `$${Number(n).toFixed(2)}` : `${Number(n).toLocaleString("vi-VN")} đ`);
