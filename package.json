@@ -1,6 +1,6 @@
 {
   "name": "buildDISCORD",
-  "version": "1.0.0",
+  "version": "1.6.0",
   "description": "Discord bot that builds a full, ridiculous server in one command",
   "type": "module",
   "main": "src/index.js",

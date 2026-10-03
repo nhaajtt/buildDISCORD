@@ -1,4 +1,5 @@
 import { getDb } from "./db.js";
+import { forgetGuildXp } from "./activity/xp.js";
 
 // Everything the bot keeps about a server except what billing needs (licenses, usage counters, orders) and the anonymous
 // funnel counts, which hold only a server id and a time. Used by /xoadulieu so "forget this server" really forgets it.
@@ -8,6 +9,8 @@ export function purgeGuildData(guildId) {
   const db = getDb();
   const id = String(guildId);
   const removed = {};
+  // Xp waiting to be written and cached settings would bring the server's data back after the delete
+  forgetGuildXp(id);
   db.exec("BEGIN");
   try {
     // entries and votes hang off giveaways and polls, so they go first

@@ -13,7 +13,9 @@
 - **Funnel.** `/admin thongke` shows invited, setup finished, built, trial and paid servers for the last 30 days.
 - New intents GuildVoiceStates, GuildModeration and AutoModerationExecution, none of them privileged. New tables: events_log, xp, giveaways, giveaway_entries, polls, poll_votes, mod_cases and role_menus.
 - **Website.** New feature cards, prices, a full command list, FAQ entries, privacy and terms for the new features, a page for every theme with its roles, categories and channels, and a status page.
-- 561 tests.
+- **End-to-end tests.** `test/e2e` holds a fake gateway (client, guilds, members, roles, channels, interactions, an injectable clock) that drives the real command router, event modules and jobs, with flows for setup, anti-raid, anti-nuke, activity, giveaways and polls, role menus, moderation, tickets, payments, `/xoadulieu`, command validity, component routing and the no-privileged-intent rules.
+- **Fix.** `/xoadulieu` left xp that had not been written yet and the cached activity settings in memory, so a purged server could get its xp rows back.
+- 586 tests.
 
 ## 1.5.0
 

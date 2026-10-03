@@ -122,6 +122,17 @@ export function flushXp() {
   }
 }
 
+// Forgets what is held in memory about one server (unwritten increments, cooldowns, cached settings) without writing it.
+// Used when the server's data is purged, so nothing is written back afterwards.
+export function forgetGuildXp(guildId) {
+  settingsCache.delete(guildId);
+  for (const [key, entry] of entries) {
+    if (entry.guildId !== guildId) continue;
+    entries.delete(key);
+    dirty.delete(key);
+  }
+}
+
 // For tests: forget everything held in memory without writing it
 export function resetXpCache() {
   entries.clear();
