@@ -25,3 +25,6 @@ export const aiSample = {
   ],
   rule: "Bắn hụt thì đổ tại ping hoặc chuột dỏm, cấm nhận do tay run.",
 };
+
+// The bot's public status route (see src/web/server.js). It allows any origin and carries no ID or name.
+export const STATUS_URL = process.env.NEXT_PUBLIC_STATUS_URL || "https://nhaajt.tailc4c5ef.ts.net:10000/status";

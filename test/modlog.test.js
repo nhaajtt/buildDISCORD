@@ -149,6 +149,8 @@ function interaction({ guild, action, invokerPerms = "all", invokerTop = 5, invo
       getInteger: (n) => options[n] ?? null,
     },
     reply: async (p) => replies.push(p),
+    deferReply: async () => {},
+    editReply: async (p) => replies.push(p),
   };
 }
 

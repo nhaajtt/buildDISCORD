@@ -21,6 +21,15 @@ export function funnel(since = 0) {
   return out;
 }
 
+// The weekly report only reads the last week, so the per-event counts it feeds on are dropped after this long. Funnel kinds stay.
+export const COUNT_KEEP_DAYS = 90;
+const COUNT_KINDS = ["join", "automod_block"];
+
+export function pruneCounts(now = Date.now()) {
+  const cutoff = now - COUNT_KEEP_DAYS * 24 * 60 * 60 * 1000;
+  return Number(getDb().prepare(`DELETE FROM events_log WHERE kind IN (${COUNT_KINDS.map(() => "?").join(", ")}) AND at < ?`).run(...COUNT_KINDS, cutoff).changes);
+}
+
 export function countEvents(guildId, kind, since = 0, until = Number.MAX_SAFE_INTEGER) {
   return Number(getDb().prepare("SELECT COUNT(*) AS n FROM events_log WHERE guild_id = ? AND kind = ? AND at >= ? AND at < ?").get(String(guildId), kind, since, until).n);
 }

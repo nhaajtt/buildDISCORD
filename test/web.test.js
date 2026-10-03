@@ -1285,6 +1285,9 @@ test("the new settings routes need a login, an admin, and the CSRF ingredients",
   assert.equal((await b.api("PUT", guildUrl(G1, "/settings/nonsense"), {})).status, 404);
 });
 
+// What a channel looks like while a lockdown holds it: @everyone is denied SendMessages
+const lockedOverwrites = (guildId) => new Map([[guildId, { allow: { has: () => false }, deny: { has: (flag) => flag === P.SendMessages } }]]);
+
 test("unlock puts back exactly what the lockdown record names, and refuses when there is no lockdown", async () => {
   const b = await loggedIn("admin");
   const guild = guilds.get(G2);
@@ -1295,8 +1298,8 @@ test("unlock puts back exactly what the lockdown record names, and refuses when 
   const a = guild.channels.cache.get(textId(G2, "400000000000000001"));
   const other = guild.channels.cache.get(textId(G2, "400000000000000002"));
   const untouched = guild.channels.cache.get(textId(G2, "400000000000000005"));
-  for (const c of [a, other, untouched]) c.permissionOverwrites = { edit: async (role, perms) => void calls.push({ channel: c.id, role: role.id, perms }) };
-  guild.verificationLevel = 4;
+  for (const c of [a, other, untouched]) c.permissionOverwrites = { cache: lockedOverwrites(G2), edit: async (role, perms) => void calls.push({ channel: c.id, role: role.id ?? role, perms }) };
+  guild.verificationLevel = 2;
   setSection(G2, "security", {
     ...getSection(G2, "security"),
     lockdown: { active: true, since: 5, prevVerification: 1, channels: [{ id: a.id, sendMessages: "neutral" }, { id: other.id, sendMessages: "allow" }, { id: "999999999999999999", sendMessages: "deny" }] },
@@ -1320,7 +1323,7 @@ test("unlock still clears the record and says what it could not restore when a p
   const b = await loggedIn("admin");
   const guild = guilds.get(G2);
   const a = guild.channels.cache.get(textId(G2, "400000000000000001"));
-  a.permissionOverwrites = { edit: async () => { throw new Error("Missing Permissions"); } };
+  a.permissionOverwrites = { cache: lockedOverwrites(G2), edit: async () => { throw new Error("Missing Permissions"); } };
   setSection(G2, "security", { ...getSection(G2, "security"), lockdown: { active: true, since: 5, prevVerification: null, channels: [{ id: a.id, sendMessages: "deny" }] } });
   const res = await b.api("POST", guildUrl(G2, "/security/unlock"), {});
   assert.equal(res.status, 200);
@@ -1416,4 +1419,45 @@ test("no em dashes and no tool or vendor names in the dashboard, its server code
     assert.ok(!code.includes(dash), `${path.basename(file)} has an em dash`);
     for (const word of banned) assert.ok(!code.toLowerCase().includes(word), `${path.basename(file)} mentions ${word}`);
   }
+});
+
+// ---------------------------------------------------------------- review fixes
+
+test("unlock leaves alone a channel or a verification level that someone changed by hand after the lockdown", async () => {
+  const b = await loggedIn("admin");
+  const guild = guilds.get(G2);
+  const calls = [];
+  const kept = guild.channels.cache.get(textId(G2, "400000000000000001"));
+  const mine = guild.channels.cache.get(textId(G2, "400000000000000002"));
+  kept.permissionOverwrites = { cache: new Map(), edit: async (role, perms) => void calls.push({ channel: kept.id, perms }) };
+  mine.permissionOverwrites = { cache: lockedOverwrites(G2), edit: async (role, perms) => void calls.push({ channel: mine.id, perms }) };
+  guild.verificationLevel = 4;
+  guild.verificationCalls.length = 0;
+  setSection(G2, "security", {
+    ...getSection(G2, "security"),
+    lockdown: { active: true, since: 5, prevVerification: 1, channels: [{ id: kept.id, sendMessages: "allow" }, { id: mine.id, sendMessages: "neutral" }] },
+  });
+  const res = await b.api("POST", guildUrl(G2, "/security/unlock"), {});
+  assert.equal(res.status, 200);
+  assert.deepEqual(calls, [{ channel: mine.id, perms: { SendMessages: null } }], "only the channel still as the lockdown left it is touched");
+  assert.deepEqual(guild.verificationCalls, [], "a level an admin raised by hand stays");
+  assert.equal(guild.verificationLevel, 4);
+  assert.equal(getSection(G2, "security").lockdown.active, false);
+});
+
+test("GET /status answers a CORS preflight, and no other route does", async () => {
+  const pre = await new Browser().req("OPTIONS", "/status", { headers: { Origin: "https://thau.example", "Access-Control-Request-Method": "GET" } });
+  assert.equal(pre.status, 204);
+  assert.equal(pre.headers["access-control-allow-origin"], "*");
+  assert.equal(pre.headers["access-control-allow-methods"], "GET, OPTIONS");
+  assert.equal(pre.text, "");
+  const get = await new Browser().req("GET", "/status");
+  assert.equal(get.headers["access-control-allow-origin"], "*");
+  assert.equal(get.headers["access-control-allow-credentials"], undefined);
+  for (const target of ["/api/me", "/auth/login", "/", "/api/guilds/" + G1]) {
+    const other = await new Browser().req("OPTIONS", target, { headers: { Origin: "https://thau.example" } });
+    assert.equal(other.headers["access-control-allow-origin"], undefined, target + " must not be readable cross-site");
+  }
+  const apiGet = await new Browser().req("GET", "/api/me");
+  assert.equal(apiGet.headers["access-control-allow-origin"], undefined);
 });

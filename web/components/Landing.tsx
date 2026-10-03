@@ -54,6 +54,7 @@ export default function Landing({ dict }: { dict: Dict }) {
           <a href="#pricing">{dict.nav.pricing}</a>
           <a href="#commands">{dict.nav.commands}</a>
           <a href="#faq">{dict.nav.faq}</a>
+          <a href={`${prefix}/status`}>{dict.nav.status}</a>
           <a href={`${prefix}/devlog`}>{dict.nav.devlog}</a>
         </nav>
         <div className="nav-end">
@@ -139,6 +140,9 @@ export default function Landing({ dict }: { dict: Dict }) {
                 <p className="theme-count">
                   {planFor([t.id]).counts.categories} / {planFor([t.id]).counts.channels} / {planFor([t.id]).counts.roles}
                 </p>
+                <a className="theme-link" href={`${prefix}/themes/${t.id}`}>
+                  {dict.themePage.open}
+                </a>
               </article>
             ))}
           </div>
@@ -188,6 +192,14 @@ export default function Landing({ dict }: { dict: Dict }) {
                   ))}
                 </ul>
               </Tilt>
+            ))}
+          </div>
+          <div className="plan-options">
+            {dict.pricing.options.map((o) => (
+              <article key={o.t} className="feature-card" data-in>
+                <h3>{o.t}</h3>
+                <p>{o.d}</p>
+              </article>
             ))}
           </div>
           <div className="how-buy" data-in>
@@ -250,7 +262,7 @@ export default function Landing({ dict }: { dict: Dict }) {
           <tbody>
             <tr>
               <th scope="row">{dict.footer.block.project}</th>
-              <td>buildDISCORD, v1.3</td>
+              <td>buildDISCORD, v1.6</td>
               <th scope="row">{dict.footer.block.sheet}</th>
               <td>1 / 1</td>
             </tr>
@@ -263,6 +275,7 @@ export default function Landing({ dict }: { dict: Dict }) {
             <tr>
               <th scope="row">{dict.footer.block.links}</th>
               <td colSpan={3}>
+                <a href={`${prefix}/status`}>{dict.nav.status}</a>
                 <a href={`${prefix}/devlog`}>{dict.footer.devlog}</a>
                 <a href={`${prefix}/privacy`}>{dict.footer.privacy}</a>
                 <a href={`${prefix}/terms`}>{dict.footer.terms}</a>

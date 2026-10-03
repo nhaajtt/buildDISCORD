@@ -654,3 +654,68 @@ test("the wizard tracks a trial that was used so it stops suggesting one", async
   const result = await runWizard(guild, { ...ALL, extras: [] });
   assert.ok(!result.next.some((s) => s.includes("/dungthu")));
 });
+
+// ---------- review fixes ----------
+
+async function readyToGo(guild) {
+  await batdau.execute(fakeInteraction(guild));
+  await batdau.handleComponent(fakeInteraction(guild, { values: ["gaming"] }), ["theme", "u1"]);
+}
+
+test("the build lock is released even when the confirm button's own reply fails", async () => {
+  const guild = fakeGuild();
+  await readyToGo(guild);
+  const go = fakeInteraction(guild);
+  go.update = async () => {
+    throw new Error("Unknown interaction");
+  };
+  await batdau.handleComponent(go, ["go", "u1"]).catch(() => {});
+  assert.equal(lock.tryAcquire(guild.id), true, "the lock must not stay taken");
+  lock.release(guild.id);
+});
+
+test("pressing share twice at once posts the card once", async () => {
+  const guild = fakeGuild();
+  await readyToGo(guild);
+  await batdau.handleComponent(fakeInteraction(guild), ["go", "u1"]);
+  const a = fakeInteraction(guild);
+  const b = fakeInteraction(guild);
+  let posts = 0;
+  const slow = async () => {
+    posts += 1;
+    await new Promise((resolve) => setTimeout(resolve, 20));
+  };
+  a.channel.send = slow;
+  b.channel.send = slow;
+  await Promise.all([batdau.handleComponent(a, ["share", "u1"]), batdau.handleComponent(b, ["share", "u1"])]);
+  assert.equal(posts, 1);
+});
+
+test("a failed share can be tried again", async () => {
+  const guild = fakeGuild();
+  await readyToGo(guild);
+  await batdau.handleComponent(fakeInteraction(guild), ["go", "u1"]);
+  const bad = fakeInteraction(guild);
+  bad.channel.send = async () => {
+    throw new Error("Missing Access");
+  };
+  await batdau.handleComponent(bad, ["share", "u1"]);
+  const good = fakeInteraction(guild);
+  await batdau.handleComponent(good, ["share", "u1"]);
+  assert.equal(good.channel.sent.length, 1);
+});
+
+test("the welcome message never goes to a room that everybody cannot see", async () => {
+  const { pickWelcomeChannel } = await import("../src/events/guildCreate.js");
+  const everyone = { id: "everyone" };
+  const room = (id, visible, position) => ({
+    id,
+    type: ChannelType.GuildText,
+    rawPosition: position,
+    permissionsFor: (who) => ({ has: () => (who === everyone ? visible : true) }),
+  });
+  const make = (rooms) => ({ systemChannel: null, roles: { everyone }, channels: { cache: new Collection(rooms.map((r) => [r.id, r])) }, members: { me: {} } });
+  assert.equal(pickWelcomeChannel(make([room("staff", false, 0), room("chat", true, 3)])).id, "chat");
+  assert.equal(pickWelcomeChannel(make([room("staff", false, 0)])), null, "better silent than leaking into a staff room");
+  assert.equal(pickWelcomeChannel(make([room("late", true, 5), room("early", true, 1)])).id, "early");
+});

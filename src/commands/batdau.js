@@ -193,12 +193,14 @@ export default {
     if (action === "share") {
       if (!session.result) return interaction.reply(ephemeral(lines.expired));
       if (session.shared) return interaction.reply(ephemeral(lines.shareDone));
+      // Marked before the post is awaited, so a second press while the first is in flight cannot post the card twice
+      session.shared = true;
       try {
         await interaction.channel.send({ embeds: [session.result.embed], allowedMentions: NOTHING });
       } catch {
+        session.shared = false;
         return interaction.reply(ephemeral(lines.shareFailed));
       }
-      session.shared = true;
       return interaction.update({ components: resultButtons(userId, true) });
     }
 
@@ -216,8 +218,8 @@ export default {
     if (blocked) return refuse(blocked);
     if (!lock.tryAcquire(guildId)) return interaction.reply(ephemeral(lines.busy));
 
-    await interaction.update({ content: lines.progressStart, embeds: [], components: [] });
     try {
+      await interaction.update({ content: lines.progressStart, embeds: [], components: [] });
       const result = await runWizard(interaction.guild, choices, { onProgress: (text) => interaction.editReply({ content: text }).catch(() => {}) });
       session.result = result;
       touchSession(session);

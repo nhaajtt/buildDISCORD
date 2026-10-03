@@ -1,6 +1,8 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { clearRecord } from "../store.js";
-import { clearSettings } from "../settings.js";
+import { clearSettings, getSection } from "../settings.js";
+import { purgeGuildData } from "../purge.js";
+import { stopLockdown } from "../security/guard.js";
 import { removeAutomod } from "../automod/index.js";
 import { isAdmin } from "../utils/guards.js";
 import * as humor from "../humor/lines.js";
@@ -22,7 +24,7 @@ export default {
     );
     await interaction.reply({
       content:
-        "Thầu sẽ quên danh sách kênh và role đã xây (nên `/nuke` sẽ không còn biết đập gì). Kênh và role trên Discord vẫn còn. Giấy phép và số lần xây vẫn được giữ để tính gói. Chắc chưa?",
+        "Thầu sẽ quên danh sách kênh và role đã xây (nên `/nuke` sẽ không còn biết đập gì), cài đặt, điểm và cấp độ, hồ sơ cảnh cáo, giveaway, bình chọn, menu role, ticket, backup và theme riêng. Kênh và role trên Discord vẫn còn. Giấy phép, số lần dùng và đơn thanh toán vẫn được giữ để tính gói. Chắc chưa?",
       components: [row],
       flags: MessageFlags.Ephemeral,
     });
@@ -38,8 +40,11 @@ export default {
     }
     // The AutoMod rules the bot made are removed first, because clearing the settings drops the ids that say which rules are its own
     const automod = await removeAutomod(interaction.guild);
+    // an active lockdown is lifted first, because the record of what it changed is about to be erased
+    if (getSection(interaction.guildId, "security").lockdown.active) await stopLockdown(interaction.guild, { reason: "Xoá dữ liệu" }).catch(() => {});
     clearSettings(interaction.guildId);
     clearRecord(interaction.guildId);
+    purgeGuildData(interaction.guildId);
     const leftover = automod.left > 0 ? ` Còn ${automod.left} luật AutoMod chưa xoá được, vào cài đặt server để xoá tay.` : "";
     await interaction.update({ content: `Đã quên sạch. Thầu giờ không biết gì về server này nữa.${leftover}`, components: [] });
   },

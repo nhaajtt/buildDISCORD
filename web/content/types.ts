@@ -10,6 +10,7 @@ export type Dict = {
     commands: string;
     faq: string;
     devlog: string;
+    status: string;
     cta: string;
     switchTo: string;
     switchHref: string;
@@ -93,6 +94,7 @@ export type Dict = {
     label: string;
     sub: string;
     plans: PlanCopy[];
+    options: { t: string; d: string }[];
     howTitle: string;
     how: string[];
     contact: string;
@@ -101,6 +103,43 @@ export type Dict = {
   commands: { title: string; label: string; hint: string; copied: string; items: { name: string; args: string; d: string }[] };
   faq: { title: string; label: string; items: { q: string; a: string }[] };
   cta: { title: string; label: string; steps: string[]; button: string; setupId: string };
+  themePage: {
+    open: string;
+    back: string;
+    label: string;
+    ownRoles: string;
+    sharedRoles: string;
+    tree: string;
+    treeLede: string;
+    voice: string;
+    staffOnly: string;
+    counts: string;
+    invite: string;
+    inviteHint: string;
+    cmdLabel: string;
+    prev: string;
+    next: string;
+    mix: string;
+    seeAll: string;
+    metaTitle: string;
+  };
+  status: {
+    title: string;
+    label: string;
+    sub: string;
+    checking: string;
+    ok: string;
+    slow: string;
+    unknown: string;
+    unknownHint: string;
+    fields: { version: string; uptime: string; servers: string; heartbeat: string };
+    servers: string;
+    ago: string;
+    uptime: { d: string; h: string; m: string; s: string };
+    retry: string;
+    note: string;
+    back: string;
+  };
   footer: {
     word: string;
     line: string;

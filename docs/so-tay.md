@@ -19,13 +19,13 @@ Các địa chỉ cần dùng, gom một chỗ:
 ## Mục lục
 
 1. Những khái niệm Discord cần biết
-2. Bắt đầu từ con số không: có server, mời bot
+2. Bắt đầu từ con số không: có server, mời bot, và `/batdau`
 3. Cách gõ một lệnh
 4. Dựng cả server bằng `/build`
 5. Thiết kế bằng AI: `/thietke`
 6. Theme riêng, sao lưu và khôi phục
-7. Giữ server sôi động: điểm danh, mini-game, sự kiện
-8. Chăm sóc server: chào người mới, khám sức khoẻ, AutoMod, ticket
+7. Giữ server sôi động: điểm danh, mini-game, sự kiện, hạng hoạt động, menu role, giveaway, bình chọn
+8. Chăm sóc và bảo vệ server: chào người mới, khám sức khoẻ, AutoMod, ticket, chống raid, khoá khẩn cấp, nhật ký, lệnh xử lý, bản tin tuần, trợ lý viết giúp, `/trogiup`
 9. Bảng điều khiển trên web
 10. Gói, giá, dùng thử và thanh toán
 11. Dọn dẹp và xoá dữ liệu
@@ -34,6 +34,7 @@ Các địa chỉ cần dùng, gom một chỗ:
 14. Bảng tất cả các lệnh
 15. Phụ lục A: cài đặt Stripe từng bước (thẻ, tính bằng đô)
 16. Phụ lục B: cài đặt payOS (QR ngân hàng Việt Nam)
+17. Phụ lục C: dựng server hỗ trợ cho chính bot, bằng chính bot
 
 ---
 
@@ -54,7 +55,7 @@ Nếu bạn đã dùng Discord, đọc lướt phần này. Nếu chưa, đọc 
 - **Chế độ nhà phát triển (Developer Mode)**: công tắc để Discord cho phép sao chép ID. Cách bật: Cài đặt người dùng (hình bánh răng cạnh tên bạn, góc dưới trái), mục **Nâng cao**, bật **Chế độ nhà phát triển**. Sau đó bấm chuột phải vào tên server, tên kênh hay tên người và chọn **Sao chép ID**.
 - **Thông báo chỉ mình bạn thấy (ephemeral)**: nhiều câu trả lời của bot hiện kèm dòng "Chỉ mình bạn nhìn thấy tin nhắn này". Những tin đó không ai khác thấy và sẽ biến mất khi bạn tải lại Discord. Bình thường, không phải lỗi.
 
-## 2. Bắt đầu từ con số không: có server, mời bot
+## 2. Bắt đầu từ con số không: có server, mời bot, và `/batdau`
 
 ### 2.1. Tạo server mới (nếu chưa có)
 
@@ -73,16 +74,41 @@ Bạn phải là **chủ server hoặc có quyền Administrator** mới mời �
 3. Bấm **Tiếp tục**. Discord cho biết bot xin quyền gì (quyền Administrator). Bấm **Cấp quyền** (Authorize).
 4. Làm bài kiểm tra "Tôi không phải người máy" nếu Discord hỏi.
 5. Quay lại Discord. Bạn thấy thông báo bot **Thầu Xây Dựng** vừa vào server, và tên nó nằm trong danh sách thành viên bên phải.
+6. Bot tự đăng một tin chào có nút **Bắt đầu**. Đó là cửa vào cách dựng nhanh ở mục 2.3.
 
 Vì sao xin quyền Administrator: bot phải tạo kênh, tạo role, tạo sự kiện, quản lý AutoMod, và đăng bài vào kênh khoá chỉ đọc. Xin ít quyền hơn thì dễ gặp lỗi khó hiểu giữa chừng. Bot không đọc nội dung tin nhắn của ai.
 
-### 2.3. Kiểm tra bot đã sẵn sàng
+### 2.3. Cách nhanh nhất: để thầu dựng giúp bằng `/batdau`
+
+Đây là **bước đầu tiên nên làm** sau khi mời bot. Không cần nhớ lệnh nào khác, không cần đọc hết sổ tay.
+
+Ngay khi bot vào server, nó tự đăng một tin chào có nút **Bắt đầu** (ở kênh hệ thống, hoặc kênh chữ đầu tiên nó gửi được). Bấm nút đó, hoặc gõ `/batdau`. Chỉ admin bấm được.
+
+Bot hiện một khung có **ba ô chọn** và hai nút:
+
+1. **Server của bạn thuộc kiểu nào?** Chọn một theme (Game Thủ, Học Tập, Anime...). Gói Pro chọn được tối đa bốn theme để trộn. Nếu chưa biết chọn gì, chọn **Gợi ý cho tôi**, gõ vài chữ tả server (ví dụ "nhóm bạn chơi game cuối tuần"), bot tự chọn giúp. Bot chọn theo từ khoá, không dùng AI, nên luôn chạy được.
+2. **Giọng điệu của luật và lời chào**: nhẹ nhàng, troll hoặc nhảm. Chọn khác troll cần gói Pro.
+3. **Bật thêm gì cho tiện?** Chọn nhiều ô cùng lúc: chào người mới, AutoMod nhẹ, khám sức khoẻ hằng tuần, bảo vệ cơ bản (báo động raid, nhật ký phạt), bản tin tuần.
+
+Chưa có gì bị đụng tới cho đến khi bạn bấm **Dựng luôn**. Muốn đổi ý thì chọn lại, hoặc bấm **Thôi**.
+
+Khi bấm **Dựng luôn**, bot làm lần lượt: khám sức khoẻ server lấy điểm trước, dựng server, bật các tính năng bạn chọn, rồi khám lại lấy điểm sau. Cuối cùng bot hiện một **thẻ kết quả**: điểm trước, điểm sau, những gì đã làm, và ba việc nên thử tiếp. Bấm **Đăng thẻ khoe lên kênh** nếu muốn khoe với cả server.
+
+Điều cần biết:
+- Chạy lại `/batdau` lần nữa **không dựng trùng** và không tốn thêm một lượt xây của gói Miễn phí.
+- Kênh bạn đã chọn làm kênh nhật ký thì bot giữ nguyên. Mức AutoMod bạn đang chạy cao hơn mức nhẹ thì bot không hạ xuống.
+- Thiếu quyền cho một tính năng nào đó (ví dụ AutoMod), bot ghi rõ ở thẻ kết quả, những phần còn lại vẫn làm xong.
+- Bản chọn giữ 15 phút. Quá giờ thì gõ `/batdau` lại.
+
+Muốn tự quyết từng chi tiết (xem bản vẽ, sửa tên danh mục, thêm kênh) thì dùng `/build` ở phần 4. Quên lệnh nào thì gõ `/trogiup` (xem mục 8.12).
+
+### 2.4. Kiểm tra bot đã sẵn sàng
 
 1. Vào bất kỳ kênh chữ nào, gõ `/goi` rồi bấm Enter.
 2. Nếu bot trả lời bảng gói dịch vụ, bot đã hoạt động. Dòng đầu cho biết server đang ở gói **Miễn phí**.
 3. Nếu gõ `/` không thấy lệnh nào của bot: đợi vài phút, vì lệnh mới có thể mất đến một giờ để hiện lần đầu. Thử thoát Discord và vào lại (Ctrl+R trên máy tính). Còn không thì xem phần 13.
 
-### 2.4. Một việc quan trọng: vị trí role của bot
+### 2.5. Một việc quan trọng: vị trí role của bot
 
 Khi mời bot, Discord tự tạo một role cho nó tên **Thầu Xây Dựng**. Bot chỉ quản lý được những role **nằm thấp hơn** role của nó.
 
@@ -105,7 +131,7 @@ Ai dùng được lệnh nào: ghi ở phần 14. Quy tắc nhanh: **lệnh qu�
 
 ## 4. Dựng cả server bằng `/build`
 
-Đây là lệnh chính của bot: nó dựng role, danh mục, kênh chữ, kênh thoại, luật, lời chào và bảng chọn role cho cả server trong một lần.
+Đây là lệnh dựng đầy đủ nhất của bot: nó dựng role, danh mục, kênh chữ, kênh thoại, luật, lời chào và bảng chọn role cho cả server trong một lần, và cho bạn xem bản vẽ để sửa trước khi xây. Muốn nhanh và đơn giản hơn thì dùng `/batdau` (mục 2.3), nó gọi cùng bộ máy xây này.
 
 ### 4.1. Chọn theme
 
@@ -153,7 +179,7 @@ Xong bạn sẽ thấy: các danh mục và kênh mới, role mới, tin luật 
 
 ### 4.5. Chạy hai lần có bị trùng không?
 
-Không. Bot chỉ thêm cái còn thiếu, và không đăng lại luật hay lời chào đã có. Gói miễn phí chỉ được xây **một lần** cho mỗi server.
+Không. Bot chỉ thêm cái còn thiếu, và không đăng lại luật hay lời chào đã có. Gói miễn phí được xây **hai lần** cho mỗi server (lần chạy lại một cấu hình đã xây rồi không tốn lượt).
 
 ### 4.6. Về nhạc và đọc chữ thành giọng nói (TTS)
 
@@ -241,9 +267,66 @@ Bot tự tạo **Sự kiện Discord** hằng tuần và báo cả server, nhắ
 
 Bot tạo sự kiện thật khi còn dưới 24 giờ là đến giờ, và không tạo trùng. Số lịch tối đa: Pro 3, Plus 10.
 
-## 8. Chăm sóc server
+### 7.4. Hạng hoạt động: `/hang` (Pro)
 
-Bốn công cụ này đều chạy **không cần đọc nội dung tin nhắn của ai**. Cài bằng lệnh hoặc bằng bảng điều khiển trên web (phần 9).
+Ngoài điểm danh, bot còn tính **điểm hoạt động (XP)** cho người hay chat và hay ngồi voice. Điểm này lên **cấp**, và cấp cao thì nhận role cấp độ.
+
+Bot chỉ biết **ai nhắn ở kênh nào**, không đọc nội dung tin nhắn. Nên nhắn "a" hay nhắn cả đoạn văn đều được điểm như nhau.
+
+- `/hang xem [nguoi]`: xem cấp, điểm và thứ hạng của bạn (hoặc của người bạn chọn). Ai cũng dùng được.
+- `/hang caidat`: admin bật, tắt và chỉnh số. Tất cả ô đều không bắt buộc:
+  - **bat**: bật hoặc tắt điểm hoạt động. Mặc định **tắt**, phải bật thì mới tính điểm.
+  - **xptin**: điểm cho mỗi tin nhắn (1 đến 50, mặc định 5).
+  - **cho**: số giây chờ giữa hai lần được điểm (10 đến 600, mặc định 60). Nhắn liên tục không được điểm thêm.
+  - **toida**: điểm tối đa mỗi người mỗi ngày (50 đến 5000, mặc định 500).
+  - **giong**: có tính điểm cho thời gian ngồi voice hay không (mặc định có).
+  - **xpgiong**: điểm mỗi phút ngồi voice (0 đến 20, mặc định 2).
+  - **kenh**: kênh báo khi ai đó lên cấp.
+
+Về voice: bot chỉ tính phút khi bạn **không tắt tai nghe (deafen)**, không ở kênh AFK, và trong phòng có **ít nhất một người khác** đang nghe. Ngồi một mình hay treo máy không được điểm.
+
+Bảng xếp hạng điểm hoạt động xem bằng `/bangxephang loai:Hoạt động chat và voice`. Bot lưu cho mỗi thành viên: điểm, số tin nhắn (chỉ là số đếm), số phút voice. Không lưu chữ nào. Mỗi server mở tối đa 10 bình chọn cùng lúc.
+
+### 7.5. Menu nhận role bằng nút: `/vaitro` (admin)
+
+Cho thành viên **tự bấm nút để nhận hoặc bỏ role** (ví dụ role game, role thông báo). Mỗi server tạo tối đa 3 menu ở gói Miễn phí, 10 ở Pro, 25 ở Plus.
+
+1. Gõ `/vaitro tao tieude:<tiêu đề> chedo:<một hay nhiều> role1:<role>` và thêm `role2`, `role3`... (tối đa 10 role mỗi menu). Có thể đặt emoji cho từng role bằng `emoji1`, `emoji2`...
+   - **Chọn một**: bấm role mới thì role cũ trong cùng menu tự rút.
+   - **Chọn nhiều**: bấm role nào thì bật hoặc tắt role đó.
+2. Bot đăng menu ngay ở kênh bạn đang đứng. Từ 6 role trở lên, menu thành một ô chọn thay vì nút.
+3. `/vaitro danhsach`: xem các menu đang có. `/vaitro dang menu:<số> [kenh]`: đăng lại hoặc làm mới bảng của một menu (và đổi sang kênh khác nếu muốn). `/vaitro xoa menu:<số>`: xoá một menu.
+
+Bot **chỉ cho phép role an toàn**: không phải role của bot khác, nằm thấp hơn role của bot, và không chứa quyền nguy hiểm như Administrator. Mỗi lần có người bấm, bot kiểm tra lại, nên role bị sửa thành nguy hiểm sau đó sẽ không được phát nữa.
+
+### 7.6. Giveaway: `/quatang` (Pro)
+
+Cần quyền **Quản lý server** (Manage Server). Người tham gia chỉ bấm một nút.
+
+- `/quatang tao giai:<phần thưởng> thoigian:<bao lâu> [soluong] [yeucau]`: mở giveaway ở kênh hiện tại.
+  - **thoigian**: chọn trong danh sách có sẵn.
+  - **soluong**: số người trúng (1 đến 10, mặc định 1).
+  - **yeucau**: chỉ ai có role này mới được tham gia.
+- Thành viên bấm **Tham gia**. Bấm lần nữa thì rút lui. Mỗi người một suất.
+- Hết giờ, bot **tự bốc thăm** công bằng, nhắc tên người trúng và chỉnh lại tin giveaway. Bot đang tắt đúng lúc hết giờ thì khi bật lên nó bốc bù.
+- `/quatang huy so:<số>`: huỷ một giveaway đang chạy.
+- `/quatang chonlai so:<số> [soluong]`: chọn thêm người cho giveaway đã kết thúc (không bao giờ chọn lại người đã trúng).
+- `/quatang danhsach`: xem các giveaway gần đây.
+
+Mỗi server chạy cùng lúc tối đa 10 giveaway.
+
+### 7.7. Bình chọn ẩn danh: `/binhchon`
+
+Cần quyền **Quản lý tin nhắn** (Manage Messages). Dùng được ở mọi gói.
+
+1. Gõ `/binhchon cauhoi:<câu hỏi> lua1:<lựa chọn> lua2:<lựa chọn>`, có thể thêm tới `lua5`. Tuỳ chọn **thoigian**: tự đóng sau bao lâu. Bỏ trống thì đóng bằng nút.
+2. Thành viên bấm nút để bầu. **Mỗi người một phiếu**, bấm lựa chọn khác thì đổi phiếu. Tin nhắn cập nhật ngay số phiếu và thanh phần trăm cho mọi người xem.
+3. Bình chọn **ẩn danh**: tin nhắn chỉ hiện số phiếu, không hiện ai bầu gì.
+4. Người tạo (và staff) bấm nút **Đóng** để chốt kết quả. Kết quả đăng đúng một lần.
+
+## 8. Chăm sóc và bảo vệ server
+
+Các công cụ dưới đây đều chạy **không cần đọc nội dung tin nhắn của ai**. Cài bằng lệnh hoặc bằng bảng điều khiển trên web (phần 9). Mục 8.1 đến 8.4 là bốn công cụ cơ bản, mục 8.5 trở đi là phần bảo vệ và quản trị.
 
 ### 8.1. Chào người mới: `/chaomung`
 
@@ -333,9 +416,139 @@ Các lệnh còn lại: `/ticket danhsach` xem các ticket đang mở. `/ticket 
 
 **Quyền riêng tư:** bot không lưu nội dung ticket, không lưu bản ghi cuộc trò chuyện. Chỉ ghi ai mở, ai đóng và thời điểm.
 
+### 8.5. Chống raid và khoá khẩn cấp: `/khoakhan` (admin)
+
+**Raid** là khi một đám đông (thường là tài khoản giả) ùa vào server cùng lúc để phá, spam link hoặc quảng cáo. Chống raid có ở **mọi gói**.
+
+Cách bot biết có người vào: giống như phần chào người mới (8.1), bot đọc **thông báo "X đã vào server"** mà Discord tự đăng ở kênh hệ thống. Vì vậy kênh hệ thống phải bật thông báo chào mừng. Bot không cần quyền đọc danh sách thành viên.
+
+**Bật và chỉnh:** `/khoakhan caidat` với các ô (đều không bắt buộc):
+- **raid**: `True` để bật chống raid.
+- **solan**: bao nhiêu người vào thì báo động (3 đến 50, mặc định 8).
+- **giay**: trong bao nhiêu giây (10 đến 300, mặc định 30). Ví dụ 8 người trong 30 giây là báo động.
+- **hanhdong**: làm gì khi có raid:
+  - **Chỉ báo động**: bot chỉ nhắn cảnh báo, không đụng gì vào cài đặt server.
+  - **Nâng mức xác minh** (mặc định): bot nâng mức xác minh của server lên một bậc, người mới khó vào hơn.
+  - **Khoá kênh chat**: bot cấm @everyone gửi tin ở các kênh chat.
+- **phut**: tự mở khoá sau bao nhiêu phút (1 đến 120, mặc định 10).
+- **kenh**: kênh nhận báo động. Bỏ trống thì dùng kênh hệ thống. Nên chọn một kênh riêng cho admin.
+
+**Khi báo động xuất hiện, làm gì?**
+
+1. Bình tĩnh. Bot đã làm phần khẩn cấp theo cài đặt của bạn. Tin báo ghi rõ có bao nhiêu người vào trong bao nhiêu giây, và bot đã làm gì.
+2. Nếu bot khoá hoặc nâng xác minh, tin báo có nút **Mở khoá**. **Chưa bấm vội.** Xem danh sách thành viên mới: người nào lạ, tên giống nhau, tài khoản mới tạo thì xử lý (đuổi hoặc cấm bằng `/kick`, `/ban`, xem mục 8.8).
+3. Khi đã yên, bấm **Mở khoá** hoặc gõ `/khoakhan tat`. Không bấm thì bot **tự mở sau số phút bạn đã cài**.
+4. Mở khoá trả mọi thứ **về đúng như trước**: kênh nào ban đầu cho phép thì cho phép lại, kênh nào không có ý kiến thì trả về không có ý kiến, mức xác minh hạ về mức cũ. Kênh nào bị ai chỉnh tay trong lúc khoá, hoặc đã bị xoá, bot **không đụng vào** và nói rõ ở tin trả lời.
+5. Nếu bot báo thiếu quyền, cấp quyền (khoá kênh cần **Quản lý kênh** và **Quản lý role**, nâng xác minh cần **Quản lý server**), mời bot với quyền Administrator thì đủ hết.
+
+**Tự khoá bằng tay:** `/khoakhan bat`. Dùng khi bạn tự thấy có chuyện (ví dụ đang bị spam). Bot khoá các kênh chat, và tự mở sau số phút đã cài. Gõ `/khoakhan tat` để mở sớm. Khoá và mở nhiều kênh mất một lúc, bot sẽ báo "đang làm" rồi trả kết quả.
+
+**Xem tình trạng:** `/khoakhan trangthai` cho biết cổng đang khoá hay mở, các cài đặt chống raid và chống xoá hàng loạt, và bot còn thiếu quyền nào.
+
+Nếu bot hay bị báo động nhầm vì server hay có sự kiện đông người, tăng **solan** hoặc đổi **hanhdong** thành "Chỉ báo động".
+
+### 8.6. Chống xoá hàng loạt: bảo vệ khỏi "nuke" (Pro)
+
+Đôi khi một người có quyền (hoặc một tài khoản admin bị hack) xoá hàng loạt kênh hoặc role để phá server. Tính năng này canh việc đó.
+
+Bật bằng `/khoakhan caidat chongxoa:True`, chỉnh bằng:
+- **xoasolan**: xoá bao nhiêu kênh hoặc role thì báo động (2 đến 10, mặc định 3).
+- **xoagiay**: trong bao nhiêu giây (10 đến 600, mặc định 60).
+
+Khi một người xoá đủ số lần trong khoảng thời gian đó, bot:
+1. Nhắn báo động, nói **ai** xoá và xoá bao nhiêu thứ.
+2. **Gỡ các role nguy hiểm** của người đó (Administrator, Quản lý server, Quản lý role, Quản lý kênh, Quản lý webhook, Cấm và Đuổi thành viên) để họ không xoá tiếp. Bot nhắn rõ đã gỡ role nào, và admin cấp lại bằng tay nếu hoá ra nhầm.
+
+Bot **không bao giờ** đụng vào: chủ server, chính bot, role của bot khác, và những ai đứng ngang hoặc trên role của bot (bot không có quyền với họ). Với những trường hợp này bot chỉ báo động và ghi rõ lý do không gỡ được.
+
+Điều kiện: bot cần quyền **Xem nhật ký kiểm tra (View Audit Log)** để biết ai xoá, và **Quản lý role** để gỡ role. Thiếu quyền xem nhật ký thì bot không biết ai xoá nên tính năng "ngủ". Chủ server tự xoá kênh thì bot không phản ứng.
+
+Gỡ hết khi thấy lỗi: `/khoakhan caidat chongxoa:False`.
+
+### 8.7. Nhật ký quản trị: `/khoakhan nhatky` (admin)
+
+Nhật ký là một kênh riêng để admin xem lại **ai bị cấm, ai được gỡ cấm, role nào bị đổi quyền, AutoMod đã chặn ai**. Có ở mọi gói.
+
+`/khoakhan nhatky` với các ô (đều không bắt buộc):
+- **bat**: bật hoặc tắt nhật ký.
+- **kenh**: kênh ghi nhật ký (chọn kênh chỉ admin xem được).
+- **cam**: ghi cấm và gỡ cấm.
+- **role**: ghi khi quyền của một role bị đổi (ghi rõ quyền nào thêm, quyền nào bớt).
+- **automod**: ghi những lần AutoMod chặn tin. Bot ghi **luật nào, ai, ở kênh nào**, **không ghi nội dung tin bị chặn**.
+
+Các lần cảnh cáo, timeout, đuổi, cấm làm qua lệnh của bot (mục 8.8) cũng được ghi vào đây kèm số hồ sơ.
+
+Lưu ý về timeout: Discord không báo cho bot khi **người khác** timeout ai đó (trừ khi bot có quyền đặc biệt). Vì vậy nhật ký chỉ ghi các timeout làm bằng lệnh `/timeout` của bot.
+
+### 8.8. Lệnh xử lý thành viên: `/canhcao`, `/timeout`, `/kick`, `/ban`, `/hoso`
+
+Bốn lệnh xử lý và một lệnh xem hồ sơ. Mỗi lệnh chỉ hiện cho người có **đúng quyền Discord** tương ứng, và có ở mọi gói.
+
+| Lệnh | Quyền cần có | Làm gì |
+| --- | --- | --- |
+| `/canhcao nguoi lydo` | Timeout thành viên (Moderate Members) | Cảnh cáo và ghi hồ sơ |
+| `/timeout nguoi thoigian lydo` | Timeout thành viên | Bắt ngồi im: 60 giây, 5 phút, 1 giờ, 1 ngày hoặc 1 tuần |
+| `/kick nguoi lydo` | Đuổi thành viên (Kick Members) | Đuổi ra khỏi server, vẫn vào lại được nếu có lời mời |
+| `/ban nguoi lydo [xoatin]` | Cấm thành viên (Ban Members) | Cấm vào server. **xoatin** xoá tin nhắn của họ trong 0 đến 7 ngày gần nhất |
+| `/hoso nguoi` | Timeout thành viên | Xem 10 hồ sơ gần nhất của một người |
+
+**lydo** là bắt buộc, tối đa 300 ký tự. Mỗi lần xử lý, bot:
+1. Kiểm tra **trước khi làm bất cứ gì**. Bot từ chối nếu: bạn tự xử mình, xử chủ server, xử bot, người đó **ngang hoặc cao hơn bạn** trong danh sách role, hoặc ngang hoặc cao hơn role của bot (kéo role bot lên cao, phần 2.5), hoặc định timeout một Administrator (Discord không cho).
+2. Nhắn riêng cho người bị xử một tin ghi lý do (kick và ban nhắn **trước**, vì sau đó họ không còn chung server). Nếu họ khoá tin nhắn riêng thì bỏ qua, không sao.
+3. Thực hiện và lưu một **hồ sơ có số** (ví dụ "hồ sơ #12"), rồi ghi vào nhật ký quản trị nếu đã bật.
+
+`/hoso` giúp admin xem một người đã bị cảnh cáo hay xử mấy lần, bởi ai, vì sao, trước khi quyết định xử nặng hơn. Hồ sơ lưu theo **ID thành viên** và chỉ staff xem được. Lệnh `/xoadulieu` xoá luôn hồ sơ này cùng điểm hoạt động, giveaway, bình chọn và menu role của server.
+
+`/kick`, `/timeout`, `/canhcao` chỉ dùng được với người **đang ở trong server**. `/ban` cấm được cả người đã rời (chọn từ danh sách).
+
+### 8.9. Bản tin tuần và khám sức khoẻ hằng tuần
+
+Bản tin tuần là **một tin tóm tắt mỗi tuần** gửi vào kênh mod, giúp bạn nắm server mà không phải đi xem từng chỗ. Có ở mọi gói.
+
+Tin gồm: số người mới vào, số ticket đã mở và đã đóng, số tin bị AutoMod chặn, điểm sức khoẻ server so với tuần trước, và tối đa ba gợi ý việc nên làm (kèm nút **Sửa** cho những lỗi bot sửa được an toàn, bấm vào vẫn phải xác nhận). Bot **chỉ đếm số, không đọc tin nhắn của ai**.
+
+Cách bật:
+1. Khi chạy `/batdau`, chọn ô **Bản tin tuần** và **Khám sức khoẻ hằng tuần**, hoặc
+2. Vào bảng điều khiển, tab **Báo cáo tuần**: bật, chọn kênh, chọn thứ và giờ gửi, và bấm **Gửi thử** để xem bản mẫu (bản gửi thử không tính vào lịch).
+
+Khám sức khoẻ hằng tuần chạy mỗi tuần một lần. Nếu điểm **tụt 10 điểm trở lên** so với lần trước, bot nhắn một **cảnh báo riêng** nêu mấy chỗ đáng lo nhất và nút sửa an toàn (nếu có). Lần khám đầu tiên chưa có gì để so nên không báo.
+
+Số người mới vào đếm theo thông báo chào của Discord, nếu bạn tắt thông báo đó thì số có thể thấp hơn thật.
+
+### 8.10. Nhắc hết hạn gói
+
+Gói Pro hoặc Plus sắp hết thì bot nhắn vào kênh của bản tin tuần (hoặc kênh báo động, hoặc kênh hệ thống):
+- **Trước 3 ngày**: "gói sắp hết hạn", kèm ngày giờ hết.
+- **Khi đã hết hạn**: "gói đã hết, server về gói Miễn phí". Cài đặt vẫn còn, chỉ tính năng trả phí tạm nghỉ.
+
+Mỗi lần hết hạn chỉ nhắc **một lần mỗi loại**. Gia hạn xong thì lần hết hạn mới được nhắc riêng. Gia hạn bằng `/mua` hoặc `/goi`, số ngày mới được cộng nối vào hạn cũ.
+
+### 8.11. Trợ lý viết giúp: `/vietgiup` (Pro)
+
+Không biết viết luật hay lời chào thế nào? Mô tả bằng vài chữ, AI viết **bản nháp** cho bạn. Cần quyền Administrator.
+
+| Lệnh | Việc làm |
+| --- | --- |
+| `/vietgiup luat mota:<...>` | Viết bộ luật ngắn 4 đến 7 dòng |
+| `/vietgiup loichao mota:<...>` | Viết lời chào người mới (có chỗ gọi tên `{user}`) |
+| `/vietgiup thongbao mota:<...>` | Viết bài thông báo có tiêu đề |
+| `/vietgiup giaithich` | Giải thích **kết quả khám sức khoẻ gần nhất** bằng lời dễ hiểu |
+
+`mota` tối đa 300 ký tự, ví dụ: "server học nhóm cho lớp 12, cần luật vui nhưng nghiêm chuyện gian lận". Bot trả bản nháp chỉ mình bạn thấy. **Bot không tự đăng gì.** Bạn đọc, rồi chọn kênh và bấm đăng, hoặc bấm sao chép để tự dán chỗ khác.
+
+Cần biết:
+- Mỗi bản nháp dùng **một lượt AI**, trừ chung với lượt của `/thietke` (Pro 20 lượt mỗi tháng, Plus 100). AI lỗi thì không trừ lượt.
+- Mô tả của bạn được gửi tới Google, đừng viết thông tin riêng tư.
+- Bản nháp được lọc: bỏ lời tag người, bỏ link và từ cấm. Vẫn nên đọc lại trước khi đăng.
+- `/vietgiup giaithich` cần đã có ít nhất một lần khám (`/khamsuckhoe kiemtra`).
+
+### 8.12. Xem nhanh mọi lệnh: `/trogiup`
+
+Gõ `/trogiup` ở bất kỳ đâu trong server (ai cũng dùng được). Bot hiện danh sách lệnh **chia theo nhóm**: dựng server, bảo vệ, giữ server sôi động, gói và thanh toán, khác. Lệnh nào thuộc gói cao hơn gói hiện tại thì ghi 🔒 kèm tên gói cần có. Đầu bảng có ba dòng "bắt đầu nhanh" và một nút **Mở sổ tay** để quay lại cuốn sổ này.
+
 ## 9. Bảng điều khiển trên web
 
-Bảng điều khiển cho phép chỉnh chào người mới, AutoMod, ticket, khám sức khoẻ và xem gói, ngay trên trình duyệt, không cần gõ lệnh.
+Bảng điều khiển cho phép chỉnh chào người mới, AutoMod, ticket, bảo vệ, điểm hoạt động, bản tin tuần, nhật ký quản trị, khám sức khoẻ và xem gói, ngay trên trình duyệt, không cần gõ lệnh.
 
 **Địa chỉ:** https://nhaajt.tailc4c5ef.ts.net:10000
 
@@ -343,7 +556,15 @@ Cách vào:
 1. Mở địa chỉ trên.
 2. Bấm đăng nhập bằng Discord. Discord hỏi bạn có cho phép trang đọc **tên và danh sách server** của bạn không. Bấm **Cho phép**. Trang chỉ đọc hai thứ đó, rồi huỷ quyền ngay.
 3. Chọn server. Chỉ hiện những server mà **bạn là Administrator và bot đang ở trong**. Không thấy server của mình: kiểm tra bot đã được mời và bạn có quyền Administrator.
-4. Chọn tab: **Tổng quan**, **Chào mừng**, **AutoMod**, **Ticket**, **Khám sức khoẻ**, **Gói và thanh toán**.
+4. Chọn tab:
+   - **Tổng quan**: gói hiện tại, mức dùng, điểm sức khoẻ, tính năng nào đang bật, ticket đang mở.
+   - **Chào mừng**, **AutoMod**, **Ticket**: như các lệnh ở mục 8.1, 8.3, 8.4.
+   - **Bảo vệ**: bật chống raid và chống xoá hàng loạt, chỉnh số người, số giây, hành động, kênh báo động. Cho biết cổng đang khoá hay mở, có nút **Mở khoá** (mục 8.5 và 8.6).
+   - **Điểm hoạt động**: bật tắt và chỉnh XP chat và voice (mục 7.4).
+   - **Báo cáo tuần**: bật bản tin tuần và khám hằng tuần, chọn kênh, thứ, giờ, và nút **Gửi thử** (mục 8.9).
+   - **Nhật ký quản trị**: bật nhật ký, chọn kênh và loại việc cần ghi (mục 8.7).
+   - **Hoạt động**: các con số hoạt động của server theo thời gian.
+   - **Khám sức khoẻ**, **Gói và thanh toán**.
 
 Ghi chú:
 - Mỗi lần bạn thay đổi, trang kiểm tra lại với Discord xem bạn có **còn là admin** không.
@@ -359,20 +580,31 @@ Nếu trang không mở: xem phần 13.
 
 | | Miễn phí | Pro | Plus |
 | --- | --- | --- | --- |
-| Giá mỗi server | 0 | 9,99 đô mỗi 30 ngày | 19,99 đô mỗi 30 ngày |
+| Giá mỗi server | 0 | 3,99 đô mỗi 30 ngày | 7,99 đô mỗi 30 ngày |
+| Mua một năm (365 ngày) | | 39,90 đô (trả 10 tháng, tặng 2 tháng) | 79,90 đô (trả 10 tháng, tặng 2 tháng) |
 | Theme mỗi lần xây | 1 | tối đa 4 (trộn) | tối đa 4 (trộn) |
-| Số lần xây | 1 lần | không giới hạn | không giới hạn |
+| Số lần xây | 2 lần | không giới hạn | không giới hạn |
 | Chọn mức hài | không | có | có |
+| Dựng nhanh `/batdau`, khám sức khoẻ, chào người mới | có | có | có |
+| Chống raid, khoá khẩn cấp, nhật ký quản trị | có | có | có |
+| Lệnh xử lý thành viên (cảnh cáo, timeout, kick, ban, hồ sơ) | có | có | có |
+| Bình chọn `/binhchon`, bản tin tuần, nhắc hết hạn | có | có | có |
+| AutoMod | mức Nhẹ | cả ba mức, miễn trừ role | cả ba mức, miễn trừ role |
+| Menu nhận role `/vaitro` | 3 menu | 10 menu | 25 menu |
 | Thiết kế bằng AI mỗi tháng | 0 | 20 | 100 |
+| Trợ lý viết giúp `/vietgiup` | không | có | có |
+| Chống xoá hàng loạt | không | có | có |
+| Điểm hoạt động `/hang` | không | có | có |
+| Giveaway `/quatang` | không | có | có |
+| Ticket | không | có | có |
 | Sao lưu | 0 | 3 | 10 |
 | Theme riêng | 0 | 3 | 10 |
 | Sự kiện định kỳ | 0 | 3 | 10 |
-| Điểm danh, cấp, mini-game | không | có | có |
-| Chào người mới, khám sức khoẻ | có | có | có |
-| AutoMod | mức Nhẹ | cả ba mức, miễn trừ role | cả ba mức, miễn trừ role |
-| Ticket | không | có | có |
+| Điểm danh, mini-game | không | có | có |
 
-Gói tính **theo từng server**, không theo tài khoản. Hết hạn thì server tự về gói Miễn phí và những gì đã xây vẫn ở lại.
+Gói tính **theo từng server**, không theo tài khoản. Hết hạn thì server tự về gói Miễn phí và những gì đã xây vẫn ở lại. Bot nhắc trước 3 ngày và khi hết hạn (mục 8.10).
+
+Có thêm một lựa chọn **trả một lần**, không cần đăng ký: **Dựng giúp, 4,99 đô**, nhận **7 ngày Pro** (đủ để dựng và cài xong cả server rồi tính tiếp). Chọn ở lệnh `/mua`.
 
 Gõ `/goi` bất cứ lúc nào để xem gói hiện tại, hạn dùng và số lần đã xây.
 
@@ -382,11 +614,22 @@ Gõ `/dungthu` (cần quyền Administrator). Server nhận **7 ngày Pro miễn
 
 ### 10.3. Mua bằng thẻ hoặc QR (tự động): `/mua`
 
-1. Gõ `/mua goi:<pro hoặc plus> [ngay:<30, 90 hoặc 180>] [cach:<stripe hoặc payos>]`. Mặc định 30 ngày. Ô `cach` chọn cách trả: **Stripe** (thẻ quốc tế, tính bằng đô, là mặc định khi Stripe đã bật) hoặc **payOS** (QR ngân hàng Việt Nam, tính bằng đồng).
-2. Bot hiện số tiền kèm nút **Thanh toán**. Với Stripe là giá đúng như bảng giá (ví dụ $9.99). Với payOS, số đồng được quy từ giá đô theo tỷ giá bot đang dùng, làm tròn đến nghìn đồng, tối thiểu 2.000 đồng.
-3. Bấm nút. Với Stripe, trang thanh toán của Stripe mở ra, bạn nhập thẻ ở đó (bot không bao giờ thấy số thẻ). Với payOS, trang hiện mã QR, bạn quét bằng app ngân hàng và chuyển **đúng số tiền**, không sửa nội dung.
-4. Tiền về, trong khoảng một phút bot tự bật gói và nhắn vào kênh nơi bạn gõ lệnh. Không cần nhập mã.
-5. Liên kết thanh toán **sống 30 phút**. Quá giờ thì gõ `/mua` lại để lấy liên kết mới.
+1. Gõ `/mua goi:<Pro, Plus hoặc Dựng giúp> [ngay:<30, 90, 180 hoặc 365>] [cach:<stripe hoặc payos>]`. Mặc định 30 ngày. Ô `ngay` bỏ qua với **Dựng giúp** (luôn là 7 ngày Pro). Ô `cach` chọn cách trả: **Stripe** (thẻ quốc tế, tính bằng đô, là mặc định khi Stripe đã bật) hoặc **payOS** (QR ngân hàng Việt Nam, tính bằng đồng).
+2. Bảng giá theo số ngày (đô):
+
+   | Số ngày | Pro | Plus |
+   | --- | --- | --- |
+   | 30 | 3,99 | 7,99 |
+   | 90 | 11,97 | 23,97 |
+   | 180 | 23,94 | 47,94 |
+   | 365 | 39,90 | 79,90 |
+   | Dựng giúp (7 ngày Pro, một lần) | 4,99 | |
+
+   Một năm chỉ tính 10 tháng. Còn lại tính 3,99 hoặc 7,99 nhân với số tháng.
+3. Bot hiện số tiền kèm nút **Thanh toán**. Với Stripe là giá đúng như bảng giá. Với payOS, số đồng được quy từ giá đô theo tỷ giá bot đang dùng, làm tròn đến nghìn đồng, tối thiểu 2.000 đồng.
+4. Bấm nút. Với Stripe, trang thanh toán của Stripe mở ra, bạn nhập thẻ ở đó (bot không bao giờ thấy số thẻ). Với payOS, trang hiện mã QR, bạn quét bằng app ngân hàng và chuyển **đúng số tiền**, không sửa nội dung.
+5. Tiền về, trong khoảng một phút bot tự bật gói và nhắn vào kênh nơi bạn gõ lệnh. Không cần nhập mã.
+6. Liên kết thanh toán **sống 30 phút**. Quá giờ thì gõ `/mua` lại để lấy liên kết mới. Mỗi server giữ tối đa vài đơn đang chờ cùng lúc, nên đừng bấm `/mua` liên tục.
 
 Mua gia hạn thì số ngày được **cộng nối vào hạn hiện tại**.
 
@@ -411,7 +654,7 @@ Trước khi bấm, nhớ: xoá kênh thì tin nhắn trong đó **mất vĩnh v
 
 ### 11.2. Xoá dữ liệu của server: `/xoadulieu`
 
-Bot **quên** danh sách đã xây, các cài đặt chào mừng, AutoMod, ticket. **Kênh và role trên Discord vẫn còn**, kể cả luật AutoMod còn trên server (bot sẽ gỡ luật do nó tạo và nhắn nếu còn sót). Gói trả phí và số lần dùng vẫn được giữ để giới hạn gói còn đúng.
+Bot **quên** danh sách đã xây và toàn bộ cài đặt (chào mừng, AutoMod, ticket, bảo vệ, điểm hoạt động, bản tin tuần, nhật ký). **Kênh và role trên Discord vẫn còn**, kể cả luật AutoMod còn trên server (bot sẽ gỡ luật do nó tạo và nhắn nếu còn sót). Gói trả phí, số lần dùng và dấu "đã dùng thử" vẫn được giữ để giới hạn gói còn đúng. Điểm hoạt động, hồ sơ xử lý thành viên, giveaway và bình chọn **chưa bị xoá** bởi lệnh này. Muốn xoá hẳn những thứ đó, nhờ chủ bot.
 
 Khi cần: bạn muốn bot không còn lưu gì về server, hoặc đuổi bot ra khỏi server.
 
@@ -487,8 +730,10 @@ Chỉ người có ID trong `OWNER_IDS` dùng được.
 | `/admin taoma goi:<pro/plus> ngay:<số>` | Tạo một mã kích hoạt dùng một lần (để bán tay) |
 | `/admin cap server:<ID> goi:<pro/plus> ngay:<số>` | Cấp gói thẳng cho một server, không cần mã |
 | `/admin thuhoi server:<ID>` | Chấm dứt gói trả phí của một server |
-| `/admin thongke` | Số server theo từng gói |
+| `/admin thongke` | Số server theo từng gói, và **phễu 30 ngày**: bao nhiêu server được mời, chạy xong `/batdau`, dựng xong, dùng thử Pro, trả tiền (kèm phần trăm so với số server được mời) |
 | `/admin donhang` | 10 đơn thanh toán gần nhất |
+
+Phễu chỉ đếm **số server** đi qua từng bước, không lưu tên người hay nội dung nào. Dùng nó để biết khách rớt ở bước nào: nếu nhiều server được mời mà ít server chạy `/batdau` thì tin chào có nút Bắt đầu chưa đủ nổi, nếu nhiều server dựng xong mà ít server dùng thử thì cần nhắc họ `/dungthu`.
 
 Cách đơn giản nhất để tạo mã là `/admin taoma` trong Discord. Bot trả mã một lần, bạn gửi mã đó cho khách.
 
@@ -524,8 +769,8 @@ Nếu bạn đổi địa chỉ, cập nhật cả Redirects và `DASHBOARD_URL`
 | --- | --- | --- |
 | Gõ `/` không thấy lệnh của bot | Lệnh mới chưa kịp đăng ký, hoặc Discord chưa tải lại | Đợi vài phút, Ctrl+R trong Discord. Chủ bot: chạy lệnh đăng ký lệnh (phần 12.2) |
 | Bot offline (không sáng xanh) | Container dừng, hoặc token sai | Trên Pi: `docker ps`, rồi `docker logs thauxaydung --tail 50` |
-| Bot báo thiếu quyền | Role của bot quá thấp hoặc thiếu quyền | Kéo role Thầu Xây Dựng lên cao (phần 2.4), mời lại bot với quyền Administrator |
-| `/build` báo đã dùng hết lượt | Gói Miễn phí chỉ xây một lần | `/dungthu` để thử Pro, hoặc mua gói |
+| Bot báo thiếu quyền | Role của bot quá thấp hoặc thiếu quyền | Kéo role Thầu Xây Dựng lên cao (phần 2.5), mời lại bot với quyền Administrator |
+| `/build` hoặc `/batdau` báo đã dùng hết lượt | Gói Miễn phí được xây hai lần | `/dungthu` để thử Pro, hoặc mua gói (Dựng giúp 4,99 đô cho 7 ngày Pro) |
 | Lệnh báo "gói Pro trở lên" | Tính năng thuộc gói trả phí | `/dungthu`, `/mua`, hoặc `/kichhoat` |
 | Không có lời chào người mới | Kênh hệ thống chưa bật thông báo chào mừng | Cài đặt máy chủ, Tổng quan, bật thông báo ở kênh hệ thống (phần 8.1) |
 | Nút xác minh không cấp role | Role xác minh nằm cao hơn role bot, hoặc có quyền nguy hiểm | Kéo role bot lên cao hơn role đó, bỏ quyền nguy hiểm khỏi role |
@@ -533,6 +778,18 @@ Nếu bạn đổi địa chỉ, cập nhật cả Redirects và `DASHBOARD_URL`
 | Ticket không mở được | Thiếu danh mục hoặc kênh | Chạy lại `/ticket caidat`, rồi `/ticket dang` |
 | `/mua` báo "chưa bật" | Chưa điền khoá Stripe hay payOS | Chủ bot làm phụ lục A (hoặc B) |
 | Đã trả tiền mà gói chưa bật | Bot đợi tối đa vài chục giây, hoặc (payOS) chuyển sai số tiền | Đợi 2 phút. Quá lâu thì chủ bot gõ `/admin donhang` xem đơn, đối chiếu với Stripe hoặc payOS, rồi `/admin cap` cấp tay nếu tiền đã về |
+| Không thấy tin chào có nút Bắt đầu | Bot không có quyền gửi tin ở kênh hệ thống hay kênh chữ nào | Gõ `/batdau` ở bất kỳ kênh nào |
+| Chống raid không báo gì dù có người vào đông | Chưa bật `raid:True`, hoặc kênh hệ thống tắt thông báo chào mừng | `/khoakhan trangthai` để xem, bật thông báo chào mừng ở kênh hệ thống (mục 8.1) |
+| `/khoakhan bat` báo thiếu quyền | Khoá kênh cần Quản lý kênh và Quản lý role, nâng xác minh cần Quản lý server | Mời lại bot với quyền Administrator |
+| Sau khi mở khoá vẫn còn kênh bị khoá | Kênh đó bị ai chỉnh tay trong lúc khoá, hoặc bot không đủ quyền với nó | Bot đã báo tên kênh. Mở tay trong cài đặt kênh |
+| Chống xoá hàng loạt "ngủ" | Bot thiếu quyền Xem nhật ký kiểm tra | Cấp quyền này (hoặc Administrator) |
+| `/kick`, `/ban`, `/timeout` bị từ chối | Người đó ngang hoặc cao hơn bạn hoặc bot trong danh sách role, hoặc là chủ server | Kéo role bot lên cao hơn (mục 2.5). Không xử được chủ server |
+| Không ai được điểm hoạt động | `/hang caidat bat:True` chưa chạy, hoặc server ở gói Miễn phí | Bật, và cần Pro (`/dungthu` để thử) |
+| Ngồi voice mà không được điểm | Đang tắt tai nghe, ở kênh AFK, hoặc ngồi một mình | Cần ít nhất một người khác đang nghe (mục 7.4) |
+| Giveaway không tự bốc thăm | Bot đang tắt hoặc không còn trong server lúc hết giờ | Bật bot lên, nó bốc bù. Hoặc `/quatang chonlai` |
+| Nút menu role không cấp role | Role nằm cao hơn role bot, hoặc có quyền nguy hiểm | Kéo role bot lên cao hơn, bỏ quyền nguy hiểm (mục 7.5) |
+| Không nhận được bản tin tuần | Chưa bật, chưa chọn kênh, hoặc bot không gửi được vào kênh đó | Bảng điều khiển, tab Báo cáo tuần, bấm Gửi thử |
+| `/vietgiup` báo hết lượt hoặc AI chưa bật | Hết lượt AI của tháng, hoặc chưa có `GEMINI_API_KEY` | Chờ sang tháng, hoặc chủ bot thêm khoá |
 | Trang web bảng điều khiển không mở | Funnel tắt, hoặc bot chưa chạy | Chủ bot: `tailscale funnel status`, `docker logs thauxaydung --tail 20` (phải có dòng `Dashboard:`) |
 | Đăng nhập web báo "invalid redirect_uri" | Redirect trong Developer Portal chưa lưu đúng | Thêm đúng dòng ở phần 12.7 rồi bấm Lưu |
 | Đăng nhập web xong không thấy server nào | Bạn không phải Administrator, hoặc bot chưa ở trong server đó | Kiểm tra quyền, mời bot |
@@ -545,29 +802,42 @@ Cột "Ai dùng" cho biết quyền cần có. **Admin** nghĩa là cần quyề
 
 | Lệnh | Ai dùng | Gói | Việc làm |
 | --- | --- | --- | --- |
-| `/build theme [theme2..theme4] [muc-do-hai]` | Admin | Free (1 theme, 1 lần). Trộn và mức hài: Pro | Dựng cả server |
+| `/batdau` | Admin | Mọi gói | Dựng và cài đặt nhanh bằng ba ô chọn và một nút |
+| `/trogiup` | Mọi người | Mọi gói | Danh sách lệnh chia theo nhóm |
+| `/build theme [theme2..theme4] [muc-do-hai]` | Admin | Free (1 theme, 2 lần). Trộn và mức hài: Pro | Dựng cả server, có bản vẽ để sửa |
 | `/thietke mota [muc-do-hai]` | Admin | Pro | AI thiết kế server |
+| `/vietgiup luat, loichao, thongbao, giaithich` | Admin | Pro | AI viết bản nháp luật, lời chào, thông báo, giải thích kết quả khám |
 | `/theme danhsach, dung, xoa, xuat, nhap` | Admin | Pro | Theme riêng |
 | `/backup tao, danhsach, khoiphuc, xoa, xuat, nhap` | Admin | Pro | Sao lưu cấu trúc server |
 | `/sukien tao, danhsach, xoa, mau` | Admin | Pro | Sự kiện hằng tuần |
 | `/diemdanh` | Mọi người | Pro | Điểm danh hằng ngày |
-| `/bangxephang` | Mọi người | Pro | Top 10 điểm vui |
+| `/bangxephang [loai]` | Mọi người | Pro | Top 10 điểm vui hoặc điểm hoạt động |
 | `/doanso [so]` | Mọi người | Pro | Đoán số 1 đến 100 |
 | `/thachdau nguoi` | Mọi người | Pro | Kéo búa bao |
 | `/cauhoi` | Mọi người | Pro | Câu hỏi nhanh |
+| `/hang xem [nguoi]` | Mọi người | Pro | Cấp độ, điểm và hạng hoạt động |
+| `/hang caidat` | Admin | Pro | Bật tắt và chỉnh điểm hoạt động |
+| `/vaitro tao, dang, danhsach, xoa` | Admin | Free 3 menu, Pro 10, Plus 25 | Menu nhận role bằng nút |
+| `/quatang tao, huy, chonlai, danhsach` | Quản lý server | Pro | Giveaway có nút Tham gia, tự bốc thăm |
+| `/binhchon cauhoi lua1..lua5 [thoigian]` | Quản lý tin nhắn | Mọi gói | Bình chọn ẩn danh |
 | `/roast nguoi` | Mọi người | Mọi gói | Roast nhẹ |
 | `/chaomung caidat, thu, tat` | Admin | Mọi gói | Chào người mới, nút xác minh |
 | `/khamsuckhoe kiemtra, lichsu` | Admin | Mọi gói | Điểm sức khoẻ server, sửa an toàn |
 | `/automod bat, tat, trangthai, mientru` | Admin | Nhẹ: Free. Vừa, gắt, miễn trừ: Pro | AutoMod gốc của Discord |
 | `/ticket caidat, loai them, loai xoa, dang, danhsach, tat` | Admin | Pro | Ticket hỗ trợ |
+| `/khoakhan bat, tat, trangthai, caidat, nhatky` | Admin | Chống raid, nhật ký: mọi gói. Chống xoá hàng loạt: Pro | Khoá khẩn cấp, chống raid, nhật ký quản trị |
+| `/canhcao nguoi lydo` | Timeout thành viên | Mọi gói | Cảnh cáo, ghi hồ sơ |
+| `/timeout nguoi thoigian lydo` | Timeout thành viên | Mọi gói | Cho ngồi im có thời hạn |
+| `/kick nguoi lydo` | Đuổi thành viên | Mọi gói | Đuổi khỏi server |
+| `/ban nguoi lydo [xoatin]` | Cấm thành viên | Mọi gói | Cấm vào server |
+| `/hoso nguoi` | Timeout thành viên | Mọi gói | Xem 10 hồ sơ gần nhất của một người |
 | `/goi` | Mọi người | Mọi gói | Xem gói và hạn |
 | `/dungthu` | Admin | Free | Thử Pro 7 ngày, một lần |
-| `/mua goi [ngay] [cach]` | Admin | Free | Mua gói bằng thẻ (Stripe) hoặc QR (payOS) |
+| `/mua goi [ngay] [cach]` | Admin | Free | Mua Pro, Plus hoặc Dựng giúp bằng thẻ (Stripe) hoặc QR (payOS) |
 | `/kichhoat ma` | Admin | Free | Kích hoạt bằng mã |
 | `/nuke` | Admin | Mọi gói | Gỡ những gì bot đã xây |
-| `/xoadulieu` | Admin | Mọi gói | Bot quên dữ liệu về server |
-| `/admin taoma, cap, thuhoi, thongke, donhang` | Chủ bot | Không áp dụng | Công cụ của chủ bot |
-
+| `/xoadulieu` | Admin | Mọi gói | Bot quên mọi dữ liệu về server (trừ gói và đơn thanh toán) |
+| `/admin taoma, cap, thuhoi, thongke, donhang` | Chủ bot | Không áp dụng | Công cụ của chủ bot, có phễu 30 ngày |
 ---
 
 ## 15. Phụ lục A: cài đặt Stripe từng bước (thẻ, tính bằng đô)
@@ -625,14 +895,14 @@ Lưu bằng Ctrl+O, Enter, thoát Ctrl+X. Rồi chạy lại bot:
 docker compose up -d
 ```
 
-Gõ `/mua goi:pro` trên một server **không** nằm trong `UNLOCKED_GUILD_IDS` (server được mở khoá không cần mua). Thấy số tiền **$9.99** và nút **Thanh toán** là bot đã nối được Stripe.
+Gõ `/mua goi:pro` trên một server **không** nằm trong `UNLOCKED_GUILD_IDS` (server được mở khoá không cần mua). Thấy số tiền **$3.99** và nút **Thanh toán** là bot đã nối được Stripe.
 
 ### 15.6. Bước 4: thử bằng thẻ giả
 
 1. Bấm **Thanh toán**, trang Stripe mở ra.
 2. Nhập thẻ thử: số `4242 4242 4242 4242`, ngày hết hạn là bất kỳ ngày nào trong tương lai, CVC bất kỳ ba số, mã ZIP bất kỳ.
 3. Bấm trả. Đợi tối đa vài chục giây. Bot nhắn "Thanh toán thành công" và bật gói. Gõ `/goi` kiểm tra.
-4. Chủ bot gõ `/admin donhang`: đơn hiện với số đô (ví dụ `$9.99`) và trạng thái đã trả.
+4. Chủ bot gõ `/admin donhang`: đơn hiện với số đô (ví dụ `$3.99`) và trạng thái đã trả.
 5. Trong dashboard Stripe, mục **Payments** (chế độ thử), bạn thấy giao dịch.
 
 Muốn thử trường hợp thất bại: dùng thẻ `4000 0000 0000 0002` (bị từ chối). Gói không bật, và sau 30 phút đơn hết hạn.
@@ -650,11 +920,11 @@ Muốn thử trường hợp thất bại: dùng thẻ `4000 0000 0000 0002` (b�
 2. Trên Pi, sửa `.env`, thay dòng `STRIPE_SECRET_KEY=` bằng khoá thật.
 3. `docker compose up -d`.
 4. Khoá thử và khoá thật **khác nhau hoàn toàn**: đơn tạo bằng khoá thử không đọc được bằng khoá thật. Nếu còn đơn đang chờ lúc đổi khoá, chúng báo lỗi trong log rồi hết hạn sau 35 phút, không gây hại.
-5. Thử một đơn thật nhỏ của chính bạn (gói Pro 30 ngày, $9.99) trên một server không mở khoá, rồi hoàn lại tiền trong dashboard Stripe.
+5. Thử một đơn thật nhỏ của chính bạn (gói Pro 30 ngày, $3.99) trên một server không mở khoá, rồi hoàn lại tiền trong dashboard Stripe.
 
 ### 15.9. Phí, thuế, hoàn tiền, tranh chấp
 
-- **Phí:** Stripe thu phí mỗi giao dịch thẻ. Mức phí hiện tại xem ở https://stripe.com/pricing (ở Mỹ, giá chuẩn thường là một tỷ lệ phần trăm cộng một khoản cố định vài chục xu). Với gói $9,99 phí khoảng vài chục xu, nên giá thực nhận thấp hơn giá niêm yết.
+- **Phí:** Stripe thu phí mỗi giao dịch thẻ. Mức phí hiện tại xem ở https://stripe.com/pricing (ở Mỹ, giá chuẩn thường là một tỷ lệ phần trăm cộng một khoản cố định vài chục xu). Với gói $3,99 phí cố định khoảng ba chục xu cộng tỷ lệ phần trăm, tức là hơn một phần mười giá, nên giá thực nhận thấp hơn giá niêm yết rõ rệt. Gói 365 ngày (39,90 đô) và Plus ít bị ảnh hưởng hơn.
 - **Hoàn tiền:** làm thủ công trong dashboard Stripe, mục **Payments**, chọn giao dịch, bấm **Refund**. Bot không tự thu hồi gói. Nếu muốn gỡ gói, chủ bot gõ `/admin thuhoi server:<ID>`.
 - **Tranh chấp (chargeback):** khi khách khiếu nại với ngân hàng, Stripe báo qua email và dashboard. Trả lời trong hạn Stripe cho. Bot không xử lý phần này.
 - **Thuế:** thu tiền bán dịch vụ số ở California và liên bang có nghĩa vụ thuế riêng. Stripe có công cụ **Stripe Tax** để tính và thu thuế bán hàng, nhưng tôi không phải cố vấn thuế. Hãy hỏi một kế toán hoặc người am hiểu trước khi bán nhiều.
@@ -781,5 +1051,23 @@ Thử trước khi bán thật, để chắc chắn tiền về đúng và gói 
 
 - Phần nối payOS của bot được viết theo tài liệu payOS và **kiểm tra bằng giả lập**, chưa chạy với tài khoản thật. Vì vậy đơn thử ở mục 16.9 là bắt buộc.
 - Bot kiểm tra trạng thái đơn mỗi 30 giây, nên gói có thể bật chậm đến khoảng một phút sau khi tiền về.
-- Giá niêm yết bằng đô (9,99 và 19,99). Thu bằng đồng theo `USD_VND_RATE`. Khi tỷ giá lệch nhiều, sửa biến này.
+- Giá niêm yết bằng đô (Pro 3,99, Plus 7,99 mỗi 30 ngày, một năm trả 10 tháng, Dựng giúp 4,99). Thu bằng đồng theo `USD_VND_RATE`. Khi tỷ giá lệch nhiều, sửa biến này.
 - Thuế, hoá đơn và quy định kinh doanh khi bán dịch vụ là việc của bạn. Hỏi người am hiểu nếu bán nhiều.
+
+## 17. Phụ lục C: dựng server hỗ trợ cho chính bot, bằng chính bot
+
+Chủ bot cần một nơi để khách hỏi, báo lỗi và nhận hướng dẫn. Cách gọn nhất là **dùng chính Thầu Xây Dựng để dựng nó**. Làm một lần, mất khoảng mười phút, và cũng là cách thử bot trên một server thật.
+
+1. **Tạo server mới** tên "Thầu Xây Dựng Hỗ Trợ" (cách tạo ở mục 2.1). Mời bot vào bằng đường dẫn ở đầu sổ tay.
+2. **Mở khoá server** để dùng mọi tính năng không giới hạn: lấy ID server (mục 1) rồi thêm vào `UNLOCKED_GUILD_IDS` trong `.env` (mục 12.6).
+3. **Dựng nhanh**: gõ `/batdau`. Chọn theme **Cộng Đồng Tạp Hoá** (hợp nhất cho một cộng đồng hỗ trợ). Chọn giọng điệu **nhẹ nhàng** cho khách đỡ giật mình. Bật hết các ô ở "Bật thêm gì cho tiện": chào người mới, AutoMod nhẹ, khám sức khoẻ hằng tuần, bảo vệ cơ bản và bản tin tuần. Bấm **Dựng luôn**.
+4. **Chào người mới**: `/chaomung caidat` chọn kênh chào, tạo hai role `Chưa xác minh` và `Thành viên`, đặt `vaitromoi` là `Chưa xác minh`, `vaitroxacminh` là `Thành viên`, bật `xacminh:True`. Người mới bấm nút xác minh rồi mới vào được các kênh khác.
+5. **Ticket hỗ trợ**: tạo role `Hỗ trợ`, một danh mục `🎫 Ticket`, rồi `/ticket caidat`, thêm hai loại "Hỗ trợ" và "Báo lỗi" bằng `/ticket loai them`, và `/ticket dang` để đăng bảng ở kênh hỗ trợ.
+6. **Menu nhận role**: `/vaitro tao` một menu role thông báo ("Tin cập nhật bot", "Khuyến mãi") để khách tự chọn nhận gì.
+7. **Bảo vệ**: `/khoakhan caidat raid:True hanhdong:verify` và `kenh` là kênh mod, rồi `/khoakhan nhatky bat:True kenh:<kênh mod>`. Nếu muốn canh kỹ, bật `chongxoa:True`.
+8. **Bình chọn và giveaway**: dùng `/binhchon` hỏi khách muốn tính năng nào tiếp theo, và `/quatang` tặng vài ngày Pro làm quà cho người góp ý hay.
+9. **Ghim thông tin**: dùng `/vietgiup luat` và `/vietgiup thongbao` để lấy bản nháp luật và bài giới thiệu, sửa lại cho đúng giọng của bạn, đăng vào kênh luật và kênh thông báo. Ghim trong kênh hỗ trợ ba thứ: đường dẫn mời bot, đường dẫn sổ tay, và cách mua (`/goi`, `/mua`).
+10. **Mời nhân viên hỗ trợ** vào role `Hỗ trợ`, giao cho họ quyền Timeout thành viên để dùng `/canhcao`, `/timeout`, `/hoso`.
+
+Server hỗ trợ này cũng là chỗ tốt nhất để thấy bot hoạt động: bản tin tuần, báo động raid và nhật ký quản trị đều chạy ở đó trước khách.
+

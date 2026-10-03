@@ -15,7 +15,7 @@ const COUNTS = [
   ["customThemes", "Theme tự tạo"],
   ["recurringEvents", "Sự kiện định kỳ tối đa"],
 ];
-const STATUS = { PENDING: "Đang chờ", PAID: "Đã thanh toán", CANCELLED: "Đã huỷ", EXPIRED: "Hết hạn" };
+const STATUS = { PENDING: "Đang chờ", PAID: "Đã thanh toán", CANCELLED: "Đã huỷ", EXPIRED: "Hết hạn", FAILED: "Lỗi" };
 
 export function planTab({ detail }) {
   const { plan, orders, buy } = detail;

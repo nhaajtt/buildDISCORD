@@ -139,6 +139,8 @@ function fakeInteraction({ guild, sub, options = {}, member = admin }) {
       getChannel: (n) => options[n] ?? null,
     },
     reply: async (payload) => replies.push(payload),
+    deferReply: async () => {},
+    editReply: async (payload) => replies.push(payload),
   };
 }
 
@@ -274,7 +276,7 @@ test("lockdown says what permission is missing and changes nothing", async () =>
   const result = await guard.startLockdown(guild);
   assert.equal(result.ok, false);
   assert.equal(result.reason, "perms");
-  assert.deepEqual(result.missing, ["Quản lý kênh"]);
+  assert.deepEqual(result.missing, ["Quản lý kênh", "Quản lý role"]);
   assert.equal(c.edits.length, 0);
   assert.equal(getSection(guild.id, "security").lockdown.active, false);
 });
@@ -450,6 +452,8 @@ test("the unlock button is checked again for the person who presses it", async (
       member,
       message: { edit: async () => (edited = true) },
       reply: async (p) => replies.push(p),
+      deferReply: async () => {},
+      editReply: async (p) => replies.push(p),
       get edited() {
         return edited;
       },

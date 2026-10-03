@@ -77,4 +77,5 @@ export async function handleDeletion(guild, targetId, type, { botId, now = Date.
 
 export const onChannelDelete = (channel) =>
   channel.guild ? handleDeletion(channel.guild, channel.id, AuditLogEvent.ChannelDelete, { botId: channel.client?.user?.id }) : null;
-export const onRoleDelete = (role) => handleDeletion(role.guild, role.id, AuditLogEvent.RoleDelete, { botId: role.client?.user?.id });
+// An integration role vanishes with its bot, so removing a bot is not a role purge
+export const onRoleDelete = (role) => (role.managed ? null : handleDeletion(role.guild, role.id, AuditLogEvent.RoleDelete, { botId: role.client?.user?.id }));

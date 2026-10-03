@@ -88,6 +88,8 @@ const PACKAGE = (() => {
   }
 })();
 const HEARTBEAT_OK_SEC = 90;
+// The status page is meant to be read from a browser on the website, so it alone may be read cross-site: GET and OPTIONS, no credentials
+const CORS = { "Access-Control-Allow-Origin": "*" };
 
 const page = (message) =>
   `<!doctype html><html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Thầu xây dựng</title><body><p>${message.replace(/[<>&]/g, "")}</p><p><a href="/">Về trang chủ</a></p></body></html>`;
@@ -294,9 +296,13 @@ export function createDashboard(client, options = {}) {
 
   // Public, no login, read only. Anyone may read it from a status page on another site, so it carries nothing worth hiding.
   function statusRoute(req, res, ip) {
-    if (req.method !== "GET" && req.method !== "HEAD") return fail(res, 405, MESSAGES.method, { Allow: "GET, HEAD" });
+    if (req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS") return fail(res, 405, MESSAGES.method, { Allow: "GET, HEAD, OPTIONS" });
     const wait = limiter.hit(`st:${ip}`, limits.status);
-    if (wait) return fail(res, 429, MESSAGES.tooMany, { "Retry-After": String(wait) });
+    if (wait) return fail(res, 429, MESSAGES.tooMany, { "Retry-After": String(wait), ...CORS });
+    if (req.method === "OPTIONS") {
+      res.writeHead(204, { ...CORS, "Access-Control-Allow-Methods": "GET, OPTIONS", "Access-Control-Max-Age": "86400", "Cache-Control": "public, max-age=86400" });
+      return res.end();
+    }
     let age = null;
     try {
       const beat = Number(readFileSync(path.join(options.dataDir ?? config.dataDir, "heartbeat"), "utf8"));
@@ -315,7 +321,7 @@ export function createDashboard(client, options = {}) {
         guilds: Math.floor(guilds / 10) * 10,
         lastHeartbeatAgeSec: age,
       },
-      { "Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=15" },
+      { ...CORS, "Cache-Control": "public, max-age=15" },
     );
   }
 

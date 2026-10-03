@@ -43,6 +43,13 @@ export function newOrderCode(now = Date.now(), random = Math.random) {
 export const describeOrder = (orderCode) => `THAU${String(orderCode % 100000).padStart(5, "0")}`;
 
 // `amount` is in the provider's own unit: dong for payOS, cents for Stripe
+// One server may hold this many unpaid payment links at once, so the gateway polling stays small
+export const MAX_PENDING_PER_GUILD = 3;
+
+export function pendingCount(guildId, now = Date.now()) {
+  return Number(getDb().prepare("SELECT COUNT(*) AS n FROM orders WHERE guild_id = ? AND status = 'PENDING' AND created_at > ?").get(guildId, now - ORDER_TTL_MS).n);
+}
+
 export function createOrder({ orderCode, guildId, userId, channelId, plan, days, amount, provider = "payos", now = Date.now() }) {
   if (!PROVIDERS.includes(provider)) throw new Error(`Unknown payment provider: ${provider}`);
   getDb()
@@ -84,12 +91,30 @@ export function expireStaleOrders(now = Date.now()) {
 
 // Marks an order paid and gives the server its plan. The status change is the guard: only the call that flips PENDING to PAID
 // grants the license, so polling the same order twice can never grant it twice.
+// The paid mark and the license are written in one transaction, so a crash or a bad order can never leave money taken with no plan.
 export function settleOrder(orderCode, now = Date.now()) {
   const order = getOrder(orderCode);
   if (!order) return null;
-  const flipped = Number(getDb().prepare("UPDATE orders SET status = 'PAID', paid_at = ? WHERE order_code = ? AND status = 'PENDING'").run(now, orderCode).changes);
-  if (!flipped) return null;
-  const result = grant(order.guild_id, ONE_OFF[order.plan]?.grants ?? order.plan, order.days, now);
+  const db = getDb();
+  db.exec("BEGIN IMMEDIATE");
+  let result;
+  try {
+    const flipped = Number(db.prepare("UPDATE orders SET status = 'PAID', paid_at = ? WHERE order_code = ? AND status = 'PENDING'").run(now, orderCode).changes);
+    if (!flipped) {
+      db.exec("ROLLBACK");
+      return null;
+    }
+    result = grant(order.guild_id, ONE_OFF[order.plan]?.grants ?? order.plan, daysFor(order.plan, order.days), now);
+    if (!result?.ok) throw new Error(`Could not grant order ${orderCode}`);
+    db.exec("COMMIT");
+  } catch (error) {
+    try {
+      db.exec("ROLLBACK");
+    } catch {
+      // already rolled back
+    }
+    throw error;
+  }
   track(order.guild_id, "paid", now);
   return { order: { ...order, status: "PAID", paid_at: now }, expiresAt: result.expiresAt };
 }

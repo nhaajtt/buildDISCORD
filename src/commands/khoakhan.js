@@ -74,22 +74,32 @@ export default {
       if (blocked) return reply(blocked);
     }
 
+    // Locking or unlocking edits up to 150 channels one by one, far longer than Discord waits for a first answer
+    const slow = async () => {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      return (content) => interaction.editReply({ content, allowedMentions: { parse: [] } });
+    };
+
     if (sub === "bat") {
       const settings = getSection(guildId, "security");
+      const say = await slow();
       const result = await startLockdown(guild, { channels: true, verify: false, reason: "Khoá khẩn cấp bằng tay" });
-      if (result.ok) return reply(lines.lockedOn(result.locked, false, settings.lockMinutes));
-      if (result.reason === "active") return reply(lines.alreadyLocked);
-      if (result.reason === "perms") return reply(lines.missingPerms(result.missing));
-      if (result.reason === "nothing") return reply(lines.lockedNothing);
-      return reply(lines.lockFailed);
+      if (result.ok) return say(lines.lockedOn(result.locked, false, settings.lockMinutes));
+      if (result.reason === "active") return say(lines.alreadyLocked);
+      if (result.reason === "perms") return say(lines.missingPerms(result.missing));
+      if (result.reason === "nothing") return say(lines.lockedNothing);
+      return say(lines.lockFailed);
     }
 
-    if (sub === "tat") return reply(unlockText(await stopLockdown(guild, { reason: "Mở khoá bằng tay" })));
+    if (sub === "tat") {
+      const say = await slow();
+      return say(unlockText(await stopLockdown(guild, { reason: "Mở khoá bằng tay" })));
+    }
 
     if (sub === "trangthai") {
       const s = getSection(guildId, "security");
       const m = getSection(guildId, "modlog");
-      const lacking = [...new Set([...missingPerms(guild, ["ManageChannels", "ManageGuild"]), ...(s.nukeEnabled ? missingPerms(guild, ["ViewAuditLog", "ManageRoles"]) : [])])];
+      const lacking = [...new Set([...missingPerms(guild, ["ManageChannels", "ManageRoles", "ManageGuild"]), ...(s.nukeEnabled ? missingPerms(guild, ["ViewAuditLog", "ManageRoles"]) : [])])];
       const alertTo = s.alertChannelId ? `<#${s.alertChannelId}>` : lines.alertChannelNote;
       const locked = s.lockdown.active ? `🔒 đang khoá từ <t:${Math.floor(s.lockdown.since / 1000)}:R>, ${s.lockdown.channels.length} kênh` : "🔓 đang mở";
       const embed = new EmbedBuilder()
@@ -163,9 +173,11 @@ export default {
     if (!interaction.member || !isAdmin(interaction.member)) {
       return interaction.reply(ephemeral(humor.pick(humor.noPermissionLines)));
     }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const say = (content) => interaction.editReply({ content, allowedMentions: { parse: [] } });
     const result = await stopLockdown(interaction.guild, { reason: "Mở khoá từ nút báo động" });
-    if (!result.ok) return interaction.reply(ephemeral(lines.stale));
+    if (!result.ok) return say(lines.stale);
     await interaction.message?.edit?.({ components: [] })?.catch?.(() => {});
-    return interaction.reply(ephemeral(unlockText(result)));
+    return say(unlockText(result));
   },
 };

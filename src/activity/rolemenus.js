@@ -178,12 +178,13 @@ export async function handlePress(interaction, [action, menuIdText, roleIdText])
   const plan = decideToggle({ mode: menu.mode, menuRoleIds: menu.roles.map((r) => r.id), held, roleId });
 
   try {
+    // The new role goes first: if it cannot be given, the person keeps the role they had instead of ending up with none
+    for (const id of plan.add) await member.roles.add(id);
     for (const id of plan.remove) {
       // Others are only dropped when they are still ordinary roles below the bot
       const other = guild.roles.cache.get(id);
       if (id === roleId || (other && !roleProblem(other, botTop))) await member.roles.remove(id);
     }
-    for (const id of plan.add) await member.roles.add(id);
   } catch {
     return reply(lines.failed);
   }

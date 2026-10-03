@@ -2,7 +2,7 @@ import { MessageFlags, PermissionFlagsBits as P } from "discord.js";
 import { modLines as lines, actionLabels } from "../humor/modlog.js";
 import { addCase } from "./cases.js";
 import { caseEmbed } from "./embeds.js";
-import { markBotAction, postModLog } from "./index.js";
+import { clearBotAction, markBotAction, postModLog } from "./index.js";
 import { banDeleteSeconds, checkTarget, cleanReason, timeoutSeconds } from "./rules.js";
 
 const NEED = { warn: "ModerateMembers", timeout: "ModerateMembers", kick: "KickMembers", ban: "BanMembers" };
@@ -49,6 +49,10 @@ export async function runModAction(interaction, action, { now = Date.now() } = {
   });
   if (refusal) return refuse(interaction, lines.refusal[refusal]);
 
+  // Checked before the notice goes out, so a person is never told about an action Discord will refuse
+  const blocked = { kick: member?.kickable === false, ban: member?.bannable === false, timeout: member?.moderatable === false }[action];
+  if (blocked) return refuse(interaction, lines.refusal.aboveBot);
+
   const auditReason = `${reason} (bởi ${interaction.user.id})`.slice(0, 500);
   const until = seconds ? now + seconds * 1000 : null;
   const notice = {
@@ -58,6 +62,10 @@ export async function runModAction(interaction, action, { now = Date.now() } = {
     ban: () => lines.dm.ban(guild.name, reason),
   }[action]();
   const tell = () => target.send?.({ content: notice.slice(0, 1800), allowedMentions: { parse: [] } })?.catch?.(() => {});
+
+  // The notice, the action and the log can take longer than the three seconds Discord allows for a first answer
+  await interaction.deferReply({ allowedMentions: { parse: [] } });
+  const answer = (content) => interaction.editReply({ content, allowedMentions: { parse: [] } });
 
   try {
     // A kick or ban removes the shared server, so the notice goes first. A failed DM changes nothing.
@@ -70,7 +78,9 @@ export async function runModAction(interaction, action, { now = Date.now() } = {
     }
   } catch (error) {
     console.error(`Moderation ${action} failed:`, error.message);
-    return refuse(interaction, lines.failed(actionLabels[action]));
+    // The ban event will not follow, so the next real ban of this person must still be logged
+    if (action === "ban") clearBotAction(guild.id, target.id, "ban");
+    return answer(lines.failed(actionLabels[action]));
   }
   if (action === "warn" || action === "timeout") await tell();
 
@@ -78,5 +88,5 @@ export async function runModAction(interaction, action, { now = Date.now() } = {
   await postModLog(guild, caseEmbed({ id, action, user_id: target.id, mod_id: interaction.user.id, reason, until, at: now }));
 
   const done = action === "timeout" ? lines.done.timeout(id, target.id, until) : lines.done[action](id, target.id);
-  return interaction.reply({ content: done, allowedMentions: { parse: [] } });
+  return answer(done);
 }

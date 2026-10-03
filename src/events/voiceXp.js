@@ -46,6 +46,9 @@ export async function handleVoiceUpdate(oldState, newState, { tracker, now = Dat
 
 const tracker = createVoiceTracker();
 
+// Drops what is known about a server's voice rooms, so the next voice event reads the real state again
+export const forgetVoiceGuild = (guildId) => tracker.forgetGuild(guildId);
+
 export default {
   name: Events.VoiceStateUpdate,
   async execute(client, oldState, newState) {

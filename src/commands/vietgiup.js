@@ -11,6 +11,9 @@ import * as humor from "../humor/lines.js";
 const ephemeral = (content) => ({ content, flags: MessageFlags.Ephemeral });
 const TEXT_TYPES = [ChannelType.GuildText, ChannelType.GuildAnnouncement];
 const MAX_CHANNELS = 25;
+// One draft at a time per server: the quota is checked before the slow AI call and charged after it, so without this a burst
+// of requests would all pass the check and overshoot the monthly count
+const drafting = new Set();
 
 // The draft travels inside the ephemeral reply's embed, which only the bot can write, and is cleaned again when it is sent
 const draftOf = (interaction) => String(interaction.message?.embeds?.[0]?.description ?? "").slice(0, 2000);
@@ -89,8 +92,10 @@ export default {
       input.mota = interaction.options.getString("mota");
     }
 
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    if (drafting.has(interaction.guildId)) return reply("Thầu đang viết một bản nháp cho server này rồi. Đợi bản đó xong rồi xin tiếp nhé.");
+    drafting.add(interaction.guildId);
     try {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
       const text = await draft(kind, input);
       // Only a draft that was made and cleaned is charged, like /thietke
       addUsage(interaction.guildId, "ai");
@@ -98,6 +103,8 @@ export default {
     } catch (error) {
       if (!(error instanceof AiError) && !(error instanceof HelperError)) console.error("Helper failed:", error);
       return interaction.editReply({ content: failureText(error), embeds: [], components: [] });
+    } finally {
+      drafting.delete(interaction.guildId);
     }
   },
 

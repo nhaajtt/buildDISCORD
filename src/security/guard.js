@@ -50,7 +50,7 @@ export async function startLockdown(guild, { channels = true, verify = false, no
     if (settings.lockdown.active) return { ok: false, reason: "active" };
 
     const need = [];
-    if (channels) need.push("ManageChannels");
+    if (channels) need.push("ManageChannels", "ManageRoles");
     if (verify) need.push("ManageGuild");
     const missing = missingPerms(guild, need);
     if (missing.length) return { ok: false, reason: "perms", missing };

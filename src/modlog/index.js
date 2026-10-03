@@ -31,6 +31,10 @@ export function markBotAction(guildId, userId, kind, now = Date.now()) {
   if (recent.size > 500) for (const [key, at] of recent) if (now - at > TTL) recent.delete(key);
 }
 
+export function clearBotAction(guildId, userId, kind) {
+  recent.delete(`${guildId}:${userId}:${kind}`);
+}
+
 export function wasBotAction(guildId, userId, kind, now = Date.now()) {
   const at = recent.get(`${guildId}:${userId}:${kind}`);
   return at !== undefined && now - at < TTL;

@@ -55,6 +55,19 @@ SQLite through the module built into Node 22 (`src/db.js`).
 | `scores` | `guild_id`, `user_id`, `points`, `streak`, `last_checkin` (a YYYY-MM-DD day in the configured zone), `updated_at`, index on points per guild | check-in streaks and the leaderboard |
 | `recurring_events` | `id`, `guild_id`, `name`, `description`, `weekday`, `hour`, `minute`, `duration_min`, `channel_id`, `notify_role_id`, `last_event_start`, `created_at` | weekly event definitions |
 | `orders` | `order_code` (primary key), `guild_id`, `user_id`, `channel_id`, `plan`, `days`, `amount`, `status`, `checkout_url`, `created_at`, `paid_at` | payment orders |
+| `guild_settings` | `guild_id` TEXT primary key, `data` TEXT (JSON), `updated_at` | one document per server with a section per tool: welcome, automod, tickets, security, activity, digest, modlog, setup |
+| `tickets` | `id`, `guild_id`, `channel_id` (unique), `user_id`, `type`, `status`, `claimed_by`, `created_at`, `closed_at`, `close_reason`, index on `guild_id` and `status` | who opened which private channel, never messages |
+| `audit_reports` | `id`, `guild_id`, `score`, `report` (JSON), `created_at`, index on `guild_id` and `created_at` | health check results, for the trend |
+| `events_log` | `id`, `guild_id`, `kind`, `at`, indexes on `kind` and `at` and on `guild_id`, `kind` and `at` | the funnel (invite, wizard_done, build_done, feature_on, trial, paid, left) and the weekly report's join and AutoMod block counts; no person, no content |
+| `xp` | `guild_id`, `user_id`, `xp`, `msgs`, `voice_min`, `day`, `day_xp`, `last_msg_at`, primary key on the first two, index on `guild_id` and `xp` | activity points per member |
+| `giveaways` | `id`, `guild_id`, `channel_id`, `message_id`, `host_id`, `prize`, `winners`, `ends_at`, `status`, `winner_ids` (JSON), `created_at`, index on `status` and `ends_at` | giveaways, active or closed |
+| `giveaway_entries` | `giveaway_id`, `user_id`, primary key on both | one row per person who pressed Join |
+| `polls` | `id`, `guild_id`, `channel_id`, `message_id`, `question`, `options` (JSON), `ends_at`, `status`, `created_by`, `created_at`, index on `status` and `ends_at` | polls |
+| `poll_votes` | `poll_id`, `user_id`, `option_index`, primary key on the first two | one vote per person, replaced when changed |
+| `mod_cases` | `id`, `guild_id`, `user_id`, `mod_id`, `action` (warn, timeout, kick, ban), `reason`, `until`, `at`, index on `guild_id`, `user_id` and `at` | the case history behind `/hoso` |
+| `role_menus` | `id`, `guild_id`, `channel_id`, `message_id`, `title`, `mode` (single or multi), `roles` (JSON list of role id and emoji), `created_at`, index on `guild_id` | role menus |
+
+Giveaways keep an optional required role in a small side table, `giveaway_roles`, created on first use so the shared table did not change.
 
 The `record` column is a JSON document that is read and written whole and never filtered by field, so it stays a single column. Timestamps are milliseconds since the epoch. WAL mode is on so the daily `VACUUM INTO` copy can run while the bot writes.
 
@@ -121,7 +134,7 @@ A server's plan is the highest-ranked license that is Active at the moment of th
 
 ## Background jobs and payments
 
-`src/jobs.js` loads every file in `src/jobs`, each exporting `{ name, everyMs, run(client) }`. A job runs once at start and then on its own timer, never overlaps itself, and a failure is logged and alerted without stopping the other jobs. There are two: the recurring-event job (every five minutes) and the payment job (every 30 seconds).
+`src/jobs.js` loads every file in `src/jobs`, each exporting `{ name, everyMs, run(client) }`. A job runs once at start and then on its own timer, never overlaps itself, and a failure is logged and alerted without stopping the other jobs. There are eight: payments (every 30 seconds), recurring events (every five minutes), tickets, the weekly health check, the weekly report, lockdown expiry (every minute), giveaways and polls, and plan expiry reminders.
 
 ```mermaid
 sequenceDiagram
@@ -148,6 +161,62 @@ sequenceDiagram
 ```
 
 The status change is the exactly-once guard: only the poll that flips a row from pending to paid grants the license, so overlapping rounds or repeated polls cannot grant it twice.
+
+## Setup wizard and help
+
+`src/onboarding/wizard.js` is split in two halves. The first is pure: a keyword table that scores themes from a few typed words, `cleanChoices` (unknown ids dropped, mixing and humor limited by the plan), the "has this exact setup already been built" test, and the share card. The second, `runWizard`, takes a guild and the cleaned choices and does the work in a fixed order: health check, wire the log channels (only filling channel ids that are empty or dead), build if this theme set is not already built (charged only when something new was created), switch on the chosen extras, check again, return the two scores, what was done and what failed. A failure in one extra is reported and does not stop the others; a failing build is thrown to the caller and the setup is not marked done.
+
+`src/commands/batdau.js` owns the view (three select menus and two buttons) and its component ids, and every press is authorised again. Sessions live in memory for 15 minutes like blueprints. `guildCreate` posts the same Start button when the bot joins a server, once, and ignores a guild that merely came back after an outage. `/trogiup` renders `helpItems` (name, group, text, plan flag) against the plan, so the lock marks come from the same flags as the plan table, and it adds commands it does not know under "other".
+
+## Security: raid, lockdown, nuke guard
+
+```mermaid
+flowchart LR
+  J[Discord join notice] --> R[raid.js<br/>sliding window]
+  R -->|trips| A{raidAction}
+  A -->|alert| P[post alert]
+  A -->|verify or lock| S[startLockdown]
+  S --> ST[(settings.security.lockdown<br/>channels + verification level)]
+  S --> P
+  K[unlock button or /khoakhan tat] --> U[stopLockdown]
+  T[lockdown job, every minute] --> U
+  U --> ST
+  D[channel or role deleted] --> N[findExecutor<br/>audit log]
+  N --> C[nukeguard.js<br/>per person counter]
+  C -->|trips| X[nukeaction.js<br/>strip dangerous roles]
+  X --> P
+```
+
+The pure modules decide (`raid.js`, `lockdown.js` for planning and restore planning, `nukeguard.js` for the counter and which roles may go) and `guard.js` and `nukeaction.js` act. A lockdown writes its plan into `settings.security.lockdown` before the first Discord call, so the state survives a crash. `planRestore` puts back a channel only if its @everyone SendMessages overwrite is still denied, i.e. still as the lockdown left it. The verification level is raised one step and put back only if it is still that value. Locking needs Manage Channels and Manage Roles (Discord requires both to edit overwrites), raising verification needs Manage Server, and a missing permission is named before anything changes. A per-server busy set stops a start and a stop from overlapping. The job in `src/jobs/lockdown.js` runs every minute and opens any lockdown past `lockMinutes`.
+
+The nuke guard only runs when switched on and when the plan has `nukeGuard`. `findExecutor` reads the audit log entry for exactly the deleted id within 30 seconds, and returns nothing when the bot may not read the log, in which case the guard stays quiet. The owner, the bot and an unknown executor are ignored, and a deleted managed role (an integration leaving) is not counted. When the counter trips, `pickStrippable` chooses the executor's unmanaged dangerous roles below the bot's highest role and the rest are listed as kept, with the reason.
+
+## Moderation and the mod log
+
+`src/modlog/actions.js` runs one moderation action: the member's permission and the bot's permission, the cleaned reason, a pure `checkTarget` hierarchy decision, then a deferred reply (the first answer to Discord must come within 3 seconds), the notice, the action, the stored case and the log line. `src/modlog/handlers.js` turns ban, unban, role update and AutoMod execution events into log embeds; the embed builders read only the fields they name, so message text cannot reach the log. `markBotAction` remembers for a short time that the bot itself made a ban, so the ban event is not logged twice, and `clearBotAction` forgets it when the ban failed. Cases are stored in `mod_cases` and listed newest first.
+
+## Activity: xp, voice, role menus, giveaways, polls
+
+- **Xp.** `src/events/activityXp.js` receives messages and passes author and server to `src/activity/xp.js`, which keeps per-person entries in memory and flushes increments in one transaction every 15 seconds and on exit. Settings are cached for 30 seconds. `level.js` is the pure curve.
+- **Voice.** `src/activity/voice.js` is a pure tracker fed by `voiceXp.js`. It returns whole minutes when someone leaves or switches rooms; time only counts while the person is not deafened, not in the AFK channel, and not alone.
+- **Role menus.** `rolemenus.js` holds validation (`checkPicks`), the toggle decision (`decideToggle`, where single mode drops the other roles of the same menu only after the new one was given), storage, the panel, and press handling that re-checks the menu, the role and the bot's permission on every press.
+- **Giveaways and polls.** Both store state in tables and close through `UPDATE ... WHERE status = 'active'`; only the call that changed a row posts the result. `src/jobs/giveaways.js` closes both kinds when due, including ones that came due while the bot was off, retries a server that is unavailable, and closes quietly one the bot has left after a day. Poll votes are per person in `poll_votes`; the message shows counts only.
+
+## Reports and reminders
+
+`src/digest/stats.js` collects numbers (joins and AutoMod blocks from `events_log`, tickets, the health score against the check from five or more days earlier), `build.js` turns them into an embed description with at most three suggestions (safe fixes first, each with its fix id as a button), `schedule.js` decides when a report is due (`lastSlot` computes the latest weekday and hour in the server's time zone with `Intl`, a missed slot is caught up for 24 hours, `lastSentAt` prevents repeats). `src/jobs/digest.js` sends reports and runs the weekly health check, alerting once when the score fell by 10 points or more. `src/jobs/expiry.js` posts a reminder three days before the last paid time runs out and one after it ran out, remembered per expiry time in the lifetime counters, with the mark written before the post.
+
+## The funnel
+
+`src/analytics.js` records `(guild_id, kind, at)` with `track()` and never throws. `funnel(since)` counts distinct servers per kind; `/admin thongke` renders it with conversion against the invited servers. `invite` comes from `guildCreate`, `wizard_done` from the wizard, `feature_on` from the wizard, `/hang` and `/quatang`, `build_done` from `recordBuild`, `trial` from `/dungthu`, `paid` from order settlement and `left` from `guildDelete`. Two more kinds, `join` and `automod_block`, feed the weekly report and are not part of the funnel.
+
+## The public status route
+
+`GET /status` on the dashboard server (`statusRoute` in `src/web/server.js`) answers before any login or origin check with `ok` (the heartbeat file is no older than 90 seconds), `uptimeSec`, `version`, `guilds` rounded down to ten and `lastHeartbeatAgeSec`. It allows any origin, is cached for 15 seconds, rate limited per address and answers GET and HEAD only. The website's status page reads it in the browser.
+
+## Plans and prices
+
+`PLANS` in `src/license.js` is the one table of flags and limits. The free plan includes the guided setup, health check, anti-raid, mod log, moderation commands, polls and the weekly report, 3 role menus and 2 builds. Pro adds mixing, humor choice, AutoMod beyond the gentle level, the AI designer and writing helper, backups, saved themes, events, tickets, the nuke guard, activity points, giveaways and games, with 10 role menus; Plus raises the counts (25 role menus). `src/pay/orders.js` holds `PRICES_USD` (Pro 3.99, Plus 7.99, one-off 4.99), `DAY_CHOICES` (30, 90, 180 and 365 days), `monthsFor` (365 days is ten months) and `ONE_OFF` (the "Dựng giúp" product grants 7 days of Pro whatever days the order row carries). `UNLOCKED_GUILD_IDS` servers get everything with raised limits.
 
 ## Backups and restore
 
@@ -183,7 +252,7 @@ A snapshot is validated JSON (roles, categories, text and voice channels, role o
 
 ## Security model
 
-**Who is trusted.** Only the bot owner, identified by `OWNER_IDS`, can use `/admin`. Within a server, only members with the Administrator permission can build, nuke, activate a plan or erase data. Everyone else can only use `/goi` and `/roast` and press the role buttons.
+**Who is trusted.** Only the bot owner, identified by `OWNER_IDS`, can use `/admin`. Within a server, only members with the Administrator permission can build, nuke, activate a plan or erase data. Moderation commands are open to people who hold the matching Discord permission (Moderate Members, Kick Members, Ban Members, Manage Server for giveaways, Manage Messages for polls), checked again in the handler. Everyone else can use `/goi`, `/trogiup`, `/hang xem`, `/roast`, the games on a Pro server, and press the role, poll and giveaway buttons.
 
 **Defence in depth on commands.** Commands set `setDefaultMemberPermissions`, and the handler also checks `isAdmin` at runtime, because a server administrator can change who may use a command from the server's integration settings. `/admin` sets default permissions to none and then checks the owner list.
 
@@ -193,8 +262,12 @@ A snapshot is validated JSON (roles, categories, text and voice channels, role o
 
 **The dashboard.** Discord OAuth2 with the token revoked straight after use, signed session cookies, a CSRF header plus an Origin check on every write, an administrator re-check against Discord on every request, rate limits, a strict CSP and no `innerHTML`. It binds to loopback; the Pi exposes it through a Tailscale Funnel.
 
-**What the bot refuses to do.** It does not read message content and uses only the `Guilds` and `GuildMessages` intents (the second only to see Discord's own join notice, never to read what people wrote). It deletes only IDs it recorded, never by name. It does not remove the admin area from a blueprint. It does not create anything from an AI answer without a person pressing build. It does not log or return the Gemini key, which is sent in a header.
+**Hierarchy and reversibility.** A moderation action is refused before anything changes unless the actor is above the target and the bot is above both, never against the owner, the bot or oneself. A lockdown records what it changes and restores only what is still as it left it. The nuke guard removes only roles the bot may lawfully remove and says which it kept. Role menus re-check the role on every press and never hand out a managed, high or dangerous role. Every button of the setup, giveaway, poll, role menu, helper and unlock flows is authorised again on use.
 
-**Secrets and data.** The Discord token and the Gemini key live only in `.env`, which is ignored by Git (the whole `data/` folder is too). The database stores guild IDs, IDs of what the bot created, licenses and counters, and no message content. `/xoadulieu` erases a server's record while keeping its license and counters so plan limits still apply.
+**What the bot refuses to do.** It does not read message content and uses five intents, none privileged: `Guilds`, `GuildMessages` (only to see Discord's own join notice and to count who wrote where for xp, never what), `GuildVoiceStates` (who is in a voice room, for voice xp), `GuildModeration` (bans and unbans for the mod log) and `AutoModerationExecution` (which rule fired, not the text). It deletes only IDs it recorded, never by name. It does not remove the admin area from a blueprint. It does not create anything from an AI answer without a person pressing build. It does not log or return the Gemini key, which is sent in a header.
+
+**Secrets and data.** The Discord token and the Gemini key live only in `.env`, which is ignored by Git (the whole `data/` folder is too). The database stores guild IDs, IDs of what the bot created, licenses and counters, and per member ID only what a feature needs: xp, moderation cases, giveaway entries, poll votes and check-in points. The funnel table holds a server ID, a kind and a time. No message content is stored anywhere. `/xoadulieu` erases a server's build record and its settings document while keeping its license and counters (including the trial mark) so plan limits still apply. It also erases the per-member tables (xp, moderation cases, giveaway entries, poll votes), role menus, tickets, backups and saved themes through `src/purge.js`, in one transaction, and lifts an active lockdown first. Licenses, usage counters, orders and the anonymous funnel counts are kept.
+
+**The public route.** `/status` is the only unauthenticated read. It returns no ID, name or setting, rounds the server count, answers GET and HEAD only, and is rate limited per address.
 
 **Known limits.** The blocked-word filter is a last net, not moderation. Prompt injection is mitigated (data kept out of the system prompt, schema-constrained output, validation, preview) but not eliminated. License redemption relies on a single process with a synchronous SQLite driver; running several processes would need a changed-row check on the redeem update.

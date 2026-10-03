@@ -43,11 +43,15 @@ async function call(path, init = {}) {
 }
 
 // Creates a payment link. The description may be at most 9 characters for accounts not linked through payOS, so callers keep it short.
-export async function createPaymentLink({ orderCode, amount, description, returnUrl, cancelUrl }) {
+// The link expires on its own after 30 minutes, inside the 35 the bot keeps watching the order, so money can never arrive for an order nobody polls.
+export const LINK_LIFETIME_SEC = 30 * 60;
+
+export async function createPaymentLink({ orderCode, amount, description, returnUrl, cancelUrl, now = Date.now() }) {
   const request = { orderCode, amount, description, cancelUrl, returnUrl };
+  const expiredAt = Math.floor(now / 1000) + LINK_LIFETIME_SEC;
   const data = await call("/v2/payment-requests", {
     method: "POST",
-    body: JSON.stringify({ ...request, signature: signPaymentRequest(request) }),
+    body: JSON.stringify({ ...request, expiredAt, signature: signPaymentRequest(request) }),
   });
   if (!data?.checkoutUrl) throw new PayError("bad", "payOS gave no checkout link");
   return { checkoutUrl: data.checkoutUrl, paymentLinkId: data.paymentLinkId };

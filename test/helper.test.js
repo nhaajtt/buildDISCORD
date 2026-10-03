@@ -352,3 +352,27 @@ test("the helper sources have no em dash and never name a tool or vendor", () =>
     for (const word of banned) assert.ok(!code.toLowerCase().includes(word), `${file} mentions ${word}`);
   }
 });
+
+test("two drafts started at once for one server cannot both pass the quota check", async () => {
+  const id = proGuild();
+  addUsage(id, "ai", { amount: 19 });
+  let release;
+  const gate = new Promise((resolve) => (release = resolve));
+  stubAi(async () => {
+    await gate;
+    return { text: "1. Hiền" };
+  });
+  const first = slash(id, "luat", { mota: "mô tả đủ dài" });
+  const second = slash(id, "luat", { mota: "mô tả đủ dài" });
+  const running = helper.execute(first);
+  await new Promise((resolve) => setImmediate(resolve));
+  await helper.execute(second);
+  assert.equal(requests.length, 1, "the second never reached the AI");
+  assert.match(last(second).content, /đang viết/);
+  release();
+  await running;
+  assert.equal(getUsage(id, "ai"), 20, "the quota is not exceeded");
+  const third = slash(id, "luat", { mota: "mô tả đủ dài" });
+  await helper.execute(third);
+  assert.match(last(third).content, /hết 20 lượt/);
+});

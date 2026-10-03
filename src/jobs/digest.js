@@ -1,17 +1,30 @@
 import { config } from "../config.js";
+import { pruneCounts } from "../analytics.js";
 import { getPlan } from "../license.js";
 import { getSection, patchSection } from "../settings.js";
 import { isDue } from "../digest/schedule.js";
 import { sendDigest } from "../digest/index.js";
 
+// At most this many servers are handled per run (every 10 minutes), so a crowd due in the same hour does not hit Discord at once.
+// The rest stay due and are picked up by the next runs, inside the catch-up window.
+export const PER_RUN = 20;
+
 // Posts the weekly report for every server whose slot has come. The "sent" mark is written BEFORE posting, so a crash or a slow
 // Discord can never make the same week go out twice. The mark lives in the settings, so it survives restarts.
 export async function runDigestJob(client, { now = Date.now(), timeZone = config.timezone, send = sendDigest } = {}) {
+  try {
+    pruneCounts(now);
+  } catch (error) {
+    console.error("Could not prune old counts:", error?.message ?? error);
+  }
   const sent = [];
+  let handled = 0;
   for (const guild of client.guilds.cache.values()) {
     try {
       const settings = getSection(guild.id, "digest");
       if (!isDue(settings, now, timeZone) || !getPlan(guild.id, now).digest) continue;
+      if (handled >= PER_RUN) break;
+      handled += 1;
       patchSection(guild.id, "digest", { lastSentAt: now });
       const result = await send(guild, { settings: { ...settings, lastSentAt: now }, now });
       if (result?.ok) sent.push(guild.id);

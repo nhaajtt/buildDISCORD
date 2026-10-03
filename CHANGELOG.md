@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.6.0
+
+- **Guided setup.** `/batdau` builds and configures a server from three menus and one button, with the health score before and after and a card to share. The bot also posts a Start button when it joins a server. `/trogiup` lists every command by group and marks what the plan locks.
+- **Protection.** Anti-raid counts joins and alerts, raises the verification level or locks the text channels; every lockdown records what it changed, unlocks itself after a set time and can be lifted early (`/khoakhan`, or the button on the alert). **Anti-nuke guard** (Pro) takes dangerous roles from someone who deletes channels or roles in a burst. **Mod log** records bans, unbans, timeouts made through the bot, role permission changes and AutoMod blocks, never the blocked text.
+- **Moderation.** `/canhcao`, `/timeout`, `/kick`, `/ban` check role positions, message the member, store a numbered case and log it. `/hoso` shows a member's last ten cases.
+- **Activity.** Xp for chatting and for time in voice rooms with a cooldown and a daily cap, `/hang` for level and rank (Pro). **Role menus** with buttons (`/vaitro`), **giveaways** (`/quatang`, Pro) and anonymous **polls** (`/binhchon`).
+- **Reports.** A weekly digest of numbers and a weekly health check that alerts when the score falls by ten points or more. Reminders three days before a paid plan ends and when it ends.
+- **AI writing helper.** `/vietgiup` drafts rules, a welcome, an announcement or an explanation of the health check (Pro).
+- **Dashboard** tabs for security, activity points, the weekly report and the mod log, and a new overview. A public `GET /status` JSON route for the website's status page.
+- **Prices.** Pro $3.99 and Plus $7.99 per 30 days, a year costs ten months, and a one-off "Dựng giúp" for $4.99 grants seven days of Pro. The free plan now builds twice. `/dungthu` stays one 7 day trial per server. `/mua` takes 30, 90, 180 or 365 days.
+- **Funnel.** `/admin thongke` shows invited, setup finished, built, trial and paid servers for the last 30 days.
+- New intents GuildVoiceStates, GuildModeration and AutoModerationExecution, none of them privileged. New tables: events_log, xp, giveaways, giveaway_entries, polls, poll_votes, mod_cases and role_menus.
+- **Website.** New feature cards, prices, a full command list, FAQ entries, privacy and terms for the new features, a page for every theme with its roles, categories and channels, and a status page.
+- 561 tests.
+
 ## 1.5.0
 
 - **Welcome flow** with an optional verify button and starter role. `/chaomung`.

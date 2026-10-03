@@ -4,7 +4,7 @@ An engineering diary of how buildDISCORD went from an idea to a bot running on a
 
 ## Summary
 
-buildDISCORD is a Discord bot (nickname "Thầu Xây Dựng", the contractor) that builds a whole server in one command: roles, categories, text and voice channels, permission overwrites, rules, a welcome message and a self-assign role picker. You can mix up to four built-in themes, or describe your group in a sentence and let Google Gemini design the server. Either way, you review and edit a blueprint before anything is created. It is sold per server with one-time activation codes (a free plan and two paid plans), stores its data in SQLite, ships as a Docker image, installs on a Raspberry Pi with one command and updates itself with a health-checked rollback.
+buildDISCORD is a Discord bot (nickname "Thầu Xây Dựng", the contractor) that builds a whole server in one command, and then looks after it (anti-raid and lockdown, moderation with case history, activity levels, giveaways, a weekly report). The build creates roles, categories, text and voice channels, permission overwrites, rules, a welcome message and a self-assign role picker. You can mix up to four built-in themes, or describe your group in a sentence and let Google Gemini design the server. Either way, you review and edit a blueprint before anything is created. It is sold per server (a free plan and two paid plans, paid by card, bank QR or activation code), stores its data in SQLite, ships as a Docker image, installs on a Raspberry Pi with one command and updates itself with a health-checked rollback.
 
 Stack: Node.js 22 (ESM), discord.js 14, the SQLite module built into Node, Docker, systemd, GitHub Actions, Next.js 15 with React 19, GSAP and Lenis for the website, deployed on Vercel.
 
@@ -16,21 +16,22 @@ These were measured on the repository, not estimated.
 
 | What | Value |
 | --- | --- |
-| Bot source (`src/`, JavaScript) | about 8,100 lines in 100 files, plus about 1,700 lines of dashboard front end |
-| Tests | 289 tests in 18 files (about 6,000 lines), run with `node --test` |
+| Bot source (`src/`, JavaScript) | about 13,400 lines in 170 files, plus about 1,900 lines of dashboard front end in 14 view files |
+| Tests | 561 tests in 31 files (about 11,500 lines), run with `node --test` |
 | Scripts (`scripts/`) | about 370 lines (license CLI, Pi installer, updater, website data export, sample generator) |
-| Website source (`web/`, TypeScript, TSX, CSS) | about 4,200 lines |
-| Slash commands | 22 (21 for customers, 1 owner-only) |
-| Database tables | 11 (the eight above plus `guild_settings`, `tickets`, `audit_reports`) |
-| Background jobs | 3 (payment polling, recurring events, ticket inactivity) |
+| Website source (`web/`, TypeScript, TSX, CSS) | about 5,000 lines |
+| Slash commands | 35 (34 for customers, 1 owner-only) |
+| Database tables | 19 (the eleven above plus `events_log`, `xp`, `giveaways`, `giveaway_entries`, `polls`, `poll_votes`, `mod_cases`, `role_menus`) |
+| Background jobs | 8 (payment polling, recurring events, ticket inactivity, weekly health check, weekly report, lockdown expiry, giveaways and polls, plan expiry reminders) |
 | Built-in themes | 11, which give 561 mixes of up to four |
 | One theme builds | 8 to 10 roles, 4 to 7 categories, 19 to 26 channels, 10 rules |
 | Largest mix of four themes | 22 roles, 13 categories, 54 channels (duplicates merged) |
+| Gateway intents | 5, none privileged (`Guilds`, `GuildMessages`, `GuildVoiceStates`, `GuildModeration`, `AutoModerationExecution`) |
 | Runtime dependencies of the bot | 2 (`discord.js`, `dotenv`) |
 | Docker image on the Pi (arm64) | 186 MB at the first deploy, 187 MB with every feature |
 | CI | 3 jobs (tests and syntax, website build, image build); every run so far passed |
-| Test suite wall time | about 12 s for 289 tests (it was about 38 s for 29 until the builder's pause became configurable, see Bugs) |
-| Website first load JS | 165 kB for the landing page, 155 kB for the devlog page (Next.js build output) |
+| Test suite wall time | about 9 to 16 s for 561 tests (it was about 38 s for 29 until the builder's pause became configurable, see Bugs) |
+| Website first load JS | 165 kB for the landing page, 155 kB for the devlog, status and theme pages (Next.js build output) |
 
 ### What this project demonstrates
 
@@ -50,6 +51,12 @@ These were measured on the repository, not estimated.
 | Handling untrusted files and privilege boundaries (backup import and restore) | `src/backups/restore.js`, `src/backups/attachment.js`, `test/backup.test.js` |
 | Scheduling with time zones and no libraries | `src/games/schedule.js`, `src/jobs/events.js`, `test/events.test.js` |
 | Testing without the network | fake guild in `test/builder.test.js`, stubbed `fetch` in `test/ai.test.js` |
+| Undoable security actions (record first, restore only what is still ours) | `src/security/lockdown.js`, `src/security/guard.js`, `test/security.test.js` |
+| Attributing an action through the audit log without reading content | `src/security/nukeaction.js`, `src/modlog/` |
+| Hot-path performance on a small machine (cache, in-memory cooldown, batched writes) | `src/activity/xp.js`, `test/activity.test.js` |
+| Exactly-once jobs and idempotent button handlers (giveaways, polls, reports, reminders) | `src/activity/giveaways.js`, `src/jobs/expiry.js`, `src/digest/` |
+| Funnel analytics with no personal data | `src/analytics.js`, `/admin thongke` |
+| A public, cross-origin, rate limited JSON route and a status page that degrades | `src/web/server.js`, `web/app/[lang]/status` |
 
 ## Timeline
 
@@ -376,6 +383,74 @@ The Pi sits behind a home router, so the page is exposed through a Tailscale Fun
 
 The same phase added two growth features: a one-time seven day Pro trial (`/dungthu`, remembered in the lifetime usage counters, which `/xoadulieu` does not clear, so it cannot be farmed) and a small credit line under free-plan welcomes. Servers listed in `UNLOCKED_GUILD_IDS` get every feature with no limit, which is how I test new work on my own server.
 
+### Phase 24: guided setup, so a stranger needs no manual
+
+By phase 23 the bot could do a lot and a new customer could find none of it. The invite worked, and then there was a silent bot and a list of thirty commands. The funnel I wanted to measure (invited, set up, built, tried Pro, paid) started with a step that most people never took.
+
+`/batdau` is one screen with three select menus (kind of server, humor level, extras to switch on) and a Build button. The same screen is offered as a Start button in a message the bot posts when it joins a server, so a new admin does not have to know a command name. The pieces:
+
+- **The first half of `src/onboarding/wizard.js` is pure**: cleaning the choices against the plan, a keyword table that suggests a theme from a few typed words (no AI call: every keyword found adds to a theme's score, and a phrase counts double), and the result card. `runWizard` is the only part that touches the server, and it only builds what the bot builds or changes what the admin asked it to.
+- **Before and after.** The wizard runs the health check first and again at the end and posts both scores on a card that doubles as something to share. It is the cheapest proof of value I could think of, and it needs no extra data.
+- **Safe to run twice.** Running the same setup again skips the build and does not spend one of the free plan's builds. A channel the admin already chose for logs is kept, a dead channel id is replaced, and an AutoMod level stricter than the one asked for is left alone.
+- **Plan gates keep their jokes.** A free server that picks several themes keeps the first and is told that mixing is for Pro, and that `/dungthu` is a free week.
+- `/trogiup` is generated from a table of command items with the plan flag that unlocks each one, so what a plan locks is the same data the plan table uses. A command nobody added to the table still shows up under "other", and owner-only commands never do.
+
+Every component of the wizard is authorised again on use (the guild, the person, the administrator permission), a session lasts 15 minutes in memory like a blueprint, and the build lock is released in a `finally`, even when the button's own reply fails.
+
+### Phase 25: protection that can be undone
+
+The brief was protection without reading anyone's words, and without a feature that can lock the administrator out of their own server.
+
+- **Anti-raid.** The bot does not receive member-join events without a privileged intent, but it does receive Discord's join notice in the system channel (the same trick as the welcome flow). A pure sliding-window counter (`src/security/raid.js`) takes the id of that notice, so the same notice counted twice changes nothing, trips at N joins within S seconds, and then stays quiet for a minute so one raid is one alert. The action is a setting: only alert, raise the verification level one step, or lock the text channels.
+- **Lockdown records first.** Before touching anything, `startLockdown` writes into the server's settings which channels it will lock, what each channel's @everyone SendMessages state was (allow, deny or no opinion), and which verification level it raised from. Restoring puts a channel back only if it is still exactly as the lockdown left it; a channel someone changed by hand, or that no longer exists, is not ours to touch. The state lives in the settings document, not in memory, so a crash or a restart in the middle of a lockdown still unlocks, and a one-minute job lifts every lockdown whose time is up. Starting twice and stopping twice are both harmless.
+- **Anti-nuke (Pro).** A deleted channel or role raises an event, the bot reads the audit log to learn who did it (it needs View Audit Log; without it the guard says so and stays asleep), and a per-person counter trips at a threshold inside a window. On a trip it alerts and removes only the dangerous roles (Administrator, Manage Server, Manage Roles, Manage Channels, Manage Webhooks, Ban Members, Kick Members) that the bot may legally remove: never the owner's, never a managed role, never one at or above the bot's top role, and the alert says which ones it kept and why. The owner, the bot itself and an unknown executor are never acted on.
+- **Alerts never trust a channel.** An alert goes to the chosen channel, else the system channel, and only if the bot can actually view, send and embed there. A failing post is logged and swallowed, so a broken channel cannot break the handler.
+
+### Phase 26: moderation with a memory
+
+`/canhcao`, `/timeout`, `/kick`, `/ban` and `/hoso` are ordinary moderation commands with two properties I cared about. First, every refusal happens before anything changes: the permission of the person and of the bot, then a pure hierarchy check (not yourself, not the bot, not the owner, nothing at or above you unless you own the server, nothing at or above the bot, and no timeout for an Administrator, which Discord refuses anyway). Second, each action stores a numbered case (member ID, moderator ID, action, a reason capped at 300 characters, the end time of a timeout) and writes it to the mod log, so the history exists even if nobody remembers to write it down. For a kick or ban the member is told by direct message first, because afterwards there is no shared server to send it from, and a failed message changes nothing.
+
+The mod log itself (`/khoakhan nhatky`) listens to ban, unban, role update and AutoMod execution events. It records which permissions a role gained and lost, who was banned, and which AutoMod rule fired for whom in which channel, and not the text that was blocked (the event carries it and the handler never reads the field). A ban made through `/ban` is remembered for a few seconds so the ban event is not logged a second time. Discord only tells a bot about timeouts it applied itself unless it holds a special permission, so the log says plainly that it records the timeouts made through its own command.
+
+### Phase 27: activity, and the things a community does together
+
+- **Xp without content.** A message event gives the author and the channel, which is all xp needs. The hot path is ordered from cheapest to dearest: the shape of the message (bots, webhooks, system messages and DMs earn nothing), then the per-server settings from a 30 second cache, then a per-person entry held in memory with a cooldown and a daily total. The database is written in one transaction every 15 seconds, and only when xp was actually earned, and increments are added rather than totals replaced, so something deleted in between is not brought back. A message that earns nothing never reaches the database after the first load. The level curve (`15 n^2 + 60 n` in total) is deliberately gentle and is inverted exactly, with a guard against floating point edges.
+- **Voice time.** The tracker (`src/activity/voice.js`) keeps its own small model of who is in which room and counts a minute only while the person is not deafened, not in the AFK channel and at least one other human who is not deafened is in the room. Switching rooms settles the first session, and at start the model is seeded from the voice states the bot can see.
+- **Role menus** post buttons (or a select menu above five roles) for taking and dropping roles. A role may only be offered when it is safe now (not managed, below the bot, no dangerous permission) and that is re-checked on every press, so a role made dangerous after the menu was posted is not handed out and a forged button for a role outside the menu grants nothing.
+- **Giveaways** store entries per person, close exactly once (the status flip from active to closed is the guard, the same pattern as payments), draw without replacement from a partial shuffle with an injectable random source, and a job closes any that came due while the bot was off. A reroll never picks a previous winner. The required role is checked when the button is pressed.
+- **Polls** are anonymous because nothing in the message names a voter: counts and bars only, one vote per person, a changed vote replaces the earlier one, and the message updates in place as the answer to the press.
+
+### Phase 28: reports, reminders and the AI writing helper
+
+- **Weekly report.** The numbers come from tables the bot already has (joins counted from the join notice, tickets, AutoMod blocks, the health score compared with the check from at least five days earlier) and never from anything a member wrote. The schedule is pure (`lastSlot` finds the most recent weekday and hour in the server's time zone with `Intl`, no library), a missed slot is still sent for up to a day, and the time of the last send is stored so a restart cannot send it twice. A preview from the dashboard does not move the schedule.
+- **Weekly health check** per opted-in server, and an alert, once, when the score fell by ten points or more, with the safe fix as a button that still asks for a confirmation from the same person. A first check has nothing to compare with and never alerts, and a failing check is retried next week, not every hour.
+- **Expiry reminders.** One notice three days before a paid plan ends and one when it has ended (only while it is still news), remembered in the lifetime usage counters under a key that includes the expiry time, so a renewal gets its own reminders and the same expiry is never announced twice. The mark is written before the post, so a crash cannot repeat it. This closes the "no reminder when a plan is about to expire" limitation of phase 19.
+- **The writing helper** (`/vietgiup`) drafts rules, a welcome, an announcement, or a plain explanation of the last health check. The admin's words are flattened (mentions, control characters and fences removed, 300 characters) and fenced as data in the prompt; the answer is cleaned like a designed server (mentions removed, links and blocked words refused, length capped per kind) and cleaned again right before it is posted. The model never posts anything: the author picks a channel and clicks. The quota is the same monthly count as `/thietke`, charged once per usable draft and not at all when the AI fails, and the check and the charge happen together so two drafts started at once cannot both pass.
+- **The funnel.** `track()` writes a server ID, a short kind and a time to `events_log` (invited, setup done, built, feature switched on, trial, paid, left). `/admin thongke` shows how many distinct servers reached each step in 30 days and what share of the invited servers that is. It is the only analytics in the bot and holds nothing about a person.
+
+### Phase 29: new prices, the dashboard tabs and a public status route
+
+Pro at $9.99 and Plus at $19.99 were guesses made before the bot did much. With the new features I moved to **$3.99 and $7.99 per 30 days**, a year for ten months (two free months are a stronger reason to commit than a percentage), a one-off **Dựng giúp** at $4.99 that grants seven days of Pro, and two builds on the free plan instead of one. `/dungthu` is still one seven day trial per server. The one-off is a product, not a plan: `ONE_OFF` says what it grants, and settlement uses the product's own days whatever the order row says.
+
+The dashboard gained tabs for security (with an unlock button), activity points, the weekly report (with a preview send), the mod log and a new overview, all over the same settings sections and normalizers as the commands.
+
+A public `GET /status` returns `ok` (the heartbeat file is fresh), uptime, version, a server count rounded down to ten, and the heartbeat age. It is read-only, allows any origin because it carries nothing worth hiding (no ID, no name, no setting), and is rate limited per address.
+
+### Phase 30: a review pass
+
+After the features were in I reviewed them as if someone else had written them, looking for places where a handler can do half of something. The findings are in the Bugs table below, and each has a test in `test/review-security.test.js`, `test/review-engage.test.js` or `test/review-platform.test.js`. The pattern was consistent: the happy path was right, and the bugs were in what happens when the second of two steps fails.
+
+### Phase 31: the website catches up, a page per theme and a status page
+
+The site had stopped at version 1.3. I brought its copy up to the bot: new feature cards (setup, anti-raid, anti-nuke, the mod log, moderation, activity levels, role menus, giveaways and polls, the weekly report, reminders, the writing helper), the new prices with the yearly and one-off options, all 34 customer commands, FAQ answers for the three questions a stranger asks first (is my chat read, what does anti-raid do, what is the guided setup), and privacy and terms pages that list every new kind of stored data and say plainly what `/xoadulieu` erases. Writing that page showed the command did not yet erase the per-member tables, so it now purges them in one transaction (`src/purge.js`).
+
+Two new pages, both static:
+
+- **A page per theme** (`/themes/[id]`, `/en/themes/[id]`), 22 pages from `generateStaticParams`. It renders the bot's real plan for that theme alone from the same `themes.data.json` the drafting table uses, so the tree of roles, categories and channels cannot drift from what `/build` creates. Each page has an invite button, the command to copy, and previous and next links that wrap around. `dynamicParams` is off, so an unknown id is a 404 at build time. A `sitemap.xml` lists every page with its language alternates.
+- **A status page** that reads the bot's public `/status` route from the browser. Fetching in the browser keeps the page static and puts the failure where it belongs: if the route cannot be reached the card says "không kiểm tra được" (cannot check), which is not the same as the bot being down. The answer is treated as untrusted (the exact shape is checked, text is clipped), and the card has the same size in every state with dashes where values will go, so nothing moves when the answer arrives. The pulse on the status dot only runs when the visitor has not asked for reduced motion.
+
+The new pages reuse the existing header, section heading, chips and motion layer; the only new code is two components, a tree and a status stylesheet block. First load JS is 155 kB for each, the same as the devlog page.
+
 ## Bugs and what they taught me
 
 | Symptom | Root cause | Fix | Guard now |
@@ -399,6 +474,19 @@ The same phase added two growth features: a one-time seven day Pro trial (`/dung
 | Every push produced a failed Vercel deployment while command-line deploys worked | The project was connected to Git with no root directory, so Vercel looked for the app at the repository root | Root directory set to `web` through the API, plus a skip rule for pushes that do not touch `web/` | A Git deployment after the fix reached READY |
 | Two copies of the bot answered commands at the same time | A test terminal on my computer was still running an older version with the same token as the Pi | Stopped the local process | Lesson: one token, one process; the devlog's deploy steps say to stop the local run |
 | A TypeScript build cache file was in the repository | `git add -A` picked up `tsconfig.tsbuildinfo` after a type check | Untracked it and ignored `*.tsbuildinfo` | `git status` is clean after a build |
+| In a pick-one role menu, pressing a role the bot could not give removed the role the person already had | The swap removed the old role before the new one was added | Add first, remove the others only if the add succeeded | `review-engage.test.js`: a failing add leaves the old role |
+| A server that removed the bot left stale state in memory (voice sessions, cached activity settings) and was not counted as left | Nothing listened for the guild being deleted | A `guildDelete` handler forgets that state, counts the departure, and ignores an outage (`available: false`) | `review-engage.test.js` calls it both ways |
+| A payment that could not be turned into a plan was marked paid with nothing granted | The status flip and the grant were two steps | The paid mark and the license are written in one transaction, so a failing grant rolls the mark back | `review-platform.test.js`: the order stays pending and no license exists |
+| The one-off "Dựng giúp" granted the days stored on its order row | Settlement used `order.days`, which means nothing for a one-off | The product's own seven days are always used | Test with an order row that says 365 |
+| A payOS link could be paid after the bot stopped watching its order | The link carried no expiry tied to the 35 minute window the bot polls an order for | The link is created with an expiry inside the window | Test reads the request body's `expiredAt` |
+| Two buyers in the same second could get the same payOS order code | The code is the time in seconds plus three random digits | `/mua` picks another code when one is taken | Test forces a collision |
+| One server could pile up open payment links | No limit on pending orders | `MAX_PENDING_PER_GUILD` and a plain refusal | Test creates one more than the limit |
+| A role that lost Administrator and gained another permission logged only one of the two | The diff was computed from a permission set that treats Administrator as everything | The raw bits are compared, so both changes are listed | `review-security.test.js` |
+| After one failed `/ban`, the next real ban of that person was missing from the log | The "the bot did this ban" mark was written before the call and stayed after a failure | The mark is only kept when the ban succeeds | Test asserts no mark after a failure |
+| A kick that Discord would refuse still sent the member a notice | The notice goes first (there is no shared server afterwards) and the refusal was only learned on the call | `kickable` is checked before anything is sent | Test: no message, no kick, one reply |
+| A slow moderation action or lockdown showed "interaction failed" | Editing many channels, or acting through Discord, can take longer than the 3 seconds Discord gives for the first answer | The command defers first and finishes with `editReply` | Tests assert the order defer, action, edit |
+| A lockdown failed halfway for a bot that had Manage Channels only | Editing a channel's permission overwrites also needs Manage Roles | `startLockdown` requires both and names the missing one | `review-security.test.js` |
+| Deleting a bot's integration role counted towards a purge | The role disappears with its bot, and the audit log names someone else | Managed roles are ignored by the anti-nuke counter | Test with a managed role |
 | The page scrolled sideways by about 50 px on desktop | The "signed off" stamp starts scaled up 2.4 times inside the pinned scene, and its transformed box counted as scrollable overflow | `overflow-x: clip` on the scene and on the hero | The headless-browser script compares `scrollWidth` with `clientWidth` on every page |
 
 ## Design decisions and alternatives
@@ -420,13 +508,26 @@ The same phase added two growth features: a one-time seven day Pro trial (`/dung
 | Restore only creates | Restore as an exact copy that also deletes | Deleting from a file is the most dangerous thing a bot can do. Creating what is missing is safe to repeat and easy to undo with `/nuke` |
 | Stripe Checkout polled from the bot, next to payOS | Stripe webhooks; payOS only; PayPal | payOS needs a Vietnamese bank account, which the owner does not have, so cards through Stripe became the main way to pay. Polling keeps the rule of no public endpoint. A session only counts when its order reference, amount and currency match the order, so a mixed up id cannot switch a plan on. payOS stays for buyers in Vietnam |
 | Components routed by `customId` prefix | A generic router library | About ten lines, and the prefix makes the owner of each id obvious |
+| Anti-raid from Discord's join notice | The `GuildMembers` privileged intent; polling the member list | The intent needs Discord's approval past 100 servers and gives the bot far more than it needs. The notice already carries the member's ID and is the same signal the welcome flow uses. The cost is that a server with the notice switched off cannot be watched this way |
+| A lockdown stores what it changed in the settings document, before changing it | Keep the state in memory; snapshot the whole server | Memory is lost in a crash, which is exactly when a lockdown must still be undone. A full snapshot restores more than the lockdown changed and could overwrite an admin's edits made during the lock. Recording only the touched channels, and restoring only those still as the lock left them, is the smallest thing that is reversible |
+| Anti-nuke removes dangerous roles, it does not ban | Ban the culprit; kick; only alert | A ban from a heuristic is unrecoverable when it is wrong (a legitimate cleanup). Removing roles stops the damage, is reversible by an admin, and the alert lists exactly which roles were taken and which were kept and why |
+| Xp from message events with no content | Read content to weigh messages by length; count reactions | Content needs the privileged intent, and weighing by length rewards spam. A cooldown and a daily cap reward steady presence instead, and need only author and channel |
+| Xp held in memory and flushed in batches of increments | Write on every message; an external cache | One write per message is the load that makes a Pi struggle in a busy server. Adding increments rather than replacing totals makes a flush safe against rows deleted in between. The cost is losing at most a few seconds of xp on a hard crash, which does not matter for points |
+| Polls anonymous by construction | Show who voted | Anonymous polls get honest answers and the message never needs a list of names that could ping or leak. The vote is still stored per person so one person cannot vote twice |
+| Closing giveaways and polls by an atomic status flip | A lock in memory; trusting the timer | Only the call that changes active to closed gets to post the result, so a restart, a double click and the job racing the cancel button all produce one result. It is the same guard as payments |
+| A pure keyword table to suggest a theme in the setup | Ask Gemini | The setup should work with no key, no quota and no wait, and a few dozen keywords are enough to be right most of the time. The AI designer stays one command away for people who want it |
+| One settings document per server with sections, shared by commands and dashboard | A table per feature | One normalizer per section cleans a value the same way wherever it arrives from, and a new feature adds a section instead of a migration |
+| Prices of $3.99 and $7.99 with a year for ten months, and a one-off week for $4.99 | Keep $9.99 and $19.99; percentage discounts; a free tier with no limits | A small server owner compares it with a coffee, not with a salary. Two free months is easier to understand than a percentage. The one-off covers the people who only need a server set up once and would never subscribe |
+| The free plan includes the protection basics (setup, health check, anti-raid, mod log, moderation commands, polls) | Put protection behind Pro | A raid hits a free server just as hard, and a bot that leaves free servers exposed is a bad advertisement. Pro sells the things that grow a community (levels, giveaways, tickets, mixing, the AI helper) and the anti-nuke guard |
+| Anonymous funnel counts in one table | A third-party analytics service | The question is only "where do servers drop off". A server ID, a kind and a time answer it, nothing personal is stored and no script runs anywhere |
+| A public `/status` route, read by the website in the browser | A status service; the website calling the bot from its server | The route carries nothing worth hiding, so it can allow any origin. Reading it in the browser keeps the website static, and a failure can degrade to a plain "cannot check" |
 
 ## What I would do next and known limitations
 
 - **The admin tools and the dashboard were checked against fakes, not a real login.** The welcome flow relies on Discord's join notice appearing in the system channel; a server with that notice switched off gets no automatic welcome.
 - **No end-to-end run against a real gateway.** Command handlers and the editor are driven in tests with minimal fake interactions (for example `/build`, `/mua`, the backup and theme commands and the editor's save button), and everything that decides something is a pure module. But nothing in CI talks to Discord, so the exact shape of a few discord.js calls (scheduled events, the role `colors` option, autocomplete, permission bigints) is checked against fakes only. A shared fake-gateway harness would close that gap.
 - **Blueprints are lost on restart,** by design (see Phase 11).
-- **The payment integration was written against payOS's documentation and tested against a stub, not a live account.** It needs one real small payment before it is trusted. It polls every 30 seconds instead of receiving a webhook, does not verify the signature on payOS's responses, and relies on a dollar-to-dong rate I update by hand. There is no reminder when a plan is about to expire.
+- **The payment integration was written against payOS's documentation and tested against a stub, not a live account.** It needs one real small payment before it is trusted. It polls every 30 seconds instead of receiving a webhook, does not verify the signature on payOS's responses, and relies on a dollar-to-dong rate I update by hand. Plan expiry is now reminded in the server (phase 28).
 - **Game limits live in memory.** The daily cap on game points and open game rounds reset when the bot restarts, which is fine for fun points and would not be for money.
 - **The trivia bank has 34 questions.** Enough to start, repeated within a couple of weeks of daily play.
 - **The free Gemini tier is a shared quota with data-use terms.** Limits protect it, but a real customer base would need the paid tier and a data-processing note.
@@ -435,3 +536,13 @@ The same phase added two growth features: a one-time seven day Pro trial (`/dung
 - **The local test database and the Pi database are separate.** Licenses issued while testing on my computer do not exist on the Pi.
 - **The word filter is a last net,** not a moderation system.
 - **The layout checks were ad-hoc scripts.** A committed Playwright run in CI would catch overflow and console errors on every push.
+- **Security features were driven against fakes, not a real raid.** The raid counter, lockdown, restore and anti-nuke are pure or driven with fake guilds, but nobody has raided a real server with them. The shape of audit-log entries and the timing of the events that follow a deletion are checked against my reading of the documentation.
+- **Anti-raid depends on the join notice.** A server that turned off "send a message when someone joins" is invisible to it, and the weekly report's join count is lower there too. The report says so in its footer.
+- **The mod log cannot see other people's timeouts.** Discord only sends them to a bot with an extra permission, so only timeouts made through `/timeout` are recorded, and the log says so.
+- **Moderation history is per server and typed by a moderator.** Reasons are stored as written (capped at 300 characters) and shown to staff only, but they are personal data of the member, and `/xoadulieu` does not remove them yet (it clears the build record and the settings only). Erasing the per-member tables on request is on the list.
+- **Xp and voice state are held in memory between flushes.** A hard crash can lose a few seconds of points. Level-up announcements use the cached settings, which refresh every 30 seconds.
+- **One process, one cooldown map.** The raid counter, the nuke counter and the xp cooldowns live in the bot's memory, so they reset on a restart and would need a shared store with more than one process.
+- **The setup wizard's theme suggestion is a keyword table,** so unusual descriptions fall back to a safe default theme (and it says it guessed).
+- **The funnel counts servers, not people,** and says nothing about why a server stopped. It tells me where to look, not what to fix.
+- **The status route has no history.** It says whether the bot is up now. A page that shows the past would need something that records it.
+- **Prices are an experiment.** They were chosen to find out whether a lower price converts, and the funnel is how I will know. The payment code has still not seen a real payment.

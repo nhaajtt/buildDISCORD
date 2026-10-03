@@ -11,6 +11,8 @@ const nextConfig = {
       { source: "/privacy", destination: "/vi/privacy" },
       { source: "/terms", destination: "/vi/terms" },
       { source: "/devlog", destination: "/vi/devlog" },
+      { source: "/status", destination: "/vi/status" },
+      { source: "/themes/:id", destination: "/vi/themes/:id" },
     ];
   },
 };

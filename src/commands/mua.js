@@ -1,10 +1,10 @@
 import { ActionRowBuilder, ButtonBuilder, ButtonStyle, EmbedBuilder, MessageFlags, PermissionFlagsBits, SlashCommandBuilder } from "discord.js";
 import { config } from "../config.js";
-import { PLANS } from "../license.js";
+import { PLANS, getPlan } from "../license.js";
 import { alert } from "../alerts.js";
 import { PayError, createPaymentLink, payosEnabled } from "../pay/payos.js";
 import { StripeError, createCheckoutSession, stripeEnabled } from "../pay/stripe.js";
-import { DAY_CHOICES, ONE_OFF, PRICES_USD, amountCents, amountVnd, closeOrder, createOrder, daysFor, describeOrder, monthsFor, newOrderCode, planLabel, setCheckoutUrl, setProviderRef } from "../pay/orders.js";
+import { DAY_CHOICES, MAX_PENDING_PER_GUILD, ONE_OFF, PRICES_USD, amountCents, amountVnd, closeOrder, createOrder, daysFor, describeOrder, monthsFor, newOrderCode, pendingCount, planLabel, setCheckoutUrl, setProviderRef } from "../pay/orders.js";
 import { isAdmin } from "../utils/guards.js";
 import * as humor from "../humor/lines.js";
 
@@ -49,12 +49,29 @@ export default {
     }
 
     const plan = interaction.options.getString("goi");
+    // the one-off is for servers that are still on the free plan; a server that already pays does not need it
+    if (ONE_OFF[plan] && getPlan(interaction.guildId).rank > 0) return reply("Server đang có gói trả phí rồi, không cần mua Dựng giúp. Muốn gia hạn thì chọn Pro hoặc Plus.");
     const days = daysFor(plan, interaction.options.getInteger("ngay") ?? 30);
     const amount = provider === "stripe" ? amountCents(plan, days) : amountVnd(plan, days);
-    const orderCode = newOrderCode();
+    if (pendingCount(interaction.guildId) >= MAX_PENDING_PER_GUILD) {
+      return reply("Server này đang có sẵn vài đơn chờ thanh toán rồi. Trả một đơn cũ, hoặc đợi chừng 35 phút cho đơn cũ hết hạn rồi tạo đơn mới nhé.");
+    }
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    createOrder({ orderCode, guildId: interaction.guildId, userId: interaction.user.id, channelId: interaction.channelId, plan, days, amount, provider });
+    // Two buyers in the same second can draw the same code, so a taken code is simply redrawn
+    let orderCode;
+    for (let attempt = 0; ; attempt += 1) {
+      orderCode = newOrderCode();
+      try {
+        createOrder({ orderCode, guildId: interaction.guildId, userId: interaction.user.id, channelId: interaction.channelId, plan, days, amount, provider });
+        break;
+      } catch (error) {
+        if (attempt >= 4) {
+          console.error("Could not create an order:", error);
+          return interaction.editReply({ content: `Thầu chưa tạo được đơn lúc này. Thử lại sau chút, hoặc ${config.contactText.toLowerCase()}` });
+        }
+      }
+    }
     try {
       const urls = { returnUrl: `${config.siteUrl}/?thanhtoan=ok`, cancelUrl: `${config.siteUrl}/?thanhtoan=huy` };
       let link;

@@ -12,6 +12,7 @@ import { applyFix, fixIdsOf, getFix, latestReport, reports, runAudit } from "../
 import { gateAutomod, removeAutomod, syncAutomod } from "../automod/index.js";
 import { ruleLabels } from "../humor/automod.js";
 import { roleProblem } from "../onboarding/safety.js";
+import { stopLockdown } from "../security/guard.js";
 import { PRICES_USD, DAY_CHOICES, ONE_OFF, amountCents, amountVnd, describeOrder, recentOrders } from "../pay/orders.js";
 import { panelPayload, postTicketPanel } from "../tickets/panel.js";
 import { listOpen } from "../tickets/store.js";
@@ -296,31 +297,13 @@ export async function fix(guild, body) {
   }
 }
 
-// Puts back exactly what the bot recorded when it started the lockdown: the verification level and each channel's SendMessages
-// overwrite for @everyone. It never touches a channel or a level the lockdown record does not name.
+// Goes through the same code as the automatic unlock and /khoakhan: a channel or a verification level that someone changed by hand
+// after the lockdown is left alone, and two unlocks at once cannot both run.
 export async function unlockLockdown(guild) {
-  const lock = getSection(guild.id, "security").lockdown;
-  if (!lock.active) throw new HttpError(409, "Server không đang trong chế độ khoá. Khỏi mở gì hết.");
-  const everyone = guild.roles?.everyone ?? guild.roles?.cache?.get(guild.id);
-  let failed = 0;
-  if (lock.prevVerification !== null && typeof guild.setVerificationLevel === "function") {
-    try {
-      await guild.setVerificationLevel(lock.prevVerification, "Mở khoá server");
-    } catch {
-      failed += 1;
-    }
-  }
-  const state = { neutral: null, allow: true, deny: false };
-  for (const entry of lock.channels) {
-    const channel = guild.channels.cache.get(entry.id);
-    if (!channel?.permissionOverwrites?.edit || !everyone) continue;
-    try {
-      await channel.permissionOverwrites.edit(everyone, { SendMessages: state[entry.sendMessages] ?? null }, { reason: "Mở khoá server" });
-    } catch {
-      failed += 1;
-    }
-  }
-  patchSection(guild.id, "security", { lockdown: { active: false, since: 0, prevVerification: null, channels: [] } });
+  if (!getSection(guild.id, "security").lockdown.active) throw new HttpError(409, "Server không đang trong chế độ khoá. Khỏi mở gì hết.");
+  const result = await stopLockdown(guild, { reason: "Mở khoá server" });
+  if (!result.ok) throw new HttpError(409, result.reason === "busy" ? "Thầu đang mở khoá server này rồi. Đợi chút rồi xem lại." : "Server không đang trong chế độ khoá. Khỏi mở gì hết.");
+  const failed = result.failed.length;
   return {
     value: getSection(guild.id, "security"),
     applied: failed === 0,

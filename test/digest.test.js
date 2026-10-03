@@ -574,3 +574,32 @@ test("the new files have no em dash and never mention a tool or vendor", () => {
     for (const word of banned) assert.ok(!code.toLowerCase().includes(word), `${file} mentions ${word}`);
   }
 });
+
+test("the digest job spreads a crowd of due servers over several runs instead of auditing them all at once", async () => {
+  const guilds = Array.from({ length: 25 }, () => fakeGuild());
+  for (const g of guilds) setSection(g.id, "digest", { enabled: true, channelId: CH, weekday: 1, hour: 9 });
+  const client = clientOf(...guilds);
+  const sent = [];
+  const send = async (guild) => (sent.push(guild.id), { ok: true });
+  const first = await runDigestJob(client, { now: MON, timeZone: TZ, send });
+  assert.equal(first.length, 20);
+  const second = await runDigestJob(client, { now: MON + 10 * 60_000, timeZone: TZ, send });
+  assert.equal(second.length, 5);
+  assert.equal(new Set(sent).size, 25, "everyone got one, nobody got two");
+  assert.equal(sent.length, 25);
+  assert.deepEqual(await runDigestJob(client, { now: MON + 20 * 60_000, timeZone: TZ, send }), []);
+});
+
+test("old join and AutoMod counts are pruned after the job runs, and funnel events are kept", async () => {
+  const { track } = await import("../src/analytics.js");
+  const guildId = gid();
+  const old = MON - 120 * DAY;
+  track(guildId, "join", old);
+  track(guildId, "automod_block", old);
+  track(guildId, "paid", old);
+  track(guildId, "join", MON - DAY);
+  await runDigestJob(clientOf(), { now: MON, timeZone: TZ, send: async () => ({ ok: true }) });
+  assert.equal(countEvents(guildId, "join", 0), 1, "only the recent join is left");
+  assert.equal(countEvents(guildId, "automod_block", 0), 0);
+  assert.equal(countEvents(guildId, "paid", 0), 1, "the owner's funnel is not pruned");
+});

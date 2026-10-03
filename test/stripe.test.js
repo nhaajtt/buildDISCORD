@@ -194,3 +194,14 @@ test("/mua marks a Stripe order failed when Stripe is down", async () => {
   const failed = orders.recentOrders(50).find((o) => o.provider === "stripe" && o.status === "FAILED");
   assert.ok(failed);
 });
+
+test("checkout accepts cards only, so a payment is confirmed on the spot and never settles after the order stopped being watched", async () => {
+  let form;
+  stubFetch((url, init) => {
+    form = new URLSearchParams(init.body);
+    return { body: { id: "cs_live_2", url: "https://checkout.stripe.com/c/pay/cs_live_2" } };
+  });
+  await stripe.createCheckoutSession({ orderCode: 43, guildId: "g1", productName: "Pro", amountCents: 399, successUrl: "https://x.test/ok", cancelUrl: "https://x.test/huy", now: NOW });
+  assert.equal(form.get("payment_method_types[0]"), "card");
+  assert.equal(form.get("payment_method_types[1]"), null);
+});

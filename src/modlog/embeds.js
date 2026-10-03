@@ -33,7 +33,8 @@ export function diffPermissions(oldBits, newBits) {
   const before = new PermissionsBitField(BigInt(oldBits));
   const after = new PermissionsBitField(BigInt(newBits));
   // a.missing(b) lists what b has and a lacks
-  return { added: before.missing(after), removed: after.missing(before) };
+  // Administrator makes missing() answer nothing, so ask without that shortcut
+  return { added: before.missing(after, false), removed: after.missing(before, false) };
 }
 
 export function roleEmbed({ roleId, roleName, added, removed }) {

@@ -1,0 +1,23 @@
+import { getDb } from "./db.js";
+
+// Everything the bot keeps about a server except what billing needs (licenses, usage counters, orders) and the anonymous
+// funnel counts, which hold only a server id and a time. Used by /xoadulieu so "forget this server" really forgets it.
+const BY_GUILD = ["custom_themes", "backups", "scores", "recurring_events", "tickets", "audit_reports", "xp", "giveaways", "polls", "mod_cases", "role_menus"];
+
+export function purgeGuildData(guildId) {
+  const db = getDb();
+  const id = String(guildId);
+  const removed = {};
+  db.exec("BEGIN");
+  try {
+    // entries and votes hang off giveaways and polls, so they go first
+    db.prepare("DELETE FROM giveaway_entries WHERE giveaway_id IN (SELECT id FROM giveaways WHERE guild_id = ?)").run(id);
+    db.prepare("DELETE FROM poll_votes WHERE poll_id IN (SELECT id FROM polls WHERE guild_id = ?)").run(id);
+    for (const table of BY_GUILD) removed[table] = Number(db.prepare(`DELETE FROM ${table} WHERE guild_id = ?`).run(id).changes);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  }
+  return removed;
+}

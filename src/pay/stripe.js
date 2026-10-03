@@ -57,6 +57,8 @@ export async function createCheckoutSession({ orderCode, guildId, productName, a
     headers: { "content-type": "application/x-www-form-urlencoded", "idempotency-key": `order-${orderCode}` },
     body: encode({
       mode: "payment",
+      // Cards confirm at once. A delayed method (bank debit) could settle after the session and the order are no longer watched.
+      payment_method_types: ["card"],
       client_reference_id: String(orderCode),
       success_url: successUrl,
       cancel_url: cancelUrl,
