@@ -192,7 +192,7 @@ Everything that decides something is a plain module tested with a fake Discord s
 - **Operations you can leave alone.** A heartbeat-based Docker health check, alerts that cannot flood a channel, graceful shutdown, and a self-update that rolls back unless the new version becomes healthy: `src/healthcheck.js`, `src/alerts.js`, `scripts/update.sh`.
 - **A website that cannot drift from the bot.** The theme data on the site is generated from the bot's own code, and a test compares the website's port of the merge with the bot for all 561 mixes: `scripts/export-web-data.js`, `test/webdata.test.js`.
 
-**Numbers:** about 4,600 lines of bot code in 73 files, 128 tests in 11 files that run in about 9 seconds, 17 slash commands, 8 database tables, 2 background jobs, 2 runtime dependencies, an arm64 Docker image of about 190 MB, and 11 themes that combine into 561 plans (any mix of up to four) of up to 22 roles, 13 categories and 54 channels. The full story, including what is still missing, is in [docs/devlog.md](docs/devlog.md).
+**Numbers:** about 4,600 lines of bot code in 73 files, 128 tests in 11 files that run in about 9 seconds, 17 slash commands, 8 database tables, 2 background jobs, 2 runtime dependencies, an arm64 Docker image of 187 MB, and 11 themes that combine into 561 plans (any mix of up to four) of up to 22 roles, 13 categories and 54 channels. The full story, including what is still missing, is in [docs/devlog.md](docs/devlog.md).
 
 ## Roadmap
 

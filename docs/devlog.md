@@ -27,7 +27,7 @@ These were measured on the repository, not estimated.
 | One theme builds | 8 to 10 roles, 4 to 7 categories, 19 to 26 channels, 10 rules |
 | Largest mix of four themes | 22 roles, 13 categories, 54 channels (duplicates merged) |
 | Runtime dependencies of the bot | 2 (`discord.js`, `dotenv`) |
-| Docker image on the Pi (arm64) | 186 MB at the first deploy (re-measured below) |
+| Docker image on the Pi (arm64) | 186 MB at the first deploy, 187 MB with every feature |
 | CI | 3 jobs (tests and syntax, website build, image build); every run so far passed |
 | Test suite wall time | about 9 s for 128 tests (it was about 38 s for 29 until the builder's pause became configurable, see Bugs) |
 | Website first load JS | 165 kB for the landing page, 155 kB for the devlog page (Next.js build output) |
