@@ -295,6 +295,15 @@ The first site was a good-looking brochure. For a project I want people to judge
 
 **Checking it.** A headless Chrome script (driven over the DevTools protocol, kept outside the repository) walks the page: it toggles themes, switches the AI level, edits the blueprint through the real inputs, copies a command, and then checks console errors, horizontal overflow at desktop and phone widths, broken anchors, duplicate ids and the reduced-motion path. It caught two real problems: a stamp scaled up inside the pinned scene made the page scroll sideways, and a global animation tried to target elements that do not exist on the devlog page.
 
+### Phase 16: the clean-up pass
+
+When the features were done I did a hygiene pass over the repository, my computer and the Raspberry Pi, because what you leave behind is part of the work.
+
+- **The repository.** I checked the tree and the history for secrets, database files, build output and tool configuration files. None are tracked, and the commit messages are plain descriptions of the change.
+- **My computer.** I removed the Next.js build output (94 MB), the temporary Vercel token file that `vercel link` creates, the local test data folder, and 73 temporary directories left behind by test runs and headless browser sessions. I kept `node_modules` (a reinstall away) and the `.env`.
+- **A record I did not want to lose.** The local test data held the record of what the first version had built on my test server. I copied it to the Pi, where the importer from Phase 7 picked it up on the next start and renamed the file, so `/nuke` on the Pi still knows what to remove there.
+- **The Pi.** I rebuilt the container from the new commit and waited for it to report healthy, then removed 24 dangling images and the build cache with `docker image prune` and `docker builder prune` (images went from 29 to 5, and 161 MB of cache was freed). The music bot, its audio server, the monitor and the companion bots kept running the whole time.
+
 ## Bugs and what they taught me
 
 | Symptom | Root cause | Fix | Guard now |
