@@ -95,6 +95,7 @@ The update script fetches new commits, accepts fast-forwards only, rebuilds, wai
 | `CONTACT_TEXT` | no | Shown by `/goi`: how a customer buys a code |
 | `ALERT_WEBHOOK_URL` | no | Discord webhook that receives errors and a "started" message |
 | `DATA_DIR` | no | Where the database lives (default `data`) |
+| `BUILD_STEP_DELAY_MS` | no | Pause after each created channel or role, default 350 (tests use 0) |
 
 ## What is stored
 

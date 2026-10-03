@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+
+- Interactive website: a drafting table in the hero that shows the bot's real output for every mix of themes, a working miniature of the blueprint editor, three real AI answers, plan cards, copyable commands, a drafting crosshair and a scroll ruler, in a brighter blueprint style. Reduced motion, touch and no-script all have plain fallbacks.
+- The devlog page renders `docs/devlog.md`, with contents, copy buttons and figure cards. The devlog itself is now a full technical write-up.
+- Website data comes from the bot (`scripts/export-web-data.js`, `scripts/sample-designs.js`) and a test fails when it goes stale.
+- Build pacing is configurable (`BUILD_STEP_DELAY_MS`) and the test suite went from about 38 seconds to about 2.5.
+- A build that fails halfway now saves what it created, so `/nuke` can clean it up.
+- A Google 5xx answer is retried with a pause and reported as "unavailable" instead of "unusable".
+
 ## 1.1.0
 
 - Website live at builddiscord.vercel.app, with plan prices in US dollars ($9.99 and $19.99 per 30 days), Instagram and website contact links, and a refund rule in the terms.
