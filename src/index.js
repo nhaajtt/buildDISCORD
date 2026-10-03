@@ -7,7 +7,8 @@ import { alert } from "./alerts.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const client = new Client({ intents: [GatewayIntentBits.Guilds] });
+// GuildMessages is not privileged and gives no message content; it is used to see Discord's own "member joined" notice
+const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages] });
 
 client.commands = new Collection();
 for (const file of readdirSync(path.join(__dirname, "commands")).filter((f) => f.endsWith(".js"))) {

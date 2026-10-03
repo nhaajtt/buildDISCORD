@@ -82,6 +82,32 @@ CREATE TABLE IF NOT EXISTS orders (
   paid_at INTEGER
 );
 CREATE INDEX IF NOT EXISTS orders_status ON orders (status);
+CREATE TABLE IF NOT EXISTS guild_settings (
+  guild_id TEXT PRIMARY KEY,
+  data TEXT NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+CREATE TABLE IF NOT EXISTS tickets (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL UNIQUE,
+  user_id TEXT NOT NULL,
+  type TEXT NOT NULL,
+  status TEXT NOT NULL,
+  claimed_by TEXT,
+  created_at INTEGER NOT NULL,
+  closed_at INTEGER,
+  close_reason TEXT
+);
+CREATE INDEX IF NOT EXISTS tickets_guild ON tickets (guild_id, status);
+CREATE TABLE IF NOT EXISTS audit_reports (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  score INTEGER NOT NULL,
+  report TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS audit_guild ON audit_reports (guild_id, created_at DESC);
 `;
 
 // Imports the per-server JSON files written by the first version, then sets them aside

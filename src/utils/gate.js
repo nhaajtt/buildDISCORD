@@ -21,6 +21,8 @@ const featureMessages = {
   humor: `Chọn mức hài là đặc quyền gói Pro. Gói miễn phí được mức troll mặc định thôi. ${UPGRADE}`,
   games: `Mini-game và bảng xếp hạng là của gói Pro trở lên. ${UPGRADE}`,
   events: `Sự kiện định kỳ là của gói Pro trở lên. ${UPGRADE}`,
+  tickets: `Hệ thống ticket là của gói Pro trở lên. ${UPGRADE}`,
+  automodFull: `AutoMod mức gắt, chặn link và tuỳ chỉnh sâu là của gói Pro trở lên. ${UPGRADE}`,
 };
 
 // Returns null when the server's plan includes the feature, or the funny refusal to show
