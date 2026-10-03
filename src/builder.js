@@ -35,7 +35,7 @@ async function ensureRole(guild, def, record) {
   if (existing) return existing;
   const role = await guild.roles.create({
     name: def.name,
-    color: def.color,
+    colors: { primaryColor: def.color },
     hoist: Boolean(def.hoist),
     permissions: def.perms ? new PermissionsBitField(def.perms.map((p) => PermissionFlagsBits[p])) : [],
     reason: "Thầu xây dựng thi công",
