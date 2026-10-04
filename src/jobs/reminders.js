@@ -20,7 +20,7 @@ async function deliver(client, row, late) {
     const channel = await client.channels.fetch(row.channel_id);
     if (!channel?.send || channel.guild?.id !== row.guild_id) return "failed";
     // Only this one person can be pinged, whatever the text says
-    await channel.send({ content: lines.channelBody(row.user_id, body, late), allowedMentions: { parse: [], users: [row.user_id] } });
+    await channel.send({ content: lines.channelBody(row.user_id, late), allowedMentions: { parse: [], users: [row.user_id] } });
     return "channel";
   } catch {
     return "failed";

@@ -86,8 +86,8 @@ test("closed DMs fall back to the channel, mentioning only that person", async (
   assert.deepEqual(posts[0].payload.allowedMentions, { parse: [], users: [member.id] });
   const text = posts[0].payload.content;
   assert.ok(text.startsWith(`<@${member.id}>`));
-  assert.ok(!text.includes(`<@${bystander.id}>`), "the pasted mention is defused");
-  assert.ok(!/@everyone(?!​)/.test(text));
+  assert.ok(!text.includes(`<@${bystander.id}>`), "the pasted mention is never repeated");
+  assert.ok(!text.includes("họp"), "the private text never reaches the channel");
   await gw.runJob("reminders");
   assert.equal(gw.sentTo(channel, (r) => /Nhắc việc/.test(textOf(r.payload))).length, 1);
 });

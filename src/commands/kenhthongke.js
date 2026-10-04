@@ -31,7 +31,8 @@ function rememberOwn(guildId, channelId) {
 function forgetOwn(guildId, channelId) {
   const record = loadRecord(guildId);
   const own = (record.statChannels ?? []).includes(channelId);
-  record.channels = record.channels.filter((id) => id !== channelId);
+  // A channel the bot did not build for this feature may be on the list for another reason, so only its own are dropped
+  if (own) record.channels = record.channels.filter((id) => id !== channelId);
   record.statChannels = (record.statChannels ?? []).filter((id) => id !== channelId);
   saveRecord(guildId, record);
   return own;
@@ -128,7 +129,8 @@ export default {
       if (settings.channels.some((c) => c.channelId === picked.id)) return reply(lines.already(picked.id));
     } else {
       const me = guild.members?.me;
-      if (!me?.permissions?.has(P.ManageChannels)) return reply(lines.createFailed(["Quản lý kênh"]));
+      const lacks = [[P.ManageChannels, "Quản lý kênh"], [P.ManageRoles, "Quản lý role"], [P.ViewChannel, "Xem kênh"], [P.Connect, "Kết nối"]].filter(([flag]) => !me?.permissions?.has(flag)).map(([, label]) => label);
+      if (lacks.length) return reply(lines.createFailed(lacks));
       try {
         channel = await guild.channels.create({
           name: renderStat(template, statValue(guild, kind)),
@@ -143,9 +145,19 @@ export default {
       rememberOwn(guildId, channel.id);
     }
 
-    patchSection(guildId, "stats", { enabled: true, channels: [...settings.channels, { channelId: channel.id, kind, template }] });
+    // Read again: the channel took a moment to build and the list may have changed meanwhile
+    const fresh = getSection(guildId, "stats");
+    if (fresh.channels.some((c) => c.channelId === channel.id)) return reply(lines.already(channel.id));
+    if (fresh.channels.length >= getPlan(guildId).statsChannels) {
+      if (make) {
+        forgetOwn(guildId, channel.id);
+        await channel.delete(lines.reason).catch(() => {});
+      }
+      return reply(gateLimit(guildId, "statsChannels", fresh.channels.length, "kênh thống kê") ?? lines.needOne);
+    }
+    patchSection(guildId, "stats", { enabled: true, channels: [...fresh.channels, { channelId: channel.id, kind, template }] });
     track(guildId, "feature_on");
-    const notes = [lines.added(channel.id, kind, settings.channels.length + 1, getPlan(guildId).statsChannels)];
+    const notes = [lines.added(channel.id, kind, fresh.channels.length + 1, getPlan(guildId).statsChannels)];
     if (make) notes.push(lines.created(channel.id));
     const lacking = missingToRename(guild, channel);
     if (lacking.length) notes.push(lines.addedNoManage(lacking));

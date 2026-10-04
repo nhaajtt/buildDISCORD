@@ -17,6 +17,14 @@ const cooldown = createCooldown({ ms: COOLDOWN_MS });
 const busy = new Set();
 // One notice per person per 10 minutes, so a broken setup cannot turn into a stream of messages
 const noticed = createCooldown({ ms: NOTICE_GAP_MS, keep: 500 });
+// Rooms being created right now per server and per category, so a burst of joins cannot slip past the caps between check and create
+const pendingGuild = new Map();
+const pendingParent = new Map();
+const bump = (map, key, by) => {
+  const next = (map.get(key) ?? 0) + by;
+  if (next > 0) map.set(key, next);
+  else map.delete(key);
+};
 
 // The names of what the bot lacks to build a room under `parent` (or anywhere when there is no category)
 export function missingToBuild(guild, parent = null) {
@@ -81,7 +89,7 @@ export async function removeIfEmpty(guild, channelId) {
 }
 
 async function makeRoom(guild, member, lobby, settings, now) {
-  if (countRooms(guild.id) >= ROOM_CAP) {
+  if (countRooms(guild.id) + (pendingGuild.get(guild.id) ?? 0) >= ROOM_CAP) {
     await tell(guild, member, lines.failCap(ROOM_CAP), `đã đủ ${ROOM_CAP} phòng tạm`);
     return { ok: false, reason: "cap" };
   }
@@ -94,13 +102,15 @@ async function makeRoom(guild, member, lobby, settings, now) {
   if (parent) {
     let inside = 0;
     for (const c of guild.channels.cache.values()) if (c.parentId === parent.id) inside += 1;
-    if (inside >= MAX_IN_CATEGORY) {
+    if (inside + (pendingParent.get(parent.id) ?? 0) >= MAX_IN_CATEGORY) {
       await tell(guild, member, lines.failCategoryFull, "danh mục đã đầy kênh");
       return { ok: false, reason: "full" };
     }
   }
 
   let channel;
+  bump(pendingGuild, guild.id, 1);
+  if (parent) bump(pendingParent, parent.id, 1);
   try {
     channel = await guild.channels.create({
       name: roomName(settings.nameTemplate, member.displayName),
@@ -111,11 +121,15 @@ async function makeRoom(guild, member, lobby, settings, now) {
       reason: lines.reason,
     });
   } catch (error) {
+    bump(pendingGuild, guild.id, -1);
+    if (parent) bump(pendingParent, parent.id, -1);
     await tell(guild, member, lines.failGeneric, `không dựng được phòng (${error?.message ?? "lỗi lạ"})`);
     return { ok: false, reason: "create" };
   }
   // Recorded before the move, so a crash in between leaves a row the sweep can clean up
   recordRoom({ channelId: channel.id, guildId: guild.id, ownerId: member.id, now });
+  bump(pendingGuild, guild.id, -1);
+  if (parent) bump(pendingParent, parent.id, -1);
 
   // The person may have left the lobby while the room was being made
   if (guild.voiceStates?.cache?.get(member.id)?.channelId !== lobby.id) {

@@ -52,8 +52,9 @@ export function createJoinQueue({ worker, gapMs = 1000, maxPerGuild = 200, now =
         state.ids.delete(job.userId);
       }
     } finally {
-      // An idle server leaves nothing behind
+      // An idle server leaves nothing behind. Both are cleared in the same step, so a join arriving right now starts a new drain.
       guilds.delete(guildId);
+      running.delete(guildId);
     }
   }
 
@@ -71,7 +72,7 @@ export function createJoinQueue({ worker, gapMs = 1000, maxPerGuild = 200, now =
       state.ids.add(job.userId);
       if (!running.has(guildId)) {
         running.add(guildId);
-        const done = drain(guildId, state).finally(() => running.delete(guildId));
+        const done = drain(guildId, state);
         pending.add(done);
         done.finally(() => pending.delete(done));
       }
@@ -92,7 +93,9 @@ export function kickRefusal(guild, member, welcome) {
   if (member.id === guild.ownerId) return "owner";
   if (member.user?.bot) return "bot";
   const roles = member.roles?.cache;
-  for (const roleId of [welcome.verifyRoleId, welcome.newbieRoleId]) if (roleId && roles?.has(roleId)) return "welcomed";
+  // Only the role earned by pressing the verify button counts. The newbie role is handed to every joiner by the welcome flow, so
+  // honouring it would let a young account walk past the filter just by joining.
+  if (welcome.verifyRoleId && roles?.has(welcome.verifyRoleId)) return "welcomed";
   const lacking = missingPerms(guild, ["KickMembers"]);
   if (lacking.length) return "perm";
   if (!member.kickable || (member.roles?.highest?.position ?? 0) >= botTop(guild)) return "above";
@@ -168,7 +171,11 @@ export function handleYoungJoin(message, { queue = youngQueue } = {}) {
     if (message?.type !== MessageType.UserJoin || !message.guild) return "ignored";
     if (!message.author || message.author.bot) return "ignored";
     const guild = message.guild;
-    if (getSection(guild.id, "security").minAccountAgeDays <= 0) return "off";
+    const minDays = getSection(guild.id, "security").minAccountAgeDays;
+    if (minDays <= 0) return "off";
+    // The join notice already carries the account's creation date, so an old account costs no fetch and no queue slot
+    const created = message.author.createdTimestamp;
+    if (Number.isFinite(created) && !young(created, Date.now(), minDays)) return "old";
     // The same notice delivered twice is one check
     if (message.id !== undefined && message.id !== null) {
       if (seen.has(message.id)) return "duplicate";

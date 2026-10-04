@@ -16,6 +16,22 @@ Các địa chỉ cần dùng, gom một chỗ:
 | Trang quản lý payOS (QR ngân hàng Việt Nam) | https://my.payos.vn |
 | Hướng dẫn của payOS | https://payos.vn/docs/ |
 
+## Có gì mới ở phiên bản 1.7
+
+Nếu bạn đã dùng bản 1.6, đây là những thứ mới và chỗ đọc chúng:
+
+| Mới | Làm gì | Đọc ở |
+| --- | --- | --- |
+| `/phongtam` | Phòng thoại tạm: bước vào một phòng chờ là có ngay phòng riêng cho mình, phòng trống thì tự dọn. Free 1 phòng chờ, Pro 3, Plus 5 | 7.8 |
+| `/kenhthongke` | Kênh thoại hiện con số thật (thành viên, boost, số kênh, số role), tự cập nhật mỗi 10 phút. Tối đa 4 kênh | 7.9 |
+| `/gopy` | Hộp góp ý: ai cũng gửi được, mọi người bấm vote, quản lý duyệt hoặc từ chối. Miễn phí | 7.10 |
+| `/nhacviec` | Nhờ thầu nhắc việc riêng cho mình qua tin nhắn riêng. Ai cũng dùng được, miễn phí | 7.11 |
+| `/hengio` (Pro) | Hẹn giờ đăng một tin nhắn mỗi ngày hoặc mỗi tuần, không ping ai. Pro 5 tin, Plus 15 tin | 7.12 |
+| Lọc tài khoản mới | Báo động (hoặc đuổi) tài khoản Discord mới tạo vài ngày mà vào server. Miễn phí | 8.5 |
+| Từ khoá chặn riêng, `/automod tukhoa` | Thêm danh sách từ cấm của riêng server. Discord tự chặn, bot không đọc tin nhắn. Free 20 từ, Pro 200, Plus 500 | 8.3 |
+| Bảng điều khiển có thêm tab | **Giveaway**, **Menu role**, **Phòng thoại**, **Góp ý**, cùng thẻ từ khoá chặn và thẻ tuổi tài khoản | 9 |
+| `/xoadulieu` xoá sạch hơn nữa | Xoá luôn phòng tạm, tin hẹn giờ, lời nhắc và góp ý (kèm phiếu vote) | 11.2 |
+
 ## Có gì mới ở phiên bản 1.6
 
 Nếu bạn đã dùng bản cũ, đây là những thứ mới và chỗ đọc chúng:
@@ -47,8 +63,8 @@ Nếu bạn đã dùng bản cũ, đây là những thứ mới và chỗ đọc
 4. Dựng cả server bằng `/build`
 5. Thiết kế bằng AI: `/thietke`
 6. Theme riêng, sao lưu và khôi phục
-7. Giữ server sôi động: điểm danh, mini-game, sự kiện, hạng hoạt động, menu role, giveaway, bình chọn
-8. Chăm sóc và bảo vệ server: chào người mới, khám sức khoẻ, AutoMod, ticket, chống raid, khoá khẩn cấp, nhật ký, lệnh xử lý, bản tin tuần, trợ lý viết giúp, `/trogiup`
+7. Giữ server sôi động: điểm danh, mini-game, sự kiện, hạng hoạt động, menu role, giveaway, bình chọn, phòng thoại tạm, kênh thống kê, hộp góp ý, nhắc việc, tin nhắn hẹn giờ
+8. Chăm sóc và bảo vệ server: chào người mới, khám sức khoẻ, AutoMod và từ khoá chặn riêng, ticket, chống raid và lọc tài khoản mới, khoá khẩn cấp, nhật ký, lệnh xử lý, bản tin tuần, trợ lý viết giúp, `/trogiup`
 9. Bảng điều khiển trên web
 10. Gói, giá, dùng thử và thanh toán
 11. Dọn dẹp và xoá dữ liệu
@@ -308,7 +324,7 @@ Bot chỉ biết **ai nhắn ở kênh nào**, không đọc nội dung tin nh�
 
 Về voice: bot chỉ tính phút khi bạn **không tắt tai nghe (deafen)**, không ở kênh AFK, và trong phòng có **ít nhất một người khác** đang nghe. Ngồi một mình hay treo máy không được điểm.
 
-Bảng xếp hạng điểm hoạt động xem bằng `/bangxephang loai:Hoạt động chat và voice`. Bot lưu cho mỗi thành viên: điểm, số tin nhắn (chỉ là số đếm), số phút voice. Không lưu chữ nào. Mỗi server mở tối đa 10 bình chọn cùng lúc.
+Bảng xếp hạng điểm hoạt động xem bằng `/bangxephang loai:Hoạt động chat và voice`. Bot lưu cho mỗi thành viên: điểm, số tin nhắn (chỉ là số đếm), số phút voice. Không lưu chữ nào. (Những thứ bản 1.7 lưu thêm nằm ở mục 7.8 đến 7.12 và 8.3, và được xoá bởi `/xoadulieu`, mục 11.2.) Mỗi server mở tối đa 10 bình chọn cùng lúc.
 
 ### 7.5. Menu nhận role bằng nút: `/vaitro` (admin)
 
@@ -346,6 +362,111 @@ Cần quyền **Quản lý tin nhắn** (Manage Messages). Dùng được ở m�
 2. Thành viên bấm nút để bầu. **Mỗi người một phiếu**, bấm lựa chọn khác thì đổi phiếu. Tin nhắn cập nhật ngay số phiếu và thanh phần trăm cho mọi người xem.
 3. Bình chọn **ẩn danh**: tin nhắn chỉ hiện số phiếu, không hiện ai bầu gì.
 4. Người tạo (và staff) bấm nút **Đóng** để chốt kết quả. Kết quả đăng đúng một lần.
+
+### 7.8. Phòng thoại tạm: `/phongtam` (admin)
+
+**Phòng thoại tạm** là kiểu "bước vào để có phòng riêng". Bạn chọn một kênh thoại làm **phòng chờ**, ví dụ kênh tên "➕ Tạo phòng". Ai bước vào phòng chờ, thầu dựng ngay một phòng thoại mới mang tên người đó (ví dụ "Phòng của Lan") rồi **chuyển người đó vào phòng mới**. Khi người cuối cùng ra khỏi, phòng **tự biến mất**. Server không bị đầy phòng trống.
+
+Số phòng chờ tối đa: **Miễn phí 1, Pro 3, Plus 5**.
+
+**Cài đặt từng bước:**
+
+1. Tạo sẵn một kênh thoại (bấm dấu `+` cạnh một danh mục, chọn **Kênh thoại**, đặt tên, ví dụ "➕ Tạo phòng").
+2. Gõ `/phongtam caidat kenh:<kênh thoại vừa tạo>`. Thầu bật tính năng và ghi nhớ kênh đó là phòng chờ.
+3. Muốn chỉnh thêm, gõ lại `/phongtam caidat` với các ô (đều không bắt buộc):
+   - **danhmuc**: danh mục sẽ chứa các phòng tạm. Bỏ trống thì phòng nằm cùng danh mục với phòng chờ.
+   - **mauten**: mẫu tên phòng. Chữ `{name}` được thay bằng tên người tạo. Ví dụ `Phòng của {name}`.
+   - **gioihan**: số người tối đa mỗi phòng (0 là không giới hạn, tối đa 99).
+4. Gõ `/phongtam trangthai` để kiểm tra: phòng chờ nào đang chạy, danh mục, mẫu tên, số phòng tạm đang có, và **bot còn thiếu quyền nào**.
+
+Các lệnh còn lại:
+- `/phongtam them kenh:<kênh thoại>`: thêm một phòng chờ nữa (trong giới hạn của gói).
+- `/phongtam bo kenh:<phòng chờ>`: bỏ một phòng chờ. Kênh vẫn còn trên server, chỉ là không còn tạo phòng nữa.
+- `/phongtam tat`: tắt tính năng. Phòng nào đang có người thì giữ, trống thì dọn.
+
+**Thành viên thấy gì:** bước vào phòng chờ, vài giây sau được chuyển sang phòng riêng của mình. **Chủ phòng** được thêm đúng bốn quyền, và chỉ trong phòng đó: xem, vào, **đổi tên phòng**, và **chuyển người ra khỏi phòng**. Chủ phòng không có thêm quyền gì ở chỗ khác trong server.
+
+Những giới hạn để chống lạm dụng: mỗi người chỉ tạo một phòng mỗi 10 giây, mỗi server tối đa 50 phòng tạm cùng lúc. Thầu **chỉ xoá những phòng nó tự tạo và đã ghi lại**, không bao giờ xoá kênh bạn tự làm, kể cả kênh tên giống.
+
+Thầu cần các quyền **Quản lý kênh**, **Di chuyển thành viên**, **Quản lý role**, **Xem kênh** và **Kết nối**. Mời bot với quyền Administrator thì đủ hết.
+
+Bot lưu cho mỗi phòng tạm: ID kênh, ID người tạo và thời điểm tạo, cho tới khi phòng bị xoá. Không lưu gì về cuộc nói chuyện.
+
+### 7.9. Kênh thống kê: `/kenhthongke` (admin)
+
+**Kênh thống kê** là một kênh thoại mà **cái tên hiện một con số thật**, ví dụ "Thành viên: 128". Cứ vài phút thầu đổi tên cho đúng số mới. Không ai vào kênh này để nói chuyện, nó chỉ để nhìn.
+
+Bốn loại số: **Thành viên**, **Lượt boost**, **Số kênh**, **Số role** (không đếm role @everyone). Mỗi server tối đa **4 kênh thống kê** (Miễn phí 1, Pro và Plus 4).
+
+**Cài đặt từng bước:**
+
+1. Gõ `/kenhthongke them loai:<loại số> tao:True`. Thầu **tự dựng một kênh thoại khoá** (không ai vào được) và ghi nhớ nó.
+   - Muốn dùng kênh thoại có sẵn của bạn thì thay `tao:True` bằng `kenh:<kênh thoại>`. Chỉ chọn một trong hai.
+   - Muốn đổi cách đặt tên, thêm `mauten:<mẫu>`. Mẫu **phải có `{n}`**, chỗ đó sẽ thành con số. Ví dụ `Thành viên: {n}` hoặc `👥 {n} người`.
+2. Thầu đổi tên kênh ngay lần đầu, sau đó **mỗi 10 phút** kiểm tra và chỉ đổi khi con số thay đổi.
+
+Các lệnh còn lại:
+- `/kenhthongke danhsach`: xem các kênh thống kê và con số hiện tại.
+- `/kenhthongke xoa kenh:<kênh>`: bỏ một kênh khỏi danh sách. Kênh do thầu dựng thì thầu xoá luôn. Kênh có sẵn của bạn thì giữ nguyên.
+- `/kenhthongke tat`: tắt cập nhật. Tên kênh giữ con số cuối cùng.
+
+**Vì sao 10 phút mà không nhanh hơn?** Discord chỉ cho một kênh đổi tên vài lần trong 10 phút. Đổi nhanh hơn thì Discord bắt chờ và có thể làm kẹt cả bot. Số liệu lệch vài phút là bình thường.
+
+Thầu cần quyền **Quản lý kênh** và **Xem kênh** ở kênh thống kê. Thiếu quyền thì lệnh báo rõ tên quyền còn thiếu.
+
+### 7.10. Hộp góp ý: `/gopy`
+
+**Hộp góp ý** cho **bất kỳ thành viên nào** gửi ý kiến cho server. Thầu đăng góp ý vào một kênh riêng, mọi người bấm **vote lên hoặc xuống**, và quản lý bấm **Duyệt**, **Từ chối** hoặc **Đã làm**. Miễn phí ở mọi gói.
+
+**Cài đặt (quản lý server, cần quyền Quản lý server):**
+
+1. Tạo một kênh chữ để nhận góp ý, ví dụ `#góp-ý`. Cho thầu quyền xem kênh, gửi tin và nhúng liên kết ở kênh đó.
+2. Gõ `/gopy caidat kenh:<kênh> bat:True`. Muốn cho thêm một nhóm staff cũng được duyệt (ngoài người có quyền Quản lý server), thêm `role:<role staff>`.
+3. Xem các góp ý đang mở bằng `/gopy danhsach`. Gỡ một góp ý bằng `/gopy xoa so:<số>`.
+
+**Thành viên gửi góp ý:** gõ `/gopy gui noidung:<ý kiến>` (tối đa 500 ký tự). Mỗi người gửi **tối đa 1 góp ý mỗi phút và 5 góp ý mỗi ngày**. Góp ý hiện ở kênh đã chọn kèm hai nút vote.
+
+**Vote:** mỗi người **một phiếu**. Bấm nút còn lại thì đổi phiếu, bấm lại đúng nút đó thì rút phiếu. Số phiếu cập nhật ngay trên tin nhắn.
+
+**Quản lý duyệt:** tin góp ý có thêm các nút **Duyệt**, **Từ chối**, **Đã làm**. Bấm nút thì hiện ô nhập **ghi chú** ngắn (có thể bỏ trống). Quyết định chỉ ghi **một lần**: hai staff bấm cùng lúc thì chỉ người bấm trước được tính. Sau khi quyết định, các nút biến mất và người gửi nhận một tin nhắn riêng báo kết quả (nếu họ đóng tin nhắn riêng thì không sao). Thầu kiểm tra lại quyền mỗi lần bấm, nên người bị rút quyền không bấm được nữa.
+
+Thầu không bao giờ ping ai khi đăng góp ý. Tên người gửi chỉ hiện trong khung tin.
+
+Bot lưu mỗi góp ý: ID người gửi, nội dung họ gõ, quyết định của staff cùng ghi chú, và mỗi phiếu vote theo ID thành viên (lên hoặc xuống). Phiếu không hiện ra ai bầu gì.
+
+### 7.11. Nhắc việc riêng: `/nhacviec`
+
+Nhờ thầu **nhắc một việc cho riêng bạn** sau một lúc hoặc vào một giờ nào đó. Thầu gửi lời nhắc bằng **tin nhắn riêng (DM)**. **Ai cũng dùng được, miễn phí**, không cần là admin.
+
+1. Gõ `/nhacviec tao noidung:<cần nhắc gì> saunua:<bao lâu>`. Danh sách có sẵn: 10 phút, 30 phút, 1 giờ, 3 giờ, 1 ngày, 3 ngày, 1 tuần.
+   - Muốn đặt đúng giờ thì dùng ô `luc` thay cho `saunua`, gõ dạng giờ:phút, ví dụ `luc:21:30`. Giờ đó còn ở phía trước hôm nay thì nhắc hôm nay, đã qua thì nhắc **ngày mai**. Chỉ chọn `saunua` hoặc `luc`, không chọn cả hai.
+2. Thầu trả lời riêng cho bạn: đã ghi sổ lời nhắc số mấy và sẽ nhắc lúc nào.
+3. Đến giờ, thầu nhắn tin riêng cho bạn.
+4. `/nhacviec danhsach`: xem các lời nhắc đang chờ. `/nhacviec xoa so:<số>`: xoá một lời nhắc của chính bạn (không ai xoá được lời nhắc của người khác).
+
+**Điều cần biết:**
+- Bạn phải **cho phép nhận tin nhắn riêng từ thành viên server** (Cài đặt người dùng, Quyền riêng tư và an toàn). Nếu thầu không nhắn riêng được, nó thử nhắn ở kênh nơi bạn tạo lời nhắc, và **chỉ nhắc tên bạn**, không ai khác.
+- Mỗi người chờ tối đa **10 lời nhắc** cùng lúc, mỗi lời tối đa 300 ký tự, hẹn xa nhất một năm.
+- Bot tắt đúng giờ nhắc thì khi bật lại nó gửi bù, kèm lời xin lỗi vì trễ.
+
+Bot lưu mỗi lời nhắc: ID của bạn, nội dung bạn gõ, giờ nhắc, và server cùng kênh nơi bạn tạo. Lời nhắc đã gửi xong bị xoá sau một tháng, mọi lời nhắc bị xoá sau tối đa một năm.
+
+### 7.12. Tin nhắn hẹn giờ: `/hengio` (admin, Pro)
+
+Hẹn thầu **đăng một tin nhắn vào một kênh đúng giờ, mỗi ngày hoặc mỗi tuần**: nhắc luật, chúc buổi sáng, thông báo lịch học. Số tin hẹn giờ: **Pro 5, Plus 15**. Miễn phí không có.
+
+1. Gõ `/hengio tao kenh:<kênh> noidung:<nội dung> gio:<HH:mm>`. Ví dụ `gio:08:00`. Giờ tính theo múi giờ của bot (mặc định giờ Việt Nam).
+   - Mỗi ngày: bỏ trống ô `thu`. Mỗi tuần: chọn `thu` là một thứ trong tuần.
+   - Nội dung tối đa 1500 ký tự. Muốn xuống dòng, gõ `\n` ở chỗ cần xuống dòng.
+2. Thầu báo số của tin hẹn và lần đăng đầu tiên.
+3. `/hengio thu`: **xem thử** nội dung sẽ trông thế nào, chỉ mình bạn thấy (gõ nội dung vào ô `noidung`, hoặc nhập `so` của một tin đã hẹn).
+4. `/hengio danhsach`: xem các tin đã hẹn. `/hengio xoa so:<số>`: xoá một tin hẹn.
+
+**Quan trọng: tin hẹn giờ không bao giờ ping ai**, kể cả khi nội dung có `@everyone` hay tên role. Nó chỉ hiện chữ thường. Muốn gọi cả nhóm thì đăng tay.
+
+Bot cần quyền **Xem kênh** và **Gửi tin nhắn** ở kênh đó. Nếu bot tắt đúng giờ đăng, khi bật lại nó đăng bù **một lần** nếu chưa quá 12 tiếng, trễ hơn thì bỏ lần đó và chờ lần kế. Mỗi lần chỉ đăng một lần, không bao giờ đăng đôi. Hết hạn gói thì thầu ngừng đăng, các tin hẹn vẫn được giữ, gia hạn lại là đăng tiếp.
+
+Bot lưu mỗi tin hẹn: kênh, nội dung bạn viết, giờ đăng và ID người tạo.
 
 ## 8. Chăm sóc và bảo vệ server
 
@@ -411,6 +532,19 @@ Lệnh:
 
 Lưu ý: bot chỉ sửa và xoá đúng những luật nó đã tạo và ghi nhớ. Mức Vừa dùng hình phạt "cho nghỉ chat", cần quyền Moderate Members. Mời bot với quyền Administrator thì không sao.
 
+**Từ khoá chặn riêng của server.** Ngoài các mức trên, bạn tự lập **danh sách từ cấm** của riêng server mình, ví dụ tên đối thủ, từ lóng hay chuyện bạn không muốn thấy. Cách làm vẫn là AutoMod của Discord: thầu ghi danh sách vào **một luật từ khoá gốc của Discord**, Discord là bên chặn. **Bot không bao giờ nhìn thấy tin nhắn.** Chạy được kể cả khi bạn chưa bật các mức ở trên.
+
+- `/automod tukhoa them tu:<từ>`: thêm từ. Thêm nhiều từ một lần bằng cách **ngăn cách bằng dấu phẩy**, ví dụ `tu:abc, xyz, từ nữa`. Dấu sao của Discord dùng được: `abc*` bắt mọi từ bắt đầu bằng "abc".
+- `/automod tukhoa danhsach`: xem danh sách (chia trang, chỉ mình bạn thấy).
+- `/automod tukhoa xoa tu:<từ>`: gỡ một từ (gõ vài chữ đầu, Discord gợi ý từ trong danh sách).
+- `/automod tukhoa xoahet`: xoá cả danh sách, thầu **hỏi xác nhận trước**.
+
+Số từ tối đa: **Miễn phí 20, Pro 200, Plus 500**. Quá giới hạn thì thầu nói rõ từ nào chưa nhận được. Thầu **từ chối** từ chứa link, tag người hay role, từ quá ngắn (một chữ, hoặc chỉ toàn dấu sao) và từ quá 60 ký tự, vì những từ đó chặn nhầm gần như mọi tin. Hết hạn gói thì danh sách vẫn được giữ, chỉ số từ trong giới hạn của gói Miễn phí còn hiệu lực, gia hạn lại là dùng đủ.
+
+Thầu cần quyền **Quản lý server** để tạo luật. `/automod trangthai` cho biết đang có bao nhiêu từ và luật đã tồn tại chưa. Bot chỉ sửa và xoá đúng luật từ khoá nó tạo, luật bạn tự làm trong Discord được giữ nguyên.
+
+Bot lưu danh sách từ bạn gõ (trong cài đặt AutoMod của server), không lưu tin nhắn nào bị chặn.
+
 ### 8.4. Ticket hỗ trợ: `/ticket` (Pro)
 
 Ticket là cách thành viên xin hỗ trợ **riêng tư**. Thành viên bấm nút trên một bảng, bot tạo ra một kênh riêng chỉ người đó và nhóm hỗ trợ (staff) thấy.
@@ -470,6 +604,14 @@ Cách bot biết có người vào: giống như phần chào người mới (8.
 
 Nếu bot hay bị báo động nhầm vì server hay có sự kiện đông người, tăng **solan** hoặc đổi **hanhdong** thành "Chỉ báo động".
 
+**Lọc tài khoản mới.** Kẻ phá thường dùng tài khoản Discord vừa tạo. Bạn bảo thầu để ý tài khoản **mới tạo dưới bao nhiêu ngày** mà vào server. Có ở **mọi gói**, dùng cùng thông báo "X đã vào server" như chống raid nên cũng cần bật thông báo chào mừng ở kênh hệ thống.
+
+`/khoakhan caidat` có hai ô:
+- **tuoitaikhoan**: số ngày tối thiểu của tài khoản (0 là tắt, tối đa 365). Ví dụ `tuoitaikhoan:7` nghĩa là tài khoản tạo chưa đủ 7 ngày bị để ý.
+- **hanhdongmoi**: làm gì với tài khoản quá mới. **Chỉ báo động**: thầu nhắn vào kênh báo động, ghi rõ tài khoản bao nhiêu ngày tuổi, không đụng gì tới người đó. **Đuổi và báo động**: thầu đuổi tài khoản đó ra khỏi server (họ vẫn vào lại được bằng link mời) và báo động.
+
+Thầu **không bao giờ đuổi** chủ server, bot khác, người có vị trí role ngang hoặc cao hơn bot, hay người vừa nhận role chào mừng. Thiếu quyền **Đuổi thành viên** thì thầu chỉ báo động và nói rõ thiếu quyền nào. Khi có đông người vào cùng lúc, thầu kiểm tra từng người một, nên báo động có thể đến chậm vài giây.
+
 ### 8.6. Chống xoá hàng loạt: bảo vệ khỏi "nuke" (Pro)
 
 Đôi khi một người có quyền (hoặc một tài khoản admin bị hack) xoá hàng loạt kênh hoặc role để phá server. Tính năng này canh việc đó.
@@ -520,7 +662,7 @@ Bốn lệnh xử lý và một lệnh xem hồ sơ. Mỗi lệnh chỉ hiện c
 2. Nhắn riêng cho người bị xử một tin ghi lý do (kick và ban nhắn **trước**, vì sau đó họ không còn chung server). Nếu họ khoá tin nhắn riêng thì bỏ qua, không sao.
 3. Thực hiện và lưu một **hồ sơ có số** (ví dụ "hồ sơ #12"), rồi ghi vào nhật ký quản trị nếu đã bật.
 
-`/hoso` giúp admin xem một người đã bị cảnh cáo hay xử mấy lần, bởi ai, vì sao, trước khi quyết định xử nặng hơn. Hồ sơ lưu theo **ID thành viên** và chỉ staff xem được. Lệnh `/xoadulieu` xoá luôn hồ sơ này cùng điểm hoạt động, giveaway, bình chọn và menu role của server.
+`/hoso` giúp admin xem một người đã bị cảnh cáo hay xử mấy lần, bởi ai, vì sao, trước khi quyết định xử nặng hơn. Hồ sơ lưu theo **ID thành viên** và chỉ staff xem được. Lệnh `/xoadulieu` xoá luôn hồ sơ này cùng điểm hoạt động, giveaway, bình chọn, menu role, phòng tạm, tin hẹn giờ, lời nhắc và góp ý của server.
 
 `/kick`, `/timeout`, `/canhcao` chỉ dùng được với người **đang ở trong server**. `/ban` cấm được cả người đã rời (chọn từ danh sách).
 
@@ -571,7 +713,7 @@ Gõ `/trogiup` ở bất kỳ đâu trong server (ai cũng dùng được). Bot 
 
 ## 9. Bảng điều khiển trên web
 
-Bảng điều khiển cho phép chỉnh chào người mới, AutoMod, ticket, bảo vệ, điểm hoạt động, bản tin tuần, nhật ký quản trị, khám sức khoẻ và xem gói, ngay trên trình duyệt, không cần gõ lệnh.
+Bảng điều khiển cho phép chỉnh chào người mới, AutoMod, ticket, bảo vệ, điểm hoạt động, giveaway, menu role, phòng thoại, hộp góp ý, bản tin tuần, nhật ký quản trị, khám sức khoẻ và xem gói, ngay trên trình duyệt, không cần gõ lệnh.
 
 **Địa chỉ:** https://nhaajt.tailc4c5ef.ts.net:10000
 
@@ -580,10 +722,14 @@ Cách vào:
 2. Bấm đăng nhập bằng Discord. Discord hỏi bạn có cho phép trang đọc **tên và danh sách server** của bạn không. Bấm **Cho phép**. Trang chỉ đọc hai thứ đó, rồi huỷ quyền ngay.
 3. Chọn server. Chỉ hiện những server mà **bạn là Administrator và bot đang ở trong**. Không thấy server của mình: kiểm tra bot đã được mời và bạn có quyền Administrator.
 4. Chọn tab:
-   - **Tổng quan**: gói hiện tại, mức dùng, điểm sức khoẻ, tính năng nào đang bật, ticket đang mở.
-   - **Chào mừng**, **AutoMod**, **Ticket**: như các lệnh ở mục 8.1, 8.3, 8.4.
-   - **Bảo vệ**: bật chống raid và chống xoá hàng loạt, chỉnh số người, số giây, hành động, kênh báo động. Cho biết cổng đang khoá hay mở, có nút **Mở khoá** (mục 8.5 và 8.6).
+   - **Tổng quan**: gói hiện tại, mức dùng, điểm sức khoẻ, tính năng nào đang bật, ticket đang mở, số góp ý đang chờ.
+   - **Chào mừng**, **AutoMod**, **Ticket**: như các lệnh ở mục 8.1, 8.3, 8.4. Tab AutoMod có thêm thẻ **Từ khoá chặn riêng**: thêm, bỏ từ và thấy còn bao nhiêu chỗ theo gói.
+   - **Bảo vệ**: bật chống raid và chống xoá hàng loạt, chỉnh số người, số giây, hành động, kênh báo động, và thẻ **tuổi tài khoản tối thiểu** (mục 8.5). Cho biết cổng đang khoá hay mở, có nút **Mở khoá** (mục 8.5 và 8.6).
    - **Điểm hoạt động**: bật tắt và chỉnh XP chat và voice (mục 7.4).
+   - **Giveaway**: tạo giveaway mới, kết thúc ngay, huỷ, chọn lại người thắng (mục 7.6).
+   - **Menu role**: tạo, sửa, đăng và xoá menu nhận role (mục 7.5).
+   - **Phòng thoại**: thẻ **phòng thoại tạm** (bật tắt, thêm hoặc bỏ phòng chờ, danh mục, mẫu tên, giới hạn người, mục 7.8) và thẻ **kênh thống kê** (thêm, bỏ kênh, chọn loại số và mẫu tên, mục 7.9).
+   - **Góp ý**: bật hộp góp ý, chọn kênh và role staff, xem số góp ý đang chờ (mục 7.10).
    - **Báo cáo tuần**: bật bản tin tuần và khám hằng tuần, chọn kênh, thứ, giờ, và nút **Gửi thử** (mục 8.9).
    - **Nhật ký quản trị**: bật nhật ký, chọn kênh và loại việc cần ghi (mục 8.7).
    - **Hoạt động**: các con số hoạt động của server theo thời gian.
@@ -614,6 +760,11 @@ Nếu trang không mở: xem phần 13.
 | Bình chọn `/binhchon`, bản tin tuần, nhắc hết hạn | có | có | có |
 | AutoMod | mức Nhẹ | cả ba mức, miễn trừ role | cả ba mức, miễn trừ role |
 | Menu nhận role `/vaitro` | 3 menu | 10 menu | 25 menu |
+| Phòng chờ của phòng thoại tạm `/phongtam` | 1 | 3 | 5 |
+| Kênh thống kê `/kenhthongke` | 1 | 4 | 4 |
+| Tin nhắn hẹn giờ `/hengio` | không | 5 | 15 |
+| Từ khoá chặn riêng `/automod tukhoa` | 20 từ | 200 từ | 500 từ |
+| Hộp góp ý `/gopy`, nhắc việc `/nhacviec`, lọc tài khoản mới | có | có | có |
 | Thiết kế bằng AI mỗi tháng | 0 | 20 | 100 |
 | Trợ lý viết giúp `/vietgiup` | không | có | có |
 | Chống xoá hàng loạt | không | có | có |
@@ -679,7 +830,7 @@ Trước khi bấm, nhớ: xoá kênh thì tin nhắn trong đó **mất vĩnh v
 
 ### 11.2. Xoá dữ liệu của server: `/xoadulieu`
 
-Bot **quên** toàn bộ những gì nó lưu về server: danh sách đã xây, mọi cài đặt (chào mừng, AutoMod, ticket, bảo vệ, điểm hoạt động, bản tin tuần, nhật ký), điểm hoạt động và điểm danh của thành viên, hồ sơ xử lý, giveaway và người tham gia, bình chọn, menu role, ticket, bản sao lưu và theme riêng. Nếu server đang bị khoá khẩn cấp, bot **mở khoá trước** rồi mới xoá, để kênh không bị kẹt ở trạng thái khoá.
+Bot **quên** toàn bộ những gì nó lưu về server: danh sách đã xây, mọi cài đặt (chào mừng, AutoMod, ticket, bảo vệ, điểm hoạt động, bản tin tuần, nhật ký), điểm hoạt động và điểm danh của thành viên, hồ sơ xử lý, giveaway và người tham gia, bình chọn, menu role, ticket, bản sao lưu và theme riêng, và những thứ mới ở bản 1.7: danh sách từ khoá chặn riêng, bản ghi phòng thoại tạm, tin nhắn hẹn giờ, lời nhắc tạo trong server đó, và góp ý cùng phiếu vote của chúng. Nếu server đang bị khoá khẩn cấp, bot **mở khoá trước** rồi mới xoá, để kênh không bị kẹt ở trạng thái khoá.
 
 **Kênh và role trên Discord vẫn còn**, kể cả luật AutoMod còn trên server (bot sẽ gỡ luật do nó tạo và nhắn nếu còn sót). **Gói trả phí, số lần dùng, dấu "đã dùng thử" và đơn thanh toán vẫn được giữ** để giới hạn gói còn đúng và để đối chiếu tiền. Phễu thống kê của chủ bot chỉ giữ ID server và thời điểm, không có người dùng hay nội dung nào.
 
@@ -827,6 +978,22 @@ Nếu bạn đổi địa chỉ, cập nhật cả Redirects và `DASHBOARD_URL`
 | Đăng nhập web báo "invalid redirect_uri" | Redirect trong Developer Portal chưa lưu đúng | Thêm đúng dòng ở phần 12.7 rồi bấm Lưu |
 | Đăng nhập web xong không thấy server nào | Bạn không phải Administrator, hoặc bot chưa ở trong server đó | Kiểm tra quyền, mời bot |
 | `/thietke` báo AI chưa bật | Chưa có `GEMINI_API_KEY` | Chủ bot thêm khoá |
+| Bước vào phòng chờ mà không có phòng riêng | Chưa bật `/phongtam caidat`, kênh đó chưa là phòng chờ, hoặc vượt số phòng chờ của gói | `/phongtam trangthai` để xem. Đợi 10 giây giữa hai lần tạo (mục 7.8) |
+| `/phongtam trangthai` báo thiếu quyền | Bot thiếu Quản lý kênh, Di chuyển thành viên hoặc Quản lý role | Mời lại bot với quyền Administrator, hoặc cấp đủ quyền ở danh mục chứa phòng |
+| Phòng tạm không tự mất | Còn người trong phòng, hoặc phòng mới tạo chưa đủ 30 giây | Chờ chút, thầu quét mỗi 10 phút nếu bot vừa khởi động lại |
+| Kênh thống kê không đổi số | Thầu cập nhật mỗi 10 phút, hoặc thiếu quyền Quản lý kênh ở kênh đó | Đợi tối đa 10 phút. `/kenhthongke danhsach` xem số hiện tại, cấp quyền nếu thiếu (mục 7.9) |
+| `/kenhthongke them` báo mẫu tên sai | Mẫu chưa có `{n}` | Viết lại, ví dụ `Thành viên: {n}` |
+| `/hengio tao` báo cần gói Pro | Miễn phí không có tin hẹn giờ | `/dungthu`, `/mua` hoặc `/kichhoat` (mục 10) |
+| Tin hẹn giờ không đăng | Bot thiếu quyền Xem kênh hoặc Gửi tin nhắn ở kênh đó, hoặc gói đã hết hạn | `/hengio danhsach`, cấp quyền cho bot, gia hạn gói |
+| `/nhacviec` không thấy tin nhắn riêng | Bạn đang chặn tin nhắn riêng từ thành viên server | Cài đặt người dùng, Quyền riêng tư và an toàn, bật nhận tin nhắn riêng. Nếu không được, thầu nhắc ở kênh nơi bạn tạo (mục 7.11) |
+| `/nhacviec tao` báo đã đủ lời nhắc | Mỗi người chờ tối đa 10 lời nhắc | `/nhacviec danhsach`, rồi `/nhacviec xoa` bớt |
+| `/gopy gui` báo hộp góp ý chưa cài | Admin chưa chạy `/gopy caidat` | Quản lý server chạy `/gopy caidat kenh:<kênh> bat:True` (mục 7.10) |
+| Nút Duyệt, Từ chối không bấm được | Bạn không có quyền Quản lý server hoặc role staff | Xin quản lý server cấp quyền hoặc thêm bạn vào role staff |
+| `/gopy gui` bắt chờ | Mỗi người 1 góp ý mỗi phút, 5 góp ý mỗi ngày | Chờ theo lời nhắn của thầu |
+| `/automod tukhoa them` từ chối một từ | Từ chứa link, tag, quá ngắn hoặc quá 60 ký tự | Dùng từ khác, hoặc dấu sao ghép với ít nhất hai chữ (mục 8.3) |
+| `/automod tukhoa them` báo hết chỗ | Danh sách đã đủ số từ của gói (20, 200 hoặc 500) | `/automod tukhoa xoa` bớt, hoặc nâng gói |
+| Có từ khoá chặn nhưng tin vẫn lọt | Bot thiếu quyền Quản lý server nên chưa tạo được luật, hoặc người gửi nằm trong role miễn trừ | `/automod trangthai`, cấp quyền (mục 8.3) |
+| Lọc tài khoản mới không báo gì | `tuoitaikhoan` đang là 0, hoặc kênh hệ thống tắt thông báo chào mừng | `/khoakhan trangthai`, bật lại thông báo chào mừng (mục 8.5) |
 | Mọi thứ hỏng không rõ lý do | Nhiều | `docker logs thauxaydung --tail 100`, gửi nguyên văn lỗi cho người hỗ trợ |
 
 ### Một số tình huống thường gặp với tính năng mới
@@ -866,12 +1033,19 @@ Cột "Ai dùng" cho biết quyền cần có. **Admin** nghĩa là cần quyề
 | `/vaitro tao, dang, danhsach, xoa` | Admin | Free 3 menu, Pro 10, Plus 25 | Menu nhận role bằng nút |
 | `/quatang tao, huy, chonlai, danhsach` | Quản lý server | Pro | Giveaway có nút Tham gia, tự bốc thăm |
 | `/binhchon cauhoi lua1..lua5 [thoigian]` | Quản lý tin nhắn | Mọi gói | Bình chọn ẩn danh |
+| `/phongtam caidat, them, bo, trangthai, tat` | Admin | Free 1 phòng chờ, Pro 3, Plus 5 | Phòng thoại tạm: bước vào phòng chờ là có phòng riêng |
+| `/kenhthongke them, xoa, danhsach, tat` | Admin | Free 1 kênh, Pro và Plus 4 | Kênh thoại hiện số thành viên, boost, kênh, role |
+| `/gopy gui` | Mọi người | Mọi gói | Gửi góp ý cho server |
+| `/gopy caidat, danhsach, xoa` | Quản lý server | Mọi gói | Cài hộp góp ý, xem và gỡ góp ý |
+| `/nhacviec tao, danhsach, xoa` | Mọi người | Mọi gói | Nhắc việc riêng qua tin nhắn riêng |
+| `/hengio tao, danhsach, xoa, thu` | Admin | Pro 5 tin, Plus 15 tin | Hẹn giờ đăng tin nhắn mỗi ngày hoặc mỗi tuần, không ping ai |
 | `/roast nguoi` | Mọi người | Mọi gói | Roast nhẹ |
 | `/chaomung caidat, thu, tat` | Admin | Mọi gói | Chào người mới, nút xác minh |
 | `/khamsuckhoe kiemtra, lichsu` | Admin | Mọi gói | Điểm sức khoẻ server, sửa an toàn |
 | `/automod bat, tat, trangthai, mientru` | Admin | Nhẹ: Free. Vừa, gắt, miễn trừ: Pro | AutoMod gốc của Discord |
+| `/automod tukhoa them, xoa, danhsach, xoahet` | Admin | Free 20 từ, Pro 200, Plus 500 | Từ khoá chặn riêng của server, Discord tự chặn |
 | `/ticket caidat, loai them, loai xoa, dang, danhsach, tat` | Admin | Pro | Ticket hỗ trợ |
-| `/khoakhan bat, tat, trangthai, caidat, nhatky` | Admin | Chống raid, nhật ký: mọi gói. Chống xoá hàng loạt: Pro | Khoá khẩn cấp, chống raid, nhật ký quản trị |
+| `/khoakhan bat, tat, trangthai, caidat, nhatky` | Admin | Chống raid, lọc tài khoản mới, nhật ký: mọi gói. Chống xoá hàng loạt: Pro | Khoá khẩn cấp, chống raid, lọc tài khoản mới, nhật ký quản trị |
 | `/canhcao nguoi lydo` | Timeout thành viên | Mọi gói | Cảnh cáo, ghi hồ sơ |
 | `/timeout nguoi thoigian lydo` | Timeout thành viên | Mọi gói | Cho ngồi im có thời hạn |
 | `/kick nguoi lydo` | Đuổi thành viên | Mọi gói | Đuổi khỏi server |
@@ -882,7 +1056,7 @@ Cột "Ai dùng" cho biết quyền cần có. **Admin** nghĩa là cần quyề
 | `/mua goi [ngay] [cach]` | Admin | Free | Mua Pro, Plus hoặc Dựng giúp bằng thẻ (Stripe) hoặc QR (payOS) |
 | `/kichhoat ma` | Admin | Free | Kích hoạt bằng mã |
 | `/nuke` | Admin | Mọi gói | Gỡ những gì bot đã xây |
-| `/xoadulieu` | Admin | Mọi gói | Bot quên mọi dữ liệu về server (trừ gói và đơn thanh toán) |
+| `/xoadulieu` | Admin | Mọi gói | Bot quên mọi dữ liệu về server, gồm phòng tạm, tin hẹn giờ, lời nhắc và góp ý (trừ gói và đơn thanh toán) |
 | `/admin taoma, cap, thuhoi, thongke, donhang` | Chủ bot | Không áp dụng | Công cụ của chủ bot, có phễu 30 ngày |
 ---
 

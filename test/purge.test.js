@@ -50,3 +50,22 @@ test("purging a server erases its members' data and leaves other servers, billin
   assert.equal(getUsage("g-purge-1", "build", { lifetime: true }), 1);
   assert.equal(funnel().invite.servers >= 1, true);
 });
+
+test("purging a server also forgets the roles its giveaways required, and a server that never used the feature still purges", () => {
+  const db = getDb();
+  const bare = purgeGuildData("g-purge-never");
+  assert.equal(bare.giveaways, 0);
+
+  db.exec("CREATE TABLE IF NOT EXISTS giveaway_roles (giveaway_id INTEGER PRIMARY KEY, role_id TEXT NOT NULL)");
+  const make = (guild) => {
+    const g = db.prepare("INSERT INTO giveaways (guild_id, channel_id, host_id, prize, ends_at, status, created_at) VALUES (?, 'c', 'h', 'p', 1, 'active', 1)").run(guild);
+    db.prepare("INSERT INTO giveaway_roles (giveaway_id, role_id) VALUES (?, '123456789012345678')").run(g.lastInsertRowid);
+    return Number(g.lastInsertRowid);
+  };
+  const mine = make("g-purge-roles-1");
+  const theirs = make("g-purge-roles-2");
+  purgeGuildData("g-purge-roles-1");
+  const has = (id) => Number(db.prepare("SELECT COUNT(*) AS n FROM giveaway_roles WHERE giveaway_id = ?").get(id).n);
+  assert.equal(has(mine), 0);
+  assert.equal(has(theirs), 1, "another server's requirement stays");
+});

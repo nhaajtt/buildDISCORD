@@ -35,9 +35,10 @@ const empty = () => ({ failed: [], created: [], updated: [], removed: [] });
 const chains = new Map();
 
 // Brings the server's rules in line with the saved settings, touching only rules whose ids the bot recorded.
-// Calls for one server run one after another, so two quick changes can never create the same rule twice.
-export function syncAutomod(guild) {
-  const run = (chains.get(guild.id) ?? Promise.resolve()).then(() => syncNow(guild));
+// Calls for one server, removals included, run one after another, so two quick changes can never create the same rule twice
+// and a removal can never finish after a sync and wipe the ids that sync recorded.
+function enqueue(guild, job) {
+  const run = (chains.get(guild.id) ?? Promise.resolve()).then(job);
   const tail = run.catch(() => {});
   chains.set(guild.id, tail);
   tail.then(() => {
@@ -45,6 +46,8 @@ export function syncAutomod(guild) {
   });
   return run;
 }
+
+export const syncAutomod = (guild) => enqueue(guild, () => syncNow(guild));
 
 const planFor = (guildId) => ({ full: hasFullPlan(guildId), customLimit: getPlan(guildId).customWords });
 
@@ -100,13 +103,18 @@ async function syncNow(guild) {
     }
   }
 
-  patchSection(guild.id, "automod", { ruleIds, enabled: standardOn(ruleIds) });
+  // The switch is derived from what exists, unless the admin flipped it while this sync was talking to Discord: then it is left as
+  // they set it, and the sync queued behind this one acts on it
+  const latest = getSection(guild.id, "automod");
+  patchSection(guild.id, "automod", { ruleIds, enabled: latest.enabled === settings.enabled ? standardOn(ruleIds) : latest.enabled });
   result.ok = result.failed.length === 0;
   return result;
 }
 
 // Deletes exactly the recorded rules. Never throws: a rule that fails to delete stays recorded so a retry can finish the job.
-export async function removeAutomod(guild) {
+export const removeAutomod = (guild) => enqueue(guild, () => removeNow(guild));
+
+async function removeNow(guild) {
   const settings = getSection(guild.id, "automod");
   const left = {};
   let removed = 0;

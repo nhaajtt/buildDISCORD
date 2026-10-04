@@ -248,7 +248,8 @@ export default {
     }
     patchSection(guildId, "automod", { exemptRoleIds: action === "them" ? [...settings.exemptRoleIds, role.id] : settings.exemptRoleIds.filter((id) => id !== role.id) });
     const done = action === "them" ? lines.exemptAdded(role.id) : lines.exemptRemoved(role.id);
-    if (!settings.enabled) return reply(done);
+    // The words rule has the same exempt roles as the standard ones, so it needs the update even while the standard rules are off
+    if (!settings.enabled && !settings.customWords.length) return reply(done);
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const result = await syncAutomod(guild);

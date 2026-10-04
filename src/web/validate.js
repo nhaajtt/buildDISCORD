@@ -4,6 +4,7 @@ import { roleProblem } from "../onboarding/safety.js";
 import { chaomungLines, permLabels } from "../humor/onboarding.js";
 import { checkStaffRole, typeKey, validEmoji } from "../tickets/logic.js";
 import { cleanText, DURATIONS } from "../activity/text.js";
+import { cleanWord } from "../automod/words.js";
 import { MAX_MENU_ROLES, MODES, checkPicks } from "../activity/rolemenus.js";
 import { MAX_WINNERS } from "../activity/giveaways.js";
 
@@ -32,19 +33,28 @@ const kinds = {
   },
 };
 
-// A list of blocked words: each trimmed, lower-cased, at most 60 characters and carrying at least one letter or digit
+
+// A list of blocked words, judged by the same rules as /automod tukhoa them: no links, tags, single letters or all-wildcard words
 const WORD_MAX = 60;
 const WORDS_MAX = 500;
+const WORD_REASONS = {
+  mention: "có tag hoặc emoji",
+  link: "là link",
+  long: `dài quá ${WORD_MAX} ký tự`,
+  short: "quá ngắn (cần ít nhất 2 ký tự thật, không tính dấu sao)",
+};
 function cleanWords(v, f) {
   if (!Array.isArray(v) || v.length > WORDS_MAX) bad(`Ô "${f}" phải là danh sách tối đa ${WORDS_MAX} từ.`);
   const out = new Set();
   for (const word of v) {
     if (typeof word !== "string" || word.length > WORD_MAX * 2) bad(`Mỗi từ khoá phải là chữ và tối đa ${WORD_MAX} ký tự.`);
-    const clean = cleanText(word, WORD_MAX + 1).toLowerCase();
-    if (!clean) bad("Có từ khoá trống hoặc toàn ký tự lạ.");
-    if (clean.length > WORD_MAX) bad(`Từ khoá "${clean.slice(0, 20)}..." dài quá ${WORD_MAX} ký tự.`);
-    if (!/[\p{L}\p{N}]/u.test(clean)) bad(`Từ khoá "${clean}" không có chữ hay số nào, chặn kiểu này là chặn tất cả.`);
-    out.add(clean);
+    // A comma would split the word in two the next time it is typed into a command, so it could never be removed again
+    if (word.includes(",")) bad("Từ khoá không được chứa dấu phẩy, mỗi từ một ô.");
+    const result = cleanWord(word);
+    if (result.skip) bad("Có từ khoá trống hoặc toàn ký tự lạ.");
+    if (result.reason) bad(`Từ khoá "${result.word.slice(0, 20)}" ${WORD_REASONS[result.reason] ?? "không hợp lệ"}.`);
+    if (!/[\p{L}\p{N}]/u.test(result.word)) bad(`Từ khoá "${result.word}" không có chữ hay số nào, chặn kiểu này là chặn tất cả.`);
+    out.add(result.word);
   }
   return [...out];
 }

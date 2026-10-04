@@ -4,7 +4,7 @@ An engineering diary of how buildDISCORD went from an idea to a bot running on a
 
 ## Summary
 
-buildDISCORD is a Discord bot (nickname "Thầu Xây Dựng", the contractor) that builds a whole server in one command, and then looks after it (anti-raid and lockdown, moderation with case history, activity levels, giveaways, a weekly report). The build creates roles, categories, text and voice channels, permission overwrites, rules, a welcome message and a self-assign role picker. You can mix up to four built-in themes, or describe your group in a sentence and let Google Gemini design the server. Either way, you review and edit a blueprint before anything is created. It is sold per server (a free plan and two paid plans, paid by card, bank QR or activation code), stores its data in SQLite, ships as a Docker image, installs on a Raspberry Pi with one command and updates itself with a health-checked rollback.
+buildDISCORD is a Discord bot (nickname "Thầu Xây Dựng", the contractor) that builds a whole server in one command, and then looks after it (anti-raid and lockdown, moderation with case history, activity levels, giveaways, a weekly report, temporary voice rooms, a suggestion box). The build creates roles, categories, text and voice channels, permission overwrites, rules, a welcome message and a self-assign role picker. You can mix up to four built-in themes, or describe your group in a sentence and let Google Gemini design the server. Either way, you review and edit a blueprint before anything is created. It is sold per server (a free plan and two paid plans, paid by card, bank QR or activation code), stores its data in SQLite, ships as a Docker image, installs on a Raspberry Pi with one command and updates itself with a health-checked rollback.
 
 Stack: Node.js 22 (ESM), discord.js 14, the SQLite module built into Node, Docker, systemd, GitHub Actions, Next.js 15 with React 19, GSAP and Lenis for the website, deployed on Vercel.
 
@@ -16,13 +16,13 @@ These were measured on the repository, not estimated.
 
 | What | Value |
 | --- | --- |
-| Bot source (`src/`, JavaScript) | about 13,400 lines in 170 files, plus about 1,900 lines of dashboard front end in 14 view files |
-| Tests | 561 tests in 31 files (about 11,500 lines), run with `node --test` |
+| Bot source (`src/`, JavaScript) | about 16,400 lines in 197 files, plus about 1,500 lines of dashboard front end (the shell and 18 view files) |
+| Tests | 801 tests in 50 files (about 19,000 lines, the fake gateway included), run with `node --test` |
 | Scripts (`scripts/`) | about 370 lines (license CLI, Pi installer, updater, website data export, sample generator) |
 | Website source (`web/`, TypeScript, TSX, CSS) | about 5,000 lines |
-| Slash commands | 35 (34 for customers, 1 owner-only) |
-| Database tables | 19 (the eleven above plus `events_log`, `xp`, `giveaways`, `giveaway_entries`, `polls`, `poll_votes`, `mod_cases`, `role_menus`) |
-| Background jobs | 8 (payment polling, recurring events, ticket inactivity, weekly health check, weekly report, lockdown expiry, giveaways and polls, plan expiry reminders) |
+| Slash commands | 40 (39 for customers, 1 owner-only) |
+| Database tables | 24 (the eleven above plus `events_log`, `xp`, `giveaways`, `giveaway_entries`, `polls`, `poll_votes`, `mod_cases`, `role_menus`, `temp_voice`, `scheduled_messages`, `reminders`, `suggestions`, `suggestion_votes`) |
+| Background jobs | 11 (payment polling, recurring events, ticket inactivity, weekly health check, weekly report, lockdown expiry, giveaways and polls, plan expiry reminders, personal reminders, scheduled messages, stats channels with the temporary room sweep) |
 | Built-in themes | 11, which give 561 mixes of up to four |
 | One theme builds | 8 to 10 roles, 4 to 7 categories, 19 to 26 channels, 10 rules |
 | Largest mix of four themes | 22 roles, 13 categories, 54 channels (duplicates merged) |
@@ -30,7 +30,7 @@ These were measured on the repository, not estimated.
 | Runtime dependencies of the bot | 2 (`discord.js`, `dotenv`) |
 | Docker image on the Pi (arm64) | 186 MB at the first deploy, 187 MB with every feature |
 | CI | 3 jobs (tests and syntax, website build, image build); every run so far passed |
-| Test suite wall time | about 9 to 16 s for 561 tests (it was about 38 s for 29 until the builder's pause became configurable, see Bugs) |
+| Test suite wall time | about 25 s for 801 tests while other work ran on the same machine (it was about 38 s for 29 until the builder's pause became configurable, see Bugs) |
 | Website first load JS | 165 kB for the landing page, 155 kB for the devlog, status and theme pages (Next.js build output) |
 
 ### What this project demonstrates
@@ -55,6 +55,8 @@ These were measured on the repository, not estimated.
 | Attributing an action through the audit log without reading content | `src/security/nukeaction.js`, `src/modlog/` |
 | Hot-path performance on a small machine (cache, in-memory cooldown, batched writes) | `src/activity/xp.js`, `test/activity.test.js` |
 | Exactly-once jobs and idempotent button handlers (giveaways, polls, reports, reminders) | `src/activity/giveaways.js`, `src/jobs/expiry.js`, `src/digest/` |
+| Exactly-once delivery with a conditional update (scheduled messages, reminders, suggestion decisions) | `src/jobs/scheduled.js`, `src/jobs/reminders.js`, `src/suggest/store.js` |
+| Staying inside a platform limit (rename rate, native keyword rule, no message content) | `src/jobs/stats.js`, `src/automod/words.js` |
 | Funnel analytics with no personal data | `src/analytics.js`, `/admin thongke` |
 | A public, cross-origin, rate limited JSON route and a status page that degrades | `src/web/server.js`, `web/app/[lang]/status` |
 
@@ -451,6 +453,53 @@ Two new pages, both static:
 
 The new pages reuse the existing header, section heading, chips and motion layer; the only new code is two components, a tree and a status stylesheet block. First load JS is 155 kB for each, the same as the devlog page.
 
+### Phase 32: rooms that appear and clean up after themselves, and channels that show numbers
+
+Two small voice features that feel big to members, built around one constraint: Discord limits what a bot may do to a channel, so the design is mostly about doing less, less often.
+
+- **Temporary voice rooms** (`/phongtam`). A voice channel becomes a "join to create" lobby. The voice state event fires when someone joins it, and the bot builds a room named from a template (`Phòng của {name}`), gives the person a handful of rights on that one channel (see it, join it, rename it, move people out) and moves them in. Nothing server-wide is granted, and a test pins the exact permission list. A channel created with its own overwrites no longer follows its category, so the category's overwrites are copied first and the person's entry is added on top, or the room would silently lose the category's rules.
+- **Why a table for the rooms.** Every room is a row in `temp_voice` (channel, owner, time). Deletion, the sweep and a failed cleanup only ever act on a recorded row, so the bot can never delete a channel an admin made by hand, even one with a similar name. The room is deleted when the last person leaves, and when a delete fails the row stays so the sweep can retry.
+- **Abuse limits.** One room per person every ten seconds (a bounded in-memory cooldown map), at most 50 rooms per server, a "being made right now" set so a double join cannot make two, and a notice to the admin at most once per ten minutes when the bot lacks a permission. If the person leaves the lobby while the room is being made, they get no room. If moving them fails, the room is removed again.
+- **The plan** counts lobbies, not rooms: 1 on Free, 3 on Pro, 5 on Plus. A lobby beyond the plan simply does nothing, so a downgrade needs no cleanup.
+- **Stats channels** (`/kenhthongke`). A voice channel whose name carries a live number (members, boosts, channels, roles without @everyone) from a template such as `Thành viên: {n}`. Discord lets a channel be renamed twice per ten minutes and then makes the call wait, so the job runs every ten minutes, renames only when the text changed, and keeps a per-channel clock so a manual refresh or a restart cannot burst. A failed rename is not retried for ten minutes. The alternative, updating on every join, would hit the limit within a minute on a busy server and queue calls inside the library. The bot can build a locked channel (nobody can connect), which it remembers in the server record so `/nuke` and removal delete only what it made.
+- **One job for both.** The temporary room sweep runs in the same ten-minute job: rooms left empty by a restart are removed, rows for rooms deleted by hand are forgotten, a room younger than 30 seconds is never swept, and servers the bot is not in or that are unavailable are skipped.
+
+### Phase 33: scheduled messages and personal reminders
+
+Both are "do this later" features, so both live or die on one question: what happens when the bot is down, restarted or run twice?
+
+- **Scheduled messages** (`/hengio`). A daily or weekly post at a clock time in the server's zone, using the same `Intl` based schedule code as the recurring events, so daylight saving needs no library. The text may contain `\n` for a line break because a slash command cannot take a real one. The message never pings anyone: `allowedMentions` is empty whatever the text says.
+- **Why `next_at` is written before the message is sent.** The job moves the row to its next occurrence with `UPDATE ... WHERE id = ? AND next_at = ?` and only the call that changed the row may post. A crash after that point loses one occurrence at worst and never posts it twice, and two overlapping runs cannot both win. The other order (send, then update) would repeat a message after every crash between the two steps, which is worse for a message than a missed one.
+- **After downtime** one missed occurrence within twelve hours is posted, older ones are skipped, and the next time is always computed after now, so a bot that was off for a week does not replay seven daily posts. A channel the bot cannot write in is retried, a deleted channel pauses the schedule, and when the plan ends nothing is posted and nothing is replayed when it returns. A tick posts at most 25 messages.
+- **Personal reminders** (`/nhacviec`). Free and open to everyone, so the limits matter: 10 pending per person, 300 characters, at most a year ahead. Delivery is a direct message. When DMs are closed the reminder goes to the channel where it was made and mentions only that person, and when both fail it is marked failed and never retried. The row is marked done before sending, for the same reason as above, and a reminder more than five minutes late arrives with an apology. Delivered rows are pruned after a month.
+- **Time input.** Either a choice (10 minutes to a week) or a clock time that means today if it is still ahead and tomorrow otherwise, parsed in Vietnamese-friendly forms and checked in both directions with `zonedToUtc` and `localParts`.
+
+### Phase 34: the suggestion box
+
+`/gopy` lets anyone send a suggestion that the bot posts with up and down buttons and, for staff, approve, reject and done buttons. It is free because it asks nothing of the bot except a message.
+
+- **Votes** live in `suggestion_votes`, one row per person: the other button changes the vote, the same button takes it back, and the counts on the message are recomputed from the table, not incremented, so a restart or a double press cannot drift them.
+- **Decisions** use the same guard as giveaways: the status flip from open is the exactly-once step, so two staff pressing at the same moment record one decision and the second sees it already made. Staff are people with Manage Server or the chosen staff role, and that is asked again at every button and again when the note modal is submitted, because the modal could have been opened by someone whose rights were taken away meanwhile.
+- **Text from members** goes through `sanitize` before it reaches an embed: mention syntax, masked links and control characters are removed and the length is capped. The author appears as a mention inside the embed but `allowedMentions` is empty, so nobody is pinged.
+- **Rate limits** are one per minute and five per day per person. Removing a suggestion is soft (the row stays and counts toward the author's daily limit), so deleting one is not a way around the limit.
+- **A restart does not matter.** Every press is resolved from the database by message, so a button on a month-old message still works. A suggestion whose message could not be posted is dropped so it does not count against its author.
+
+### Phase 35: the new-account filter and the server's own blocked words
+
+- **New accounts** (`/khoakhan caidat tuoitaikhoan hanhdongmoi`). It reuses the join notice the anti-raid already reads, so there is still no member intent. A join queues a check instead of doing it inline: one queue per server, one job at a time with a gap between jobs, the same person queued once, and a cap past which the newest are dropped, so a raid cannot make the bot fetch hundreds of members at once. The check reads the account's age from the snowflake, alerts the staff channel, and with `kick` also removes the account. A kick that Discord or the hierarchy would refuse is never attempted (the owner, bots, anyone above the bot, a member holding a welcome role) and a missing Kick Members permission downgrades to an alert that names the missing permission.
+- **Custom blocked words** (`/automod tukhoa`). The obvious way to block a word is to read every message and compare. The bot does not read messages and has no privileged intent, and I did not want that to change for a word list. Discord's native AutoMod has a keyword rule that takes a list, supports wildcards and blocks the message before anyone sees it, so the bot's job is only to keep that one rule in step with the list the admin typed. The cost is Discord's own limits (1,000 keywords per rule, 60 characters each, and only six keyword rules per server shared with every other bot and admin), which is why the bot uses one rule and caps the list by plan (20, 200, 500), never above 500.
+- **One rule, recorded by id.** The list is stored in the AutoMod section and written to a single rule whose id is recorded. `planSync` creates, edits or deletes only that recorded rule, a rule an admin made by hand is never touched, a rule deleted by hand is recreated by the next change, a rule an admin edited by adding a word is put back, and deleting the last word deletes the rule. Two changes at the same moment still leave exactly one rule.
+- **What is refused.** Links (they belong to the link rule), mentions, control and invisible characters, words over 60 characters, and words that are only wildcards or a single letter, because they would hit almost every message. Plain characters stay as typed: Discord's keyword rule is not a regular expression, so nothing is escaped.
+- **A lapsed plan** keeps the list but only the words the free plan allows reach the rule, and they come back when the plan does. `/xoadulieu` deletes the rule and the list.
+
+### Phase 36: the dashboard and the help text catch up, and /xoadulieu learns the new tables
+
+The dashboard got a **Giveaways** tab and a **Role menus** tab (both features existed only as commands), a **Voice rooms** tab with a card for temporary rooms and one for stats channels, a **Suggestions** tab, a custom words card in AutoMod, an account age card in Security, and the open suggestion count on the overview. They all write through the same settings sections and normalizers as the commands, so a value cannot be saved from the page that the command would have refused.
+
+`/trogiup` reads `helpItems`, so the five new commands went into that table with the plan flag of their limit (`tempLobbies`, `statsChannels`, `scheduledMessages`). A flag that is a count is true from 1 up, so the lock mark only shows when the free plan has zero, which today is only scheduled messages; the counts themselves are in the plan table.
+
+`/xoadulieu` had to learn five tables. The purge module (`src/purge.js`) lists every table that has a `guild_id` and deletes child rows first (the votes of a suggestion hang off the suggestion), all in one transaction, so a failure leaves nothing half erased. Reminders carry a `guild_id` too, so the reminders someone made in that server go with it, while their reminders from other servers and from direct messages (no `guild_id`) stay.
+
 ## Bugs and what they taught me
 
 | Symptom | Root cause | Fix | Guard now |
@@ -520,6 +569,12 @@ The new pages reuse the existing header, section heading, chips and motion layer
 | Prices of $3.99 and $7.99 with a year for ten months, and a one-off week for $4.99 | Keep $9.99 and $19.99; percentage discounts; a free tier with no limits | A small server owner compares it with a coffee, not with a salary. Two free months is easier to understand than a percentage. The one-off covers the people who only need a server set up once and would never subscribe |
 | The free plan includes the protection basics (setup, health check, anti-raid, mod log, moderation commands, polls) | Put protection behind Pro | A raid hits a free server just as hard, and a bot that leaves free servers exposed is a bad advertisement. Pro sells the things that grow a community (levels, giveaways, tickets, mixing, the AI helper) and the anti-nuke guard |
 | Anonymous funnel counts in one table | A third-party analytics service | The question is only "where do servers drop off". A server ID, a kind and a time answer it, nothing personal is stored and no script runs anywhere |
+| Custom blocked words through Discord's native keyword rule | Read every message and match in the bot; a per-message AI check | Reading messages needs the privileged content intent, which this bot has never used, and it would put every message of every customer through my process. The native rule blocks before anyone sees the message and costs nothing to run. The price is Discord's own limits on the list |
+| Stats channels refresh every 10 minutes | Update on every join and leave; a slower hourly update | Discord allows two renames per channel per ten minutes. Updating on events hits that within a minute on a busy server. Hourly feels stale. Ten minutes with a per-channel clock never queues a call |
+| Scheduled messages and reminders write the next state before sending | Send first, then update | A crash between send and update would repeat the message on the next start. A repeated message is worse than a missed one, so the row is claimed with a conditional update and only the winner sends |
+| Temp rooms are deleted only when they are a recorded row | Delete any empty voice channel under the category; match by name | Names can be copied by anyone and categories hold other things. A row is proof the bot made it |
+| Suggestion vote counts recomputed from rows | Counters on the message or the suggestion row | A counter drifts after a crash or a double press. Counting rows is cheap at this size and cannot be wrong |
+| `/xoadulieu` through one purge module | One delete per feature, called from the command | Each new table would be one more place to forget. The purge lists the tables in one array, deletes children first, in one transaction, and a test fills the tables for two servers and checks that only one is erased |
 | A public `/status` route, read by the website in the browser | A status service; the website calling the bot from its server | The route carries nothing worth hiding, so it can allow any origin. Reading it in the browser keeps the website static, and a failure can degrade to a plain "cannot check" |
 
 ## What I would do next and known limitations
@@ -539,7 +594,10 @@ The new pages reuse the existing header, section heading, chips and motion layer
 - **Security features were driven against fakes, not a real raid.** The raid counter, lockdown, restore and anti-nuke are pure or driven with fake guilds, but nobody has raided a real server with them. The shape of audit-log entries and the timing of the events that follow a deletion are checked against my reading of the documentation.
 - **Anti-raid depends on the join notice.** A server that turned off "send a message when someone joins" is invisible to it, and the weekly report's join count is lower there too. The report says so in its footer.
 - **The mod log cannot see other people's timeouts.** Discord only sends them to a bot with an extra permission, so only timeouts made through `/timeout` are recorded, and the log says so.
-- **Moderation history is per server and typed by a moderator.** Reasons are stored as written (capped at 300 characters) and shown to staff only, but they are personal data of the member, and `/xoadulieu` does not remove them yet (it clears the build record and the settings only). Erasing the per-member tables on request is on the list.
+- **Moderation history is per server and typed by a moderator.** Reasons are stored as written (capped at 300 characters) and shown to staff only, but they are personal data of the member, and `/xoadulieu` removes them with the rest of the server's data (see Phase 31 and 36).
+- **Rate limits for rooms and renames live in memory.** The ten second room cooldown and the ten minute rename clock reset on a restart. That is safe (nothing is renamed unless its text changed, and a room is still capped at 50 per server) but it is not a durable limit.
+- **Reminders and scheduled messages were tested with a fake clock and fake Discord objects.** The wording of the direct-message failure Discord returns for closed DMs, and the exact rule limits of the native keyword rule, are read from the documentation and not checked against a live server.
+- **The purge list is written by hand.** The test fills the tables it knows for two servers and checks the result, so a table added later and forgotten in the list would not be caught until someone adds it to the test.
 - **Xp and voice state are held in memory between flushes.** A hard crash can lose a few seconds of points. Level-up announcements use the cached settings, which refresh every 30 seconds.
 - **One process, one cooldown map.** The raid counter, the nuke counter and the xp cooldowns live in the bot's memory, so they reset on a restart and would need a shared store with more than one process.
 - **The setup wizard's theme suggestion is a keyword table,** so unusual descriptions fall back to a safe default theme (and it says it guessed).

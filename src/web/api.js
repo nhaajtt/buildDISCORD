@@ -9,7 +9,7 @@ import { ticketCounts } from "../digest/stats.js";
 import { WEEK } from "../digest/schedule.js";
 import { gateFeature } from "../utils/gate.js";
 import { applyFix, fixIdsOf, getFix, latestReport, reports, runAudit } from "../audit/index.js";
-import { gateAutomod, removeAutomod, syncAutomod } from "../automod/index.js";
+import { gateAutomod, standardOn, syncAutomod } from "../automod/index.js";
 import { ruleLabels } from "../humor/automod.js";
 import { roleProblem } from "../onboarding/safety.js";
 import { stopLockdown } from "../security/guard.js";
@@ -174,20 +174,16 @@ async function retirePanel(guild, channelId, messageId) {
 }
 
 async function applyAutomod(guild, before) {
-  if (getSection(guild.id, "automod").enabled) {
+  const now = getSection(guild.id, "automod");
+  // The words rule lives on its own, so it is brought in line whatever the standard switch says. Only a server with nothing
+  // recorded, no words and no switch skips the trip to Discord.
+  if (now.enabled || before.enabled || now.customWords.length || Object.keys(now.ruleIds).length) {
     const result = await syncAutomod(guild);
-    if (result.kind) {
+    if (result.kind && now.enabled) {
       // Nothing was built, so the section must not claim AutoMod is on
-      patchSection(guild.id, "automod", { enabled: Object.keys(getSection(guild.id, "automod").ruleIds).length > 0 });
+      patchSection(guild.id, "automod", { enabled: standardOn(getSection(guild.id, "automod").ruleIds) });
     }
     return { applied: result.ok === true, notice: describeSync(result) };
-  }
-  if (before.enabled || Object.keys(before.ruleIds).length) {
-    const { removed, left } = await removeAutomod(guild);
-    return {
-      applied: left === 0,
-      notice: left ? `Gỡ được ${removed} luật, còn ${left} luật chưa gỡ được (thiếu quyền hoặc Discord lỗi).` : `Đã gỡ ${removed} luật do thầu dựng. Luật của admin thầu để nguyên.`,
-    };
   }
   return { applied: true, notice: "Đã lưu." };
 }
@@ -224,7 +220,9 @@ export async function putSettings(guild, section, body, ctx = {}) {
   const patch = checked.patch;
   const merged = { ...before, ...patch };
 
-  if (section === "automod") {
+  // Editing only the word list never changes the level or the exempt roles, so a lapsed plan with a higher level still stored can
+  // trim its words. The size of the list is judged below.
+  if (section === "automod" && Object.keys(patch).some((key) => key !== "customWords")) {
     // Turning it on is judged on the whole result, otherwise only on what this request explicitly asks for
     const asked = merged.enabled ? merged : patch;
     const blocked = gateAutomod(guild.id, { level: asked.level ?? "nhe", blockLinks: asked.blockLinks === true, exempt: (asked.exemptRoleIds ?? []).length > 0 });

@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.7.0
+
+- **Temporary voice rooms.** `/phongtam` makes a voice channel a "join to create" lobby. Joining it makes a room named after the member, with a few rights on that one room only (see, join, rename, move people out), and moves them in. An empty room is deleted, and a sweep removes leftovers after a restart. 1 lobby free, 3 on Pro, 5 on Plus.
+- **Stats channels.** `/kenhthongke` shows members, boosts, channels or roles in the name of a voice channel, updated every 10 minutes to stay inside Discord's rename limit. The bot can build a locked channel for it. 1 free, 4 on Pro and Plus.
+- **Scheduled messages.** `/hengio` posts a message every day or every week at a set time and never pings anyone. 5 on Pro, 15 on Plus.
+- **Personal reminders.** `/nhacviec` reminds a member by direct message after a delay or at a clock time. Everyone, free.
+- **Suggestion box.** `/gopy` takes suggestions from anyone, posts them with vote buttons, and lets staff approve, reject or mark them done with a note. Free.
+- **New-account filter.** `/khoakhan caidat tuoitaikhoan hanhdongmoi` flags accounts younger than a chosen number of days when they join, and can kick them. Free.
+- **Custom blocked words.** `/automod tukhoa them, xoa, danhsach, xoahet` writes the server's own words into Discord's native keyword rule, so the bot still never reads a message. 20 words free, 200 on Pro, 500 on Plus.
+- **Dashboard.** New tabs for Giveaways, Role menus, Voice rooms (temporary rooms and stats channels) and Suggestions, a custom words card in AutoMod, an account age card in Security, and open suggestions on the overview.
+- **Help.** `/trogiup` lists the new commands with the plan flags of their limits.
+- **Data.** New tables `temp_voice`, `scheduled_messages`, `reminders`, `suggestions` and `suggestion_votes`. `/xoadulieu` now erases them with the rest of the server's data. No new intents.
+- **Website and handbook.** New feature cards, command list, privacy text for the new stored data, and a new section in the handbook for each feature.
+- 801 tests.
+
 ## 1.6.0
 
 - **Guided setup.** `/batdau` builds and configures a server from three menus and one button, with the health score before and after and a card to share. The bot also posts a Start button when it joins a server. `/trogiup` lists every command by group and marks what the plan locks.

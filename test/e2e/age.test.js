@@ -127,7 +127,7 @@ test("kick mode: the young account is kicked with a reason, the alert says so, a
 test("kick refusals: the owner, a bot, someone above the bot and a welcome role holder are never kicked", async () => {
   const { guild, channel } = await setup({ action: "kick" });
   const welcomeRole = guild.addRole({ name: "Khach moi", position: 5 });
-  patchSection(guild.id, "welcome", { enabled: false, newbieRoleId: welcomeRole.id });
+  patchSection(guild.id, "welcome", { enabled: false, verifyEnabled: true, verifyRoleId: welcomeRole.id });
   const mark = gw.mark();
 
   // the owner appears as a fresh account
@@ -139,7 +139,7 @@ test("kick refusals: the owner, a bot, someone above the bot and a welcome role 
   // a bot the admin added
   await joined(guild, { name: "bot-xin", bot: true, createdAt: youngAt(0) });
 
-  // a role holder from the welcome flow
+  // someone who already pressed the verify button
   await joined(guild, { name: "co-role", roles: [welcomeRole], createdAt: youngAt(0) });
   assert.equal(gw.since(mark).filter((r) => r.kind === "kick").length, 0);
   assert.equal(gw.sentTo(channel).length, 0, "these cases are skipped quietly, no alert");

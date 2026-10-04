@@ -5,13 +5,13 @@
 
 ![A drafting table that shows what the bot builds for any mix of themes](docs/img/hero.webp)
 
-A Discord bot nicknamed **Thầu Xây Dựng** ("the contractor"). Invite it to an empty server, press the Start button it posts (or run `/batdau`), pick a few options, and a few minutes later the server has categories, text and voice channels, roles, rules, a welcome message and a role picker, all written in Vietnamese meme humor, with its protection already switched on. Then it keeps the server safe and alive: anti-raid, moderation with case history, activity levels, giveaways, polls, a weekly report, mini-games, recurring events, backups and your own saved themes.
+A Discord bot nicknamed **Thầu Xây Dựng** ("the contractor"). Invite it to an empty server, press the Start button it posts (or run `/batdau`), pick a few options, and a few minutes later the server has categories, text and voice channels, roles, rules, a welcome message and a role picker, all written in Vietnamese meme humor, with its protection already switched on. Then it keeps the server safe and alive: anti-raid, moderation with case history, activity levels, giveaways, polls, a suggestion box, temporary voice rooms, live stats channels, scheduled messages, personal reminders, a weekly report, mini-games, recurring events, backups and your own saved themes.
 
 Website: https://builddiscord.vercel.app (Vietnamese and English), with live demos of the theme merge, the AI designer and the blueprint editor, a page for each theme with its full channel tree, and a status page that reads the bot's public `/status` route in the browser.
 
 Made by [nhaajt](https://github.com/nhaajtt) ([website](https://www.nhaajt.com/), [Instagram](https://www.instagram.com/nhaajt_hehee/)). The story of how it was built, including what went wrong, is in [docs/devlog.md](docs/devlog.md). It is a sibling of [musiDISCORD](https://github.com/nhaajtt/musiDISCORD) and [companionsDISCORD](https://github.com/nhaajtt/companionsDISCORD), and runs next to them on the same Raspberry Pi.
 
-**Status: version 1.6 and running in production.** What is next is under [Roadmap](#roadmap). What changed is in [CHANGELOG.md](CHANGELOG.md).
+**Status: version 1.7 and running in production.** What is next is under [Roadmap](#roadmap). What changed is in [CHANGELOG.md](CHANGELOG.md).
 
 ## What it does
 
@@ -37,6 +37,8 @@ Made by [nhaajt](https://github.com/nhaajtt) ([website](https://www.nhaajt.com/)
 - **Tickets.** `/ticket` posts a panel; each ticket is a private channel for the member and the staff role, closed automatically after a quiet spell, with no transcripts kept.
 - **Anti-raid and lockdown.** `/khoakhan caidat` counts joins from Discord's own join notice. When more than N people arrive within a number of seconds it alerts the staff channel and, depending on the setting, only alerts, raises the verification level one step, or locks the text channels for @everyone. Every lockdown records exactly what it changed and is lifted automatically after a chosen number of minutes (or by `/khoakhan tat` or the Unlock button on the alert). `/khoakhan bat` locks by hand.
 - **Anti-nuke guard (Pro).** Counts channel and role deletions per person from the audit log. On a burst it alerts and takes the dangerous roles (Administrator, Manage Server, Manage Roles and so on) from the culprit, never from the owner, a managed role or anyone at or above the bot.
+- **New-account filter.** `/khoakhan caidat tuoitaikhoan:7` flags every member whose Discord account is younger than that many days when they join (0 is off, up to 365). `hanhdongmoi` chooses between only alerting the staff channel and kicking the account, with the alert either way. Free.
+- **Custom blocked words.** `/automod tukhoa them, xoa, danhsach, xoahet` keeps the server's own list and writes it into Discord's native keyword rule, so Discord does the blocking and the bot never sees a message. Wildcards of Discord work, the bot refuses words that are a link, a mention or too short, and the list is capped by plan: 20 words free, 200 on Pro, 500 on Plus.
 - **Mod log.** `/khoakhan nhatky` writes bans, unbans, timeouts made through the bot, role permission changes and AutoMod blocks (never the blocked text) to a channel.
 - **Moderation with history.** `/canhcao`, `/timeout`, `/kick` and `/ban` check both people's role positions before doing anything, send the member a private notice, store a numbered case and log it. `/hoso` shows a member's last ten cases.
 - **Weekly report and health check.** A digest of numbers only (joins, tickets, AutoMod blocks, health score against last week, up to three suggestions with a fix button), plus a weekly health check that alerts when the score falls by ten points or more.
@@ -47,6 +49,11 @@ Made by [nhaajt](https://github.com/nhaajtt) ([website](https://www.nhaajt.com/)
 - **Activity levels.** Xp for chatting (only who wrote and where, never the text) and for time in voice rooms (not deafened, not in the AFK room, at least one other listener), with a cooldown and a daily cap. `/hang xem` shows level and rank; `/hang caidat` tunes it. Pro.
 - **Role menus.** `/vaitro` posts buttons (or a select menu above five roles) for members to take and drop roles, in pick-one or pick-many mode. Every press is checked again against the live role. 3 menus free, 10 on Pro, 25 on Plus.
 - **Giveaways and polls.** `/quatang` runs a giveaway with a Join button, an optional required role and several winners, drawn automatically when the time is up, with reroll (Pro). `/binhchon` runs an anonymous button poll that updates in place and closes by timer or by button.
+- **Suggestion box.** `/gopy gui` lets anyone send a suggestion (one per minute, five per day). The bot posts it in the chosen channel with up and down buttons, one vote per person (pressing the other button changes the vote, pressing the same one takes it back), and staff buttons to approve, reject or mark it done with a short note. The author gets a private word about the decision. Staff are people with Manage Server or the chosen staff role, checked again on every press. Free.
+- **Temporary voice rooms.** `/phongtam` turns a voice channel into a "join to create" lobby: joining it makes a room named after the member, gives that member a few rights on that one room only (see it, join it, rename it, move people out) and moves them in. A room is deleted once it is empty, and a job sweeps leftovers after a restart. 1 lobby free, 3 on Pro, 5 on Plus.
+- **Stats channels.** `/kenhthongke` shows a live number in the name of a voice channel (members, boosts, channels or roles) with a name template such as `Thành viên: {n}`. Up to four per server, refreshed every 10 minutes because Discord allows only two renames per channel in that time. The bot can build a locked channel for it. Free has one channel, Pro and Plus four.
+- **Scheduled messages.** `/hengio` posts a message every day or every week at a set time in the server's time zone. It never pings anyone, whatever the text says. 5 on Pro, 15 on Plus.
+- **Personal reminders.** `/nhacviec` sends a member a private reminder after a delay or at a clock time, by direct message (falling back to a message in the channel where it was made that mentions only that person). Open to everyone and free; 10 pending per person.
 - **AI writing helper.** `/vietgiup` drafts rules, a welcome, an announcement, or a plain-words explanation of the last health check. It only drafts; the admin posts it (Pro).
 
 **Run it as a business**
@@ -82,10 +89,17 @@ The bot never reads message content and uses no privileged intent. It listens to
 | `/vaitro tao, dang, danhsach, xoa` | Administrators | Role menus with buttons, pick one or many |
 | `/quatang tao, huy, chonlai, danhsach` | Manage Server, Pro | Giveaways with a Join button and automatic draw |
 | `/binhchon cauhoi lua1..lua5 [thoigian]` | Manage Messages | Anonymous button poll with up to five choices |
+| `/gopy gui` | Everyone | Send a suggestion to the server's box |
+| `/gopy caidat, danhsach, xoa` | Manage Server | Choose the channel and staff role, list open suggestions, remove one |
+| `/phongtam caidat, them, bo, trangthai, tat` | Administrators | Join-to-create voice rooms: lobbies, category, name template, user limit |
+| `/kenhthongke them, xoa, danhsach, tat` | Administrators | Voice channels that show live member, boost, channel or role counts |
+| `/hengio tao, danhsach, xoa, thu` | Administrators, Pro | Daily or weekly scheduled messages that never ping |
+| `/nhacviec tao, danhsach, xoa` | Everyone | Private reminders delivered by direct message |
 | `/chaomung caidat, thu, tat` | Administrators | Welcome message, starter role, verify button |
 | `/khamsuckhoe kiemtra, lichsu` | Administrators | Health score with safe fixes, and recent scores |
 | `/automod bat, tat, trangthai, mientru` | Administrators | Native AutoMod rules by level (Medium and Strict from Pro) |
-| `/khoakhan bat, tat, trangthai, caidat, nhatky` | Administrators | Lockdown, anti-raid, anti-nuke (Pro) and the mod log |
+| `/automod tukhoa them, xoa, danhsach, xoahet` | Administrators | The server's own blocked words, enforced by Discord's keyword rule |
+| `/khoakhan bat, tat, trangthai, caidat, nhatky` | Administrators | Lockdown, anti-raid, anti-nuke (Pro), the new-account filter and the mod log |
 | `/canhcao`, `/timeout`, `/kick`, `/ban` `nguoi lydo ...` | Moderate Members, Kick Members, Ban Members | Moderate a member, with hierarchy checks, a notice and a stored case |
 | `/hoso nguoi` | Moderate Members | The last ten cases of a member |
 | `/ticket caidat, loai, ...` | Administrators, Pro | Private support tickets |
@@ -94,7 +108,7 @@ The bot never reads message content and uses no privileged intent. It listens to
 | `/dungthu` | Administrators | Seven days of Pro, free, once per server |
 | `/kichhoat ma` | Administrators | Activates a plan with a code |
 | `/goi` | Everyone | The server's plan and how to upgrade |
-| `/xoadulieu` | Administrators | Makes the bot forget everything it keeps about the server except billing records (channels and roles on Discord stay) |
+| `/xoadulieu` | Administrators | Makes the bot forget everything it keeps about the server except billing records (channels and roles on Discord stay), including temporary room records, scheduled messages, reminders and suggestions with their votes |
 | `/roast nguoi` | Everyone | A gentle roast |
 | `/admin taoma, cap, thuhoi, thongke, donhang` | Bot owner only | Make codes, grant or revoke plans, plan counts and the 30 day funnel, recent orders |
 
@@ -117,6 +131,11 @@ The bot never reads message content and uses no privileged intent. It listens to
 | Activity levels (`/hang`) | no | yes | yes |
 | Giveaways | no | yes | yes |
 | Role menus | 3 | 10 | 25 |
+| Temporary voice lobbies | 1 | 3 | 5 |
+| Stats channels | 1 | 4 | 4 |
+| Scheduled messages | 0 | 5 | 15 |
+| Custom blocked words | 20 | 200 | 500 |
+| Suggestion box, personal reminders, new-account filter | yes | yes | yes |
 | Check-in, mini-games | no | yes | yes |
 | Price per server | $0 | $3.99 / 30 days | $7.99 / 30 days |
 
@@ -169,7 +188,7 @@ The update script fetches new commits, accepts fast-forwards only, rebuilds, wai
 
 The dashboard runs inside the bot process and is off until `DISCORD_CLIENT_SECRET`, `SESSION_SECRET` and `DASHBOARD_URL` are all set. Sign-in is Discord OAuth2; the access token is revoked right after the user is identified, and a server is only shown to people who are administrators of it right now (re-checked against Discord on every request). Sessions are signed cookies, writes need a CSRF header and a same-origin check, and the page runs under a strict content security policy.
 
-The tabs are Overview (plan, usage, health, features, open tickets), Welcome, AutoMod, Tickets, Security (anti-raid, anti-nuke, lockdown state and an unlock button), Activity points, Weekly report (with a test send), Mod log, Activity (the numbers over time), Health check and Plan and payments.
+The tabs are Overview (plan, usage, health, features, open tickets and open suggestions), Welcome, AutoMod (with the custom blocked words card), Tickets, Security (anti-raid, anti-nuke, the new-account age filter, lockdown state and an unlock button), Activity points, Giveaways, Role menus, Voice rooms (temporary rooms and stats channels), Suggestions, Weekly report (with a test send), Mod log, Activity (the numbers over time), Health check and Plan and payments.
 
 The same port also answers a public `GET /status` with `ok`, `version`, `uptimeSec`, a server count rounded down to ten and the heartbeat age. It needs no login, allows any origin, is rate limited and carries no ID or name; the website's status page reads it.
 
@@ -203,7 +222,7 @@ The same port also answers a public `GET /status` with `ok`, `version`, `uptimeS
 
 ## What is stored
 
-For each server: its ID, its welcome, AutoMod, ticket, security, activity, weekly report, mod log and setup settings, open tickets (channel and opener, never messages), health check scores, the theme used, the IDs of the channels, categories and roles the bot created, the active license (plan and expiry), usage counters, and, when the features are used, saved themes, backups (a copy of the layout, never message content), recurring event definitions and members' points, streaks and last check-in day. The newer features add, per member ID: activity xp, message count and voice minutes; moderation cases (member ID, moderator ID, action, the typed reason, time); giveaway entries; poll votes (the member ID and the chosen option, shown to nobody as a name); role menus (which roles a menu offers, never who took them); and security records (the lockdown state needed to put permissions back exactly). A small event log keeps only a server ID, a short kind (joined, setup finished, built, trial, paid, left) and a time, for the owner's funnel and the weekly report's join count. Payment orders keep the plan, days, amount, status and the Discord IDs of the server and the person who ran `/mua`. For `/thietke` and `/vietgiup`, the description you type is sent to Google Gemini; on Google's free tier Google may use it to improve its products, so do not put anything private in it. Message content is never read or stored, and no privileged intent is used. `/xoadulieu` erases a server's build record and settings; the per-member tables above are not touched by it yet, and are erased on request.
+For each server: its ID, its welcome, AutoMod (including the custom blocked word list the admin typed), ticket, security, activity, weekly report, mod log, temporary voice, stats channel, suggestion box and setup settings, open tickets (channel and opener, never messages), health check scores, the theme used, the IDs of the channels, categories and roles the bot created, the active license (plan and expiry), usage counters, and, when the features are used, saved themes, backups (a copy of the layout, never message content), recurring event definitions and members' points, streaks and last check-in day. The newer features add, per member ID: activity xp, message count and voice minutes; moderation cases (member ID, moderator ID, action, the typed reason, time); giveaway entries; poll votes (the member ID and the chosen option, shown to nobody as a name); role menus (which roles a menu offers, never who took them); temporary voice rooms (`temp_voice`: the room's channel ID, the creator's ID and the time, until the room is deleted); scheduled messages (`scheduled_messages`: the channel, the text the admin wrote, the time and the admin's ID); personal reminders (`reminders`: the person's ID, the text they typed, the due time and the server and channel where it was made, kept at most a month after delivery and a year overall); suggestions (`suggestions` with the author's ID, the typed text and the staff decision, and `suggestion_votes` with one up or down vote per member ID); and security records (the lockdown state needed to put permissions back exactly). A small event log keeps only a server ID, a short kind (joined, setup finished, built, trial, paid, left) and a time, for the owner's funnel and the weekly report's join count. Payment orders keep the plan, days, amount, status and the Discord IDs of the server and the person who ran `/mua`. For `/thietke` and `/vietgiup`, the description you type is sent to Google Gemini; on Google's free tier Google may use it to improve its products, so do not put anything private in it. Message content is never read or stored, and no privileged intent is used. `/xoadulieu` erases everything above for the server (build record, settings, per-member tables, role menus, tickets, backups, saved themes, temporary room records, scheduled messages, reminders made in that server, and suggestions with their votes) in one transaction, and keeps only the license, usage counters, orders and the anonymous funnel counts.
 
 The database is `data/thauxaydung.db` (SQLite). A consistent copy is written to `data/backups` once a day and the last seven are kept.
 
@@ -214,7 +233,7 @@ src/
   index.js, config.js, db.js, store.js, license.js, builder.js, jobs.js
   commands/      one file per slash command
   events/        ready, interactionCreate, guildCreate and guildDelete, messages (join notices and xp), voice states, bans, role changes, AutoMod blocks, channel and role deletes
-  jobs/          background jobs, one file each: payments, recurring events, tickets, health audit, weekly report, lockdown expiry, giveaways and polls, plan expiry reminders
+  jobs/          background jobs, one file each: payments, recurring events, tickets, health audit, weekly report, lockdown expiry, giveaways and polls, plan expiry reminders, personal reminders, scheduled messages, stats channels and the sweep of temporary rooms
   themes/        shared parts, the eleven themes, humor levels, saved themes, and the merge into one plan
   ai/            Gemini client, the designer prompt, the writing helper, and the validator that cleans its answer
   backups/       snapshot, validation, restore planning and execution
@@ -224,6 +243,11 @@ src/
   blueprints.js  the plan being edited (in memory, 15 minutes)
   security/      join counter, lockdown planning and restore, anti-nuke counter and action
   activity/      xp, level curve, voice time tracker, giveaways, polls, role menus
+  tempvoice/     rules, room creation and cleanup, the room records
+  suggest/       the rules, the store, the embed and the button handlers of the suggestion box
+  reminders/     time parsing and the store for personal reminders
+  automod/       native rule definitions and the custom blocked word list
+  purge.js       everything /xoadulieu erases, in one transaction
   modlog/        moderation commands, case history, the mod log events
   digest/        weekly report numbers, schedule and embed builders
   onboarding/    welcome flow, setup wizard, the share card
@@ -269,7 +293,7 @@ Everything that decides something is a plain module tested with a fake Discord s
 - **A funnel with nothing personal in it.** One table of server ID, kind and time answers where customers drop off: `src/analytics.js`.
 - **A website that cannot drift from the bot.** The theme data on the site is generated from the bot's own code, and a test compares the website's port of the merge with the bot for all 561 mixes: `scripts/export-web-data.js`, `test/webdata.test.js`.
 
-**Numbers:** about 13,400 lines of bot code in 170 files, 561 tests in 31 files that run in about 15 seconds, 35 slash commands, 19 database tables, 8 background jobs, 2 runtime dependencies, an arm64 Docker image of 187 MB, and 11 themes that combine into 561 plans (any mix of up to four) of up to 22 roles, 13 categories and 54 channels. The full story, including what is still missing, is in [docs/devlog.md](docs/devlog.md).
+**Numbers:** about 16,400 lines of bot code in 197 files, 801 tests in 50 files that run in about 25 seconds, 40 slash commands, 24 database tables, 11 background jobs, 2 runtime dependencies, an arm64 Docker image of 187 MB, and 11 themes that combine into 561 plans (any mix of up to four) of up to 22 roles, 13 categories and 54 channels. The full story, including what is still missing, is in [docs/devlog.md](docs/devlog.md).
 
 ## Roadmap
 

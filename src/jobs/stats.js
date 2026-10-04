@@ -9,6 +9,18 @@ import { sweepTempVoice } from "../tempvoice/rooms.js";
 export const RENAME_GAP_MS = 10 * 60 * 1000;
 const JITTER_MS = 2000;
 const UNKNOWN_CHANNEL = 10003;
+// discord.js queues a rename that hits the per-channel limit instead of failing, which could hold the whole round (and the
+// temp room sweep after it) for up to ten minutes. A rename that takes longer than this is left to finish on its own.
+export const RENAME_WAIT_MS = 20_000;
+
+function withTimeout(promise, ms) {
+  let timer;
+  const late = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error("rename is taking too long, moving on")), ms);
+    timer.unref?.();
+  });
+  return Promise.race([promise, late]).finally(() => clearTimeout(timer));
+}
 export const KINDS = ["members", "boosts", "channels", "roles"];
 
 // When each channel was last renamed. Lost on restart, which is safe: nothing is renamed unless its text changed.
@@ -83,7 +95,7 @@ export async function updateGuildStats(guild, { now = Date.now() } = {}) {
       if (missingToRename(guild, channel).length) continue;
       // The clock starts before the call, so a failed or slow rename is not retried in a hurry
       remember(channel.id, now);
-      await channel.setName(wanted, lines.reason);
+      await withTimeout(channel.setName(wanted, lines.reason), RENAME_WAIT_MS);
       renamed.push(channel.id);
     } catch (error) {
       console.error(`Stats channel ${entry.channelId} not updated:`, error.message);

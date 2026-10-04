@@ -202,7 +202,7 @@ test("delivery: closed DMs fall back to the channel with a mention of that one p
   const post = client.posts[0];
   assert.deepEqual(post.allowedMentions, { parse: [], users: [user] });
   assert.ok(post.content.startsWith(`<@${user}>`));
-  assert.doesNotMatch(post.content, /@everyone(?!​)/);
+  assert.doesNotMatch(post.content, /họp|@everyone|<@&/, "the private text never reaches the channel");
   assert.doesNotMatch(post.content.slice(post.content.indexOf(">") + 1), /<@/);
 });
 

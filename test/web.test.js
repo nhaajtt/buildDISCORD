@@ -2104,9 +2104,13 @@ test("custom blocked words are cleaned, capped by the plan, shown with their lim
   ]) {
     assert.equal((await free.api("PUT", url, body)).status, 400, JSON.stringify(body).slice(0, 100));
   }
-  const ok = await free.api("PUT", url, { customWords: ["  Từ Cấm ", "từ cấm", "bad\nword", "<script>alert(1)</script>", "ab*"] });
+  // the same words the slash command turns away
+  for (const word of ["a", "<@123456789012345678>", "@everyone", "<script>alert(1)</script>", "discord.gg/abc", "một, hai"]) {
+    assert.equal((await free.api("PUT", url, { customWords: [word] })).status, 400, word);
+  }
+  const ok = await free.api("PUT", url, { customWords: ["  Từ Cấm ", "từ cấm", "bad\nword", "<img onerror=alert(1)>", "ab*"] });
   assert.equal(ok.status, 200, ok.text);
-  assert.deepEqual(getSection(G1, "automod").customWords, ["từ cấm", "bad word", "<script>alert(1)</script>", "ab*"], "lower-cased, trimmed, one line, duplicates merged");
+  assert.deepEqual(getSection(G1, "automod").customWords, ["từ cấm", "bad word", "<img onerror=alert(1)>", "ab*"], "lower-cased, trimmed, one line, duplicates merged");
 
   const twenty = Array.from({ length: 20 }, (_, i) => `tu${i}`);
   assert.equal((await free.api("PUT", url, { customWords: twenty })).status, 200);

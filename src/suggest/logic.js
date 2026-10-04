@@ -17,14 +17,20 @@ export const DECISIONS = {
 
 // Text from a person, made safe to show in an embed: no mention syntax, no masked links, one line, capped
 export function sanitize(value, max) {
-  const text = cleanText(value, max * 2)
-    .replace(/@(everyone|here)/gi, "")
-    .replace(/<(?:@[!&]?|#)\d*>?/g, "")
-    .replace(/<[@#&!][^>]*>/g, "")
-    .replace(/\]\s*\(/g, "] (")
-    .replace(/\s{2,}/g, " ")
-    .trim();
-  return text.slice(0, max).trim();
+  const strip = (t) =>
+    t
+      .replace(/@(everyone|here)/gi, "")
+      .replace(/<(?:@[!&]?|#)\d*>?/g, "")
+      .replace(/<[@#&!][^>]*>/g, "")
+      .replace(/\]\s*\(/g, "] (");
+  let text = cleanText(value, max * 2);
+  // Removing a piece can join its neighbours into new mention syntax, so repeat until nothing changes
+  for (let i = 0; i < 20; i += 1) {
+    const next = strip(text);
+    if (next === text) break;
+    text = next;
+  }
+  return text.replace(/\s{2,}/g, " ").trim().slice(0, max).trim();
 }
 
 export const cleanSuggestion = (value) => sanitize(value, MAX_BODY);

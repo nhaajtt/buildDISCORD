@@ -20,5 +20,6 @@ export const lines = {
   missing: "Không thấy lời nhắc đó trong danh sách của bạn. Có thể nó đã được gửi hoặc đã xoá.",
   dmBody: (body) => `⏰ Nhắc việc từ thầu: ${body}`,
   lateBody: (body) => `⏰ Nhắc việc từ thầu (trễ chút vì thầu nghỉ phép): ${body}`,
-  channelBody: (userId, body, late) => `<@${userId}> ⏰ ${late ? "Nhắc việc (trễ chút), " : "Nhắc việc, "}thầu gõ DM không được nên réo ở đây: ${body}`,
+  // The text of a reminder is private, so a channel only learns that one is due, never what it says
+  channelBody: (userId, late) => `<@${userId}> ⏰ ${late ? "Nhắc việc (trễ chút) " : "Nhắc việc "}đến hạn nhưng thầu nhắn riêng không được. Mở tin nhắn riêng cho thầu rồi tạo nhắc việc lại, nội dung thầu không đăng ra đây.`,
 };

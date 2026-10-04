@@ -14,6 +14,10 @@ export function purgeGuildData(guildId) {
   db.exec("BEGIN");
   try {
     // entries and votes hang off giveaways and polls, so they go first
+    // The required role of a giveaway sits in a small table that only exists once the feature was used
+    if (db.prepare("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'giveaway_roles'").get()) {
+      db.prepare("DELETE FROM giveaway_roles WHERE giveaway_id IN (SELECT id FROM giveaways WHERE guild_id = ?)").run(id);
+    }
     db.prepare("DELETE FROM giveaway_entries WHERE giveaway_id IN (SELECT id FROM giveaways WHERE guild_id = ?)").run(id);
     db.prepare("DELETE FROM suggestion_votes WHERE suggestion_id IN (SELECT id FROM suggestions WHERE guild_id = ?)").run(id);
     db.prepare("DELETE FROM poll_votes WHERE poll_id IN (SELECT id FROM polls WHERE guild_id = ?)").run(id);

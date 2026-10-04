@@ -286,6 +286,8 @@ const OPTIONAL = {
   stats: { spec: "../stats/index.js", fn: "syncStats", label: "kênh thống kê" },
 };
 
+const OPTIONAL_TIMEOUT_MS = 20_000;
+
 async function callOptional(kind, guild, ctx) {
   const { spec, fn } = OPTIONAL[kind];
   let run = ctx.hooks && Object.hasOwn(ctx.hooks, fn) ? ctx.hooks[fn] : undefined;
@@ -298,12 +300,19 @@ async function callOptional(kind, guild, ctx) {
     }
   }
   if (typeof run !== "function") return { state: "missing" };
+  // A sync that waits on Discord's rate limit (renaming a channel is limited to two a ten minutes) must not hold the server's lock
+  let timer;
   try {
-    await run(guild);
+    const wait = new Promise((_, reject) => {
+      timer = setTimeout(() => reject(new Error("timed out")), ctx.optionalTimeoutMs ?? OPTIONAL_TIMEOUT_MS);
+    });
+    await Promise.race([run(guild), wait]);
     return { state: "ok" };
   } catch (error) {
     console.error(`Dashboard ${kind} sync failed:`, error?.message);
     return { state: "failed" };
+  } finally {
+    clearTimeout(timer);
   }
 }
 

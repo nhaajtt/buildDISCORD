@@ -152,7 +152,7 @@ test("kickRefusal explains each protection", () => {
   assert.equal(kickRefusal(guildOf({ ownerId: "200" }), member({ id: "200" }), welcome), "owner");
   assert.equal(kickRefusal(guildOf(), member({ bot: true }), welcome), "bot");
   assert.equal(kickRefusal(guildOf(), member({ roles: ["900"] }), welcome), "welcomed");
-  assert.equal(kickRefusal(guildOf(), member({ roles: ["901"] }), welcome), "welcomed");
+  assert.equal(kickRefusal(guildOf(), member({ roles: ["901"] }), welcome), null, "the newbie role is given to every joiner, so it protects nobody");
   assert.equal(kickRefusal(guildOf(), member({ roles: ["555"] }), welcome), null, "an unrelated role does not protect");
   assert.equal(kickRefusal(guildOf({ top: 5 }), member({ highest: 5 }), welcome), "above");
   assert.equal(kickRefusal(guildOf({ top: 5 }), member({ highest: 9 }), welcome), "above");

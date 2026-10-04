@@ -262,7 +262,7 @@ export default function Landing({ dict }: { dict: Dict }) {
           <tbody>
             <tr>
               <th scope="row">{dict.footer.block.project}</th>
-              <td>buildDISCORD, v1.6</td>
+              <td>buildDISCORD, v1.7</td>
               <th scope="row">{dict.footer.block.sheet}</th>
               <td>1 / 1</td>
             </tr>
