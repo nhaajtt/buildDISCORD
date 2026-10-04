@@ -188,6 +188,58 @@ CREATE TABLE IF NOT EXISTS role_menus (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS role_menus_guild ON role_menus (guild_id);
+CREATE TABLE IF NOT EXISTS temp_voice (
+  channel_id TEXT PRIMARY KEY,
+  guild_id TEXT NOT NULL,
+  owner_id TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS temp_voice_guild ON temp_voice (guild_id);
+CREATE TABLE IF NOT EXISTS scheduled_messages (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  body TEXT NOT NULL,
+  weekday INTEGER,
+  hhmm TEXT NOT NULL,
+  next_at INTEGER NOT NULL,
+  last_sent_at INTEGER,
+  status TEXT NOT NULL,
+  created_by TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS scheduled_due ON scheduled_messages (status, next_at);
+CREATE TABLE IF NOT EXISTS reminders (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT,
+  user_id TEXT NOT NULL,
+  channel_id TEXT,
+  body TEXT NOT NULL,
+  due_at INTEGER NOT NULL,
+  status TEXT NOT NULL,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS reminders_due ON reminders (status, due_at);
+CREATE INDEX IF NOT EXISTS reminders_user ON reminders (user_id, status);
+CREATE TABLE IF NOT EXISTS suggestions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  guild_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  message_id TEXT,
+  user_id TEXT NOT NULL,
+  body TEXT NOT NULL,
+  status TEXT NOT NULL,
+  decided_by TEXT,
+  note TEXT,
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS suggestions_guild ON suggestions (guild_id, status);
+CREATE TABLE IF NOT EXISTS suggestion_votes (
+  suggestion_id INTEGER NOT NULL,
+  user_id TEXT NOT NULL,
+  value INTEGER NOT NULL,
+  PRIMARY KEY (suggestion_id, user_id)
+);
 `;
 
 // Imports the per-server JSON files written by the first version, then sets them aside

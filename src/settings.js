@@ -31,7 +31,7 @@ export const SECTIONS = {
     }),
   },
   automod: {
-    defaults: { enabled: false, level: "vua", logChannelId: null, blockInvites: true, blockLinks: false, mentionLimit: 5, exemptRoleIds: [], ruleIds: {} },
+    defaults: { enabled: false, level: "vua", logChannelId: null, blockInvites: true, blockLinks: false, mentionLimit: 5, exemptRoleIds: [], customWords: [], ruleIds: {} },
     normalize: (v = {}) => ({
       enabled: flag(v.enabled, false),
       level: oneOf(v.level, AUTOMOD_LEVELS, "vua"),
@@ -40,6 +40,8 @@ export const SECTIONS = {
       blockLinks: flag(v.blockLinks, false),
       mentionLimit: whole(v.mentionLimit, 3, 20, 5),
       exemptRoleIds: ids(v.exemptRoleIds, 20),
+      // the server's own blocked words, enforced by Discord's native keyword rule; the bot never sees a message
+      customWords: [...new Set((Array.isArray(v.customWords) ? v.customWords : []).map((w) => text(w, 60).toLowerCase()).filter(Boolean))].slice(0, 500),
       // the Discord rules this bot created, by purpose, so it can update or remove exactly those and nothing else
       ruleIds: Object.fromEntries(
         Object.entries(v.ruleIds && typeof v.ruleIds === "object" ? v.ruleIds : {})
@@ -91,6 +93,8 @@ export const SECTIONS_MORE = {
       nukeEnabled: false,
       nukeThreshold: 3,
       nukeWindowSec: 60,
+      minAccountAgeDays: 0,
+      youngAction: "alert",
       lockdown: { active: false, since: 0, prevVerification: null, channels: [] },
     },
     normalize: (v = {}) => {
@@ -106,6 +110,9 @@ export const SECTIONS_MORE = {
         nukeEnabled: flag(v.nukeEnabled, false),
         nukeThreshold: whole(v.nukeThreshold, 2, 10, 3),
         nukeWindowSec: whole(v.nukeWindowSec, 10, 600, 60),
+        // accounts younger than this many days are flagged when they join (0 is off); alert only, or kick them
+        minAccountAgeDays: whole(v.minAccountAgeDays, 0, 365, 0),
+        youngAction: oneOf(v.youngAction, ["alert", "kick"], "alert"),
         // what a lockdown changed, so it can be put back exactly as it was
         lockdown: {
           active: flag(lock.active, false),
@@ -165,6 +172,35 @@ export const SECTIONS_MORE = {
     }),
   },
 };
+Object.assign(SECTIONS, {
+  tempvoice: {
+    defaults: { enabled: false, lobbyChannelIds: [], categoryId: null, nameTemplate: "Phòng của {name}", userLimit: 0 },
+    normalize: (v = {}) => ({
+      enabled: flag(v.enabled, false),
+      // joining one of these voice channels makes a private room for the person
+      lobbyChannelIds: ids(v.lobbyChannelIds, 5),
+      categoryId: id(v.categoryId),
+      nameTemplate: text(v.nameTemplate, 60) || "Phòng của {name}",
+      userLimit: whole(v.userLimit, 0, 99, 0),
+    }),
+  },
+  stats: {
+    defaults: { enabled: false, channels: [] },
+    normalize: (v = {}) => ({
+      enabled: flag(v.enabled, false),
+      // a voice channel whose name carries a live number, for example "Thành viên: 128"
+      channels: (Array.isArray(v.channels) ? v.channels : [])
+        .map((c) => ({ channelId: id(c?.channelId), kind: oneOf(c?.kind, ["members", "boosts", "channels", "roles"], "members"), template: text(c?.template, 60) || "Thành viên: {n}" }))
+        .filter((c) => c.channelId)
+        .filter((c, i, all) => all.findIndex((o) => o.channelId === c.channelId) === i)
+        .slice(0, 4),
+    }),
+  },
+  suggest: {
+    defaults: { enabled: false, channelId: null, staffRoleId: null },
+    normalize: (v = {}) => ({ enabled: flag(v.enabled, false), channelId: id(v.channelId), staffRoleId: id(v.staffRoleId) }),
+  },
+});
 Object.assign(SECTIONS, SECTIONS_MORE);
 
 export const SECTION_NAMES = Object.keys(SECTIONS);
