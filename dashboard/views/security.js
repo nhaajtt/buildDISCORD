@@ -1,6 +1,11 @@
 import { h, fmtDate } from "../dom.js";
 import { busy, lockBadge, notice, numberField, pickerField, switchField } from "../forms.js";
 
+const YOUNG = [
+  { id: "alert", name: "Chỉ báo động" },
+  { id: "kick", name: "Đuổi khỏi server" },
+];
+
 const ACTIONS = [
   { id: "alert", name: "Chỉ báo động" },
   { id: "verify", name: "Nâng mức xác minh của server" },
@@ -22,6 +27,9 @@ export function securityTab({ detail, save, unlock }) {
   const threshold = numberField("Số lần xoá để tính là nuke", s.nukeThreshold, { min: 2, max: 10 });
   const nukeWindow = numberField("Trong bao nhiêu giây", s.nukeWindowSec, { min: 10, max: 600 });
 
+  const minAge = numberField("Tuổi tối thiểu của tài khoản (ngày, 0 là tắt)", s.minAccountAgeDays, { min: 0, max: 365, hint: "Tài khoản Discord mới tạo hơn mức này khi vào server sẽ bị xử lý theo lựa chọn bên dưới." });
+  const young = pickerField("Với tài khoản quá mới thì", YOUNG, s.youngAction, { none: "Chỉ báo động", hint: "Đuổi khỏi server chỉ có tác dụng khi thầu có quyền Đuổi thành viên. Người bị đuổi vẫn vào lại được khi tài khoản đủ tuổi." });
+
   const button = h("button", { class: "btn", type: "button", text: "Lưu cài đặt bảo vệ" });
   button.addEventListener("click", () =>
     busy(button, () =>
@@ -35,6 +43,8 @@ export function securityTab({ detail, save, unlock }) {
         nukeEnabled: nukeOk ? nuke.get() : false,
         nukeThreshold: threshold.get(),
         nukeWindowSec: nukeWindow.get(),
+        minAccountAgeDays: minAge.get(),
+        youngAction: young.get() ?? "alert",
       }),
     ),
   );
@@ -70,6 +80,9 @@ export function securityTab({ detail, save, unlock }) {
       action.root,
       lockMinutes.root,
       alertChannel.root,
+      h("h3", { text: "Tài khoản mới tạo" }),
+      minAge.root,
+      young.root,
       h("h3", {}, "Chống xoá hàng loạt ", nukeOk ? null : lockBadge()),
       nuke.root,
       threshold.root,

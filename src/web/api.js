@@ -17,12 +17,13 @@ import { PRICES_USD, DAY_CHOICES, ONE_OFF, amountCents, amountVnd, describeOrder
 import { panelPayload, postTicketPanel } from "../tickets/panel.js";
 import { listOpen } from "../tickets/store.js";
 import { HttpError, avatarUrl, iconUrl } from "./auth.js";
+import { afterSave, countsOf, gateCounts, giveawaysView, menusView } from "./manage.js";
 import { TEXT_TYPES, VOICE_TYPES, validateSection } from "./validate.js";
 
 // What each route does once the caller is known to be allowed. Discord-facing effects go through the same modules the slash commands use.
 
 export const AUDIT_COOLDOWN_MS = 60_000;
-export const SECTION_LIST = ["welcome", "automod", "tickets", "security", "activity", "digest", "modlog"];
+export const SECTION_LIST = ["welcome", "automod", "tickets", "security", "activity", "digest", "modlog", "tempvoice", "stats", "suggest"];
 export const PREVIEW_COOLDOWN_MS = 60_000;
 
 const planSummary = (guildId) => {
@@ -139,7 +140,9 @@ export function guildDetail(guild) {
     ...pickers(guild),
     audit: auditView(guild),
     tickets: ticketsView(guild, settings.tickets),
-    overview: activityOverview(guild),
+    overview: { ...activityOverview(guild), counts: countsOf(guild) },
+    giveaways: giveawaysView(guild),
+    roleMenus: menusView(guild),
     orders: ordersOf(guild.id, 5),
     buy: buyInfo(),
   };
@@ -206,7 +209,7 @@ async function applyTickets(guild, before, stored) {
   }
 }
 
-export async function putSettings(guild, section, body) {
+export async function putSettings(guild, section, body, ctx = {}) {
   if (!SECTION_LIST.includes(section)) throw new HttpError(404, "Không có phần cài đặt này.");
   const before = getSection(guild.id, section);
   // The plan is judged first, so a free server hears about Pro before it hears about missing fields.
@@ -241,6 +244,10 @@ export async function putSettings(guild, section, body) {
     if (blocked) throw new HttpError(403, blocked);
   }
 
+  // Counted lists (lobbies, stat channels, blocked words): a lapsed plan can shrink them, never grow them
+  const overLimit = gateCounts(guild, section, patch, before);
+  if (overLimit) throw new HttpError(403, overLimit);
+
   // An old panel in another channel is not this panel any more
   if (section === "tickets" && patch.panelChannelId && patch.panelChannelId !== before.panelChannelId) {
     await retirePanel(guild, before.panelChannelId, before.panelMessageId);
@@ -253,6 +260,7 @@ export async function putSettings(guild, section, body) {
   if (section === "activity") return { value: stored, applied: true, notice: "Đã lưu cài đặt điểm hoạt động." };
   if (section === "digest") return { value: stored, applied: true, notice: "Đã lưu lịch báo cáo tuần." };
   if (section === "modlog") return { value: stored, applied: true, notice: "Đã lưu nhật ký quản trị." };
+  if (section === "tempvoice" || section === "stats" || section === "suggest") return { value: stored, ...(await afterSave(section, guild, stored, ctx)) };
   const effect = section === "automod" ? await applyAutomod(guild, before) : await applyTickets(guild, before, stored);
   return { value: getSection(guild.id, section), ...effect };
 }

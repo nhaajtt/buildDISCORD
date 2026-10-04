@@ -8,6 +8,7 @@ export const permLabels = {
   SendMessages: "Gửi tin nhắn",
   EmbedLinks: "Nhúng liên kết",
   ViewChannel: "Xem kênh",
+  KickMembers: "Đuổi thành viên",
 };
 
 export const securityLines = {
@@ -50,5 +51,21 @@ export const securityLines = {
   nukeKept: (list) => `Không đụng vào: ${list}.`,
   nukeNoAudit: "Thầu cần quyền Xem nhật ký kiểm tra thì mới biết ai xoá. Chưa có quyền này nên chống xoá hàng loạt đang ngủ.",
   nukeNoManage: "Thầu thiếu quyền Quản lý role nên chỉ báo động, không gỡ role được.",
+  youngTitle: "🍼 Tài khoản mới toanh",
+  youngBody: (userId, days, min) => `<@${userId}> vừa vào với tài khoản mới tạo được ${days} ngày, chưa đủ ${min} ngày thầu đặt ra. Nhìn giống hàng lập tối qua để phá hơn là khách quen.`,
+  youngAlertOnly: "Chỉ báo cho đại ca biết, thầu không đụng tới ai.",
+  youngKicked: "Đã mời ra khỏi công trường. Đủ tuổi thì quay lại sau.",
+  youngKickFailed: "Thầu định mời ra nhưng Discord không cho, nên chỉ báo thôi.",
+  youngKickPerm: (names) => `Thầu muốn mời ra nhưng thiếu quyền: ${names.join(", ")}. Cấp quyền rồi lần sau thầu làm được.`,
+  youngKickRefused: {
+    owner: "Đây là chủ server, thầu không dám đụng.",
+    bot: "Đây là bot, thầu không đuổi.",
+    welcomed: "Người này đã có role từ bước chào mừng.",
+    above: "Role của người này ngang hoặc trên role của thầu nên thầu không đuổi được.",
+  },
+  youngStatusOff: "tắt",
+  youngStatus: (days, action) => `dưới ${days} ngày sẽ ${action === "kick" ? "bị đuổi (và báo động)" : "chỉ báo động"}`,
+  youngSaved: "Đã lưu bộ lọc tài khoản mới.",
+  youngKickWarn: (names) => `Lưu ý: thầu đang thiếu quyền ${names.join(", ")} nên chưa đuổi được, hiện chỉ báo động.`,
   keptWhy: { managed: "role của bot", above: "ngang hoặc trên role của bot" },
 };

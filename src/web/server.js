@@ -6,6 +6,7 @@ import path from "node:path";
 import { PermissionFlagsBits } from "discord.js";
 import { config } from "../config.js";
 import * as api from "./api.js";
+import { dispatch } from "./manage.js";
 import { HttpError, createAuth, parseCookies, safeEqual } from "./auth.js";
 import { isSnowflake } from "./validate.js";
 
@@ -77,6 +78,12 @@ const ROUTES = [
   { method: "GET", re: /^\/api\/guilds\/([^/]+)\/orders$/, name: "orders", guild: true },
   { method: "POST", re: /^\/api\/guilds\/([^/]+)\/security\/unlock$/, name: "unlock", guild: true, body: true },
   { method: "POST", re: /^\/api\/guilds\/([^/]+)\/digest\/preview$/, name: "preview", guild: true, body: true },
+  { method: "POST", re: /^\/api\/guilds\/([^/]+)\/giveaways$/, name: "giveawayCreate", guild: true, body: true },
+  { method: "POST", re: /^\/api\/guilds\/([^/]+)\/giveaways\/(\d{1,12})\/(end|reroll|cancel)$/, name: "giveawayAct", guild: true, body: true },
+  { method: "POST", re: /^\/api\/guilds\/([^/]+)\/rolemenus$/, name: "menuCreate", guild: true, body: true },
+  { method: "PUT", re: /^\/api\/guilds\/([^/]+)\/rolemenus\/(\d{1,12})$/, name: "menuEdit", guild: true, body: true },
+  { method: "POST", re: /^\/api\/guilds\/([^/]+)\/rolemenus\/(\d{1,12})\/post$/, name: "menuPost", guild: true, body: true },
+  { method: "DELETE", re: /^\/api\/guilds\/([^/]+)\/rolemenus\/(\d{1,12})$/, name: "menuDelete", guild: true, body: true },
 ];
 
 // What the public status page may learn: no ids, no names, no settings. The server count is rounded down so it never reads as a precise figure.
@@ -115,7 +122,7 @@ export function createDashboard(client, options = {}) {
     maxSessions: options.maxSessions,
   });
   const limiter = createLimiter(now);
-  const ctx = { client, auth, now, auditRuns: new Map(), previewRuns: new Map() };
+  const ctx = { client, auth, now, auditRuns: new Map(), previewRuns: new Map(), hooks: options.hooks ?? {} };
   const busy = new Set();
 
   // Behind the proxy the socket peer is always loopback, so the address that matters is the one the proxy appended last
@@ -252,12 +259,13 @@ export function createDashboard(client, options = {}) {
     if (busy.has(guildId)) throw new HttpError(409, MESSAGES.busy);
     busy.add(guildId);
     try {
-      if (route.name === "settings") return send(res, 200, await api.putSettings(guild, match[2], body));
+      if (route.name === "settings") return send(res, 200, await api.putSettings(guild, match[2], body, ctx));
       if (route.name === "audit") return send(res, 200, await api.runHealthCheck(guild, ctx));
       if (route.name === "fix") return send(res, 200, await api.fix(guild, body));
       if (route.name === "unlock") return send(res, 200, await api.unlockLockdown(guild));
       if (route.name === "preview") return send(res, 200, await api.previewDigest(guild, ctx));
-      return send(res, 200, await api.postPanel(guild));
+      if (route.name === "panel") return send(res, 200, await api.postPanel(guild));
+      return send(res, 200, await dispatch(route.name, guild, match, body, ctx, session));
     } finally {
       busy.delete(guildId);
     }

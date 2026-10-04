@@ -1,11 +1,52 @@
-import { h } from "../dom.js";
-import { busy, checkList, lockBadge, notice, numberField, pickerField, switchField } from "../forms.js";
+import { h, icon } from "../dom.js";
+import { busy, checkList, lockBadge, notice, numberField, pickerField, switchField, textField } from "../forms.js";
 
 const LEVELS = [
   { id: "nhe", name: "Nhẹ", pro: false, blocks: ["Chống spam", "Chặn link mời server khác"] },
   { id: "vua", name: "Vừa", pro: true, blocks: ["Mọi thứ của mức Nhẹ", "Chống tag bừa, kèm cho nghỉ chat 60 giây", "Chặn chửi thề và lời lẽ xúc phạm"] },
   { id: "gat", name: "Gắt", pro: true, blocks: ["Mọi thứ của mức Vừa", "Chặn nội dung 18+", "Chặn mọi link nếu bật công tắc bên dưới"] },
 ];
+
+// The server's own blocked words. Discord does the blocking, so the bot never reads a message.
+function wordsCard({ detail, save }) {
+  const limit = detail.plan.limits.customWords;
+  const words = [...detail.settings.automod.customWords];
+  const input = textField("Thêm từ khoá", "", { max: 60, hint: "Không phân biệt hoa thường. Mỗi từ tối đa 60 ký tự." });
+  const count = h("p", { class: "hint" });
+  const list = h("ul", { class: "chips plain" });
+  const add = h("button", { class: "btn btn-ghost btn-sm", type: "button" }, icon("plus", 16), " Thêm từ");
+  const draw = () => {
+    list.replaceChildren(
+      ...words.map((w, i) => {
+        const remove = h("button", { class: "icon-btn", type: "button", "aria-label": `Bỏ từ ${w}` }, icon("trash", 14));
+        remove.addEventListener("click", () => {
+          words.splice(i, 1);
+          draw();
+        });
+        return h("li", { class: "chip chip-on" }, h("span", { text: w }), remove);
+      }),
+    );
+    count.textContent = `${words.length} / ${limit === null ? "không giới hạn" : limit} từ${limit !== null && words.length > limit ? " (vượt gói, chỉ bớt được, không thêm được)" : ""}`;
+    add.disabled = limit !== null && words.length >= limit;
+  };
+  const addWord = () => {
+    const w = input.get().trim().toLowerCase();
+    if (w && !words.includes(w) && (limit === null || words.length < limit)) words.push(w);
+    input.input.value = "";
+    draw();
+  };
+  add.addEventListener("click", addWord);
+  input.input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addWord();
+    }
+  });
+  draw();
+  const button = h("button", { class: "btn", type: "button", text: "Lưu từ khoá" });
+  button.addEventListener("click", () => busy(button, () => save("automod", { customWords: words })));
+  return h("div", { class: "card stack" }, h("h3", { text: "Từ khoá tự chế" }), count, list, input.root, add, button);
+}
 
 export function automodTab({ detail, save }) {
   const s = detail.settings.automod;
@@ -68,5 +109,6 @@ export function automodTab({ detail, save }) {
     log.root,
     exempt.root,
     button,
+    wordsCard({ detail, save }),
   );
 }

@@ -22,6 +22,11 @@ function fill(guild) {
   db.prepare("INSERT INTO role_menus (guild_id, channel_id, title, mode, roles, created_at) VALUES (?, 'c', 't', 'multi', '[]', 1)").run(guild);
   const g = db.prepare("INSERT INTO giveaways (guild_id, channel_id, host_id, prize, ends_at, status, created_at) VALUES (?, 'c', 'h', 'p', 1, 'open', 1)").run(guild);
   db.prepare("INSERT INTO giveaway_entries (giveaway_id, user_id) VALUES (?, 'u1')").run(g.lastInsertRowid);
+  db.prepare("INSERT INTO temp_voice (channel_id, guild_id, owner_id, created_at) VALUES (?, ?, 'u1', 1)").run(`tv-${guild}`, guild);
+  db.prepare("INSERT INTO scheduled_messages (guild_id, channel_id, body, hhmm, next_at, status, created_by, created_at) VALUES (?, 'c', 'b', '09:00', 1, 'active', 'u', 1)").run(guild);
+  db.prepare("INSERT INTO reminders (guild_id, user_id, body, due_at, status, created_at) VALUES (?, 'u1', 'b', 1, 'pending', 1)").run(guild);
+  const sg = db.prepare("INSERT INTO suggestions (guild_id, channel_id, user_id, body, status, created_at) VALUES (?, 'c', 'u1', 'b', 'open', 1)").run(guild);
+  db.prepare("INSERT INTO suggestion_votes (suggestion_id, user_id, value) VALUES (?, 'u1', 1)").run(sg.lastInsertRowid);
   const p = db.prepare("INSERT INTO polls (guild_id, channel_id, question, options, status, created_by, created_at) VALUES (?, 'c', 'q', '[]', 'open', 'u', 1)").run(guild);
   db.prepare("INSERT INTO poll_votes (poll_id, user_id, option_index) VALUES (?, 'u1', 0)").run(p.lastInsertRowid);
 }
@@ -35,11 +40,12 @@ test("purging a server erases its members' data and leaves other servers, billin
 
   const removed = purgeGuildData("g-purge-1");
   assert.equal(removed.xp, 1);
-  for (const table of ["xp", "mod_cases", "role_menus", "giveaways", "polls"]) assert.equal(count(table, "g-purge-1"), 0, table);
+  for (const table of ["xp", "mod_cases", "role_menus", "giveaways", "polls", "temp_voice", "scheduled_messages", "reminders", "suggestions"]) assert.equal(count(table, "g-purge-1"), 0, table);
   assert.equal(Number(getDb().prepare("SELECT COUNT(*) AS n FROM giveaway_entries").get().n), 1, "only the other server's entry is left");
   assert.equal(Number(getDb().prepare("SELECT COUNT(*) AS n FROM poll_votes").get().n), 1);
+  assert.equal(Number(getDb().prepare("SELECT COUNT(*) AS n FROM suggestion_votes").get().n), 1);
 
-  for (const table of ["xp", "mod_cases", "role_menus", "giveaways", "polls"]) assert.equal(count(table, "g-purge-2"), 1, `${table} of the other server`);
+  for (const table of ["xp", "mod_cases", "role_menus", "giveaways", "polls", "temp_voice", "scheduled_messages", "reminders", "suggestions"]) assert.equal(count(table, "g-purge-2"), 1, `${table} of the other server`);
   assert.equal(getPlan("g-purge-1").plan, "pro", "the paid plan is kept");
   assert.equal(getUsage("g-purge-1", "build", { lifetime: true }), 1);
   assert.equal(funnel().invite.servers >= 1, true);

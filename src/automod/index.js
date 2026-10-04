@@ -1,7 +1,8 @@
 import { PermissionFlagsBits } from "discord.js";
 import { getSection, patchSection } from "../settings.js";
 import { gateFeature } from "../utils/gate.js";
-import { buildRuleDefs, editPayload, planSync } from "./rules.js";
+import { getPlan } from "../license.js";
+import { CUSTOM_KEY, buildRuleDefs, editPayload, planSync } from "./rules.js";
 
 const REASON = "Thầu: AutoMod";
 const UNKNOWN_RULE = 10066;
@@ -21,6 +22,7 @@ export function gateAutomod(guildId, { level = "nhe", blockLinks = false, exempt
   return null;
 }
 
+export { standardOn };
 export const hasFullPlan = (guildId) => gateFeature(guildId, "automodFull") === null;
 
 async function fetchExisting(guild) {
@@ -30,8 +32,26 @@ async function fetchExisting(guild) {
 
 const empty = () => ({ failed: [], created: [], updated: [], removed: [] });
 
-// Brings the server's rules in line with the saved settings, touching only rules whose ids the bot recorded
-export async function syncAutomod(guild) {
+const chains = new Map();
+
+// Brings the server's rules in line with the saved settings, touching only rules whose ids the bot recorded.
+// Calls for one server run one after another, so two quick changes can never create the same rule twice.
+export function syncAutomod(guild) {
+  const run = (chains.get(guild.id) ?? Promise.resolve()).then(() => syncNow(guild));
+  const tail = run.catch(() => {});
+  chains.set(guild.id, tail);
+  tail.then(() => {
+    if (chains.get(guild.id) === tail) chains.delete(guild.id);
+  });
+  return run;
+}
+
+const planFor = (guildId) => ({ full: hasFullPlan(guildId), customLimit: getPlan(guildId).customWords });
+
+// The standard rules are on when any recorded rule other than the custom words one exists
+const standardOn = (ruleIds) => Object.keys(ruleIds).some((key) => key !== CUSTOM_KEY);
+
+async function syncNow(guild) {
   const settings = getSection(guild.id, "automod");
   if (!guild.members.me?.permissions.has(PermissionFlagsBits.ManageGuild)) return { ok: false, kind: "perms", ...empty() };
 
@@ -42,7 +62,7 @@ export async function syncAutomod(guild) {
     return { ok: false, kind: classifyError(error), message: error.message, ...empty() };
   }
 
-  const desired = buildRuleDefs(settings, { full: hasFullPlan(guild.id) });
+  const desired = buildRuleDefs(settings, planFor(guild.id));
   const plan = planSync(desired, settings.ruleIds, existing);
   const ruleIds = { ...settings.ruleIds };
   const result = { ok: true, ...empty() };
@@ -80,7 +100,7 @@ export async function syncAutomod(guild) {
     }
   }
 
-  patchSection(guild.id, "automod", { ruleIds, enabled: Object.keys(ruleIds).length > 0 });
+  patchSection(guild.id, "automod", { ruleIds, enabled: standardOn(ruleIds) });
   result.ok = result.failed.length === 0;
   return result;
 }
@@ -106,9 +126,9 @@ export async function removeAutomod(guild) {
 // Current rules against what the settings call for. state is ok, changed (edited by someone), missing (deleted) or extra (no longer wanted).
 export async function automodStatus(guild) {
   const settings = getSection(guild.id, "automod");
-  const full = hasFullPlan(guild.id);
+  const { full, customLimit } = planFor(guild.id);
   const existing = await fetchExisting(guild);
-  const plan = planSync(buildRuleDefs(settings, { full }), settings.ruleIds, existing);
+  const plan = planSync(buildRuleDefs(settings, { full, customLimit }), settings.ruleIds, existing);
   const changed = new Set(plan.update.map((u) => u.key));
   const extra = new Set(plan.remove.map((r) => r.key));
   const rules = Object.entries(settings.ruleIds).map(([key, id]) => {

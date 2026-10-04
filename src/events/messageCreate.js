@@ -1,6 +1,7 @@
 import { Events, MessageType } from "discord.js";
 import { welcomeMember } from "../onboarding/index.js";
 import { handleRaidJoin } from "../security/guard.js";
+import { handleYoungJoin } from "../security/age.js";
 
 // Discord posts a "member joined" notice for every join, so a raid would turn into a flood of welcomes.
 // This keeps the ids it has seen and caps how many welcomes one server gets per window.
@@ -49,6 +50,8 @@ export default {
   async execute(client, message) {
     // The raid counter sees every join, while the welcome filter caps how many welcomes go out
     await handleRaidJoin(message);
+    // Only queues the account age check, so a flood of joins never holds this handler up
+    handleYoungJoin(message);
     await handleJoinMessage(message, filter);
   },
 };

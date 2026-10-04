@@ -167,8 +167,10 @@ function makeClock(start) {
 // ---------------------------------------------------------------- users, roles, members
 
 class FakeUser {
-  constructor(gw, { id = gw.sf(), username = `user${id.slice(-4)}`, bot = false, dmOpen = true } = {}) {
+  constructor(gw, { id = gw.sf(), username = `user${id.slice(-4)}`, bot = false, dmOpen = true, createdAt = null } = {}) {
     this.gw = gw;
+    // When the account was made; by default a year before the test clock started, so nobody is a new account unless a test says so
+    this.createdTimestamp = createdAt ?? BASE_TIME - 365 * 86400000;
     this.id = id;
     this.username = username;
     this.globalName = username;
@@ -758,7 +760,7 @@ class FakeGuild {
   }
 
   addMember(o = {}) {
-    const user = o.user ?? this.gw.makeUser({ id: o.id, username: o.name, bot: o.bot, dmOpen: o.dmOpen });
+    const user = o.user ?? this.gw.makeUser({ id: o.id, username: o.name, bot: o.bot, dmOpen: o.dmOpen, createdAt: o.createdAt });
     const member = new FakeMember(this, user, o.roles ?? []);
     if (o.nickname) member.nickname = o.nickname;
     this.members.cache.set(member.id, member);
@@ -1069,6 +1071,14 @@ class FakeClient extends EventEmitter {
         throw apiError(10003, "Unknown Channel", 404);
       },
     };
+    this.users = {
+      cache: gw.users,
+      fetch: async (id) => {
+        const user = gw.users.get(id);
+        if (!user) throw apiError(10013, "Unknown User", 404);
+        return user;
+      },
+    };
     this.setMaxListeners(100);
   }
 
@@ -1259,8 +1269,8 @@ export async function createGateway({ env = {}, start = BASE_TIME } = {}) {
   };
 
   // A person joins: they appear in the member list and Discord posts its "member joined" notice in the system channel
-  gw.join = async (guild, { name, bot = false, roles = [], channel = guild.systemChannel, id } = {}) => {
-    const member = guild.addMember({ name, bot, roles, id });
+  gw.join = async (guild, { name, bot = false, roles = [], channel = guild.systemChannel, id, createdAt } = {}) => {
+    const member = guild.addMember({ name, bot, roles, id, createdAt });
     const message = gw.message(guild, channel, member, { type: MessageType.UserJoin });
     await gw.emit(Events.MessageCreate, message);
     return { member, message };

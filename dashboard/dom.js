@@ -52,6 +52,10 @@ const PATHS = {
   chart: "M4 20V10M10 20V4M16 20v-7M22 20H2",
   clock: "M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v5l3 2",
   log: "M6 3h9l4 4v14H6zM9 12h7M9 16h7M9 8h3",
+  gift: "M3 8h18v4H3zM5 12v9h14v-9M12 8v13M12 8C10 4 6 5 7 8M12 8c2-4 6-3 5 0",
+  list: "M4 6h16M4 12h16M4 18h10",
+  mic: "M12 3a3 3 0 00-3 3v6a3 3 0 006 0V6a3 3 0 00-3-3zM6 11a6 6 0 0012 0M12 17v4",
+  bulb: "M9 18h6M10 21h4M12 3a6 6 0 00-4 10c1 1 1 2 1 3h6c0-1 0-2 1-3a6 6 0 00-4-10z",
 };
 
 export function icon(name, size = 20) {

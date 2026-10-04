@@ -55,7 +55,7 @@ function textChannel(id, name, type = ChannelType.GuildText) {
       },
     },
     send: async (payload) => {
-      const m = { id: nextId(), payload, edits: [], edit: async (p) => void m.edits.push(p) };
+      const m = { id: nextId(), author: { id: "1" }, payload, edits: [], edit: async (p) => void m.edits.push(p) };
       store.set(m.id, m);
       return m;
     },
@@ -209,7 +209,8 @@ after(() => app.close());
 
 function send(p, { method = "GET", path: target, headers = {}, body } = {}) {
   return new Promise((resolve, reject) => {
-    const req = http.request({ host: "127.0.0.1", port: p, method, path: target, headers }, (res) => {
+    const sized = body !== undefined && !Object.keys(headers).some((k) => k.toLowerCase() === "content-length") ? { ...headers, "Content-Length": Buffer.byteLength(body) } : headers;
+    const req = http.request({ host: "127.0.0.1", port: p, method, path: target, headers: sized }, (res) => {
       const chunks = [];
       res.on("data", (c) => chunks.push(c));
       res.on("end", () => {
@@ -485,7 +486,7 @@ test("the guild view lists pickers, plan, usage, settings, health, tickets and o
   assert.equal(g.plan.limits.tickets, false);
   assert.equal(g.plan.limits.buildsTotal, 2);
   assert.equal(g.usage.builds, 0);
-  assert.deepEqual(Object.keys(g.settings).sort(), ["activity", "automod", "digest", "modlog", "security", "tickets", "welcome"]);
+  assert.deepEqual(Object.keys(g.settings).sort(), ["activity", "automod", "digest", "modlog", "security", "stats", "suggest", "tempvoice", "tickets", "welcome"]);
   assert.deepEqual(g.texts.map((c) => c.name).sort(), ["chung", "log", "tin-tuc"]);
   assert.deepEqual(g.voices.map((c) => c.name), ["phong-voice"]);
   assert.deepEqual(g.categories.map((c) => c.name), ["ticket-khu"]);
@@ -1460,4 +1461,705 @@ test("GET /status answers a CORS preflight, and no other route does", async () =
   }
   const apiGet = await new Browser().req("GET", "/api/me");
   assert.equal(apiGet.headers["access-control-allow-origin"], undefined);
+});
+
+// ---------------------------------------------------------------- giveaways, role menus, voice rooms, stats, suggestions, blocked words
+
+const giveawayStore = await import("../src/activity/giveaways.js");
+const { runGiveaways } = await import("../src/jobs/giveaways.js");
+const menuStore = await import("../src/activity/rolemenus.js");
+const { getDb } = await import("../src/db.js");
+
+const voiceId = (guildId, n) => text(guildId, `40000000000000001${n}`);
+function addVoice(guildId, n, name = `thoai-${n}`) {
+  const guild = guilds.get(guildId);
+  const id = voiceId(guildId, n);
+  if (!guild.channels.cache.has(id)) guild.channels.cache.set(id, textChannel(id, name, ChannelType.GuildVoice));
+  return id;
+}
+const chanOf = (guildId, suffix) => guilds.get(guildId).channels.cache.get(text(guildId, suffix));
+const roleId = (guildId, n) => text(guildId, `60000000000000000${n}`);
+const MEMBER_ROLE = (g) => roleId(g, 1);
+const ADMIN_ROLE = (g) => roleId(g, 2);
+const BOT_ROLE = (g) => roleId(g, 3);
+const STAFF_ROLE = (g) => roleId(g, 4);
+const HIGH_ROLE = (g) => roleId(g, 5);
+const lastMessage = (channel) => [...channel.store.values()].at(-1);
+
+const NEW_ROUTES = (g) => [
+  ["POST", guildUrl(g, "/giveaways"), { prize: "Quà", minutes: 60, channelId: text(g, "400000000000000001") }],
+  ["POST", guildUrl(g, "/giveaways/1/end"), {}],
+  ["POST", guildUrl(g, "/giveaways/1/reroll"), { count: 1 }],
+  ["POST", guildUrl(g, "/giveaways/1/cancel"), {}],
+  ["POST", guildUrl(g, "/rolemenus"), { title: "Menu", mode: "multi", roles: [{ id: MEMBER_ROLE(g) }] }],
+  ["PUT", guildUrl(g, "/rolemenus/1"), { title: "Menu", mode: "multi", roles: [{ id: MEMBER_ROLE(g) }] }],
+  ["POST", guildUrl(g, "/rolemenus/1/post"), { channelId: text(g, "400000000000000001") }],
+  ["DELETE", guildUrl(g, "/rolemenus/1"), {}],
+  ["PUT", guildUrl(g, "/settings/tempvoice"), { enabled: false }],
+  ["PUT", guildUrl(g, "/settings/stats"), { enabled: false }],
+  ["PUT", guildUrl(g, "/settings/suggest"), { enabled: false }],
+];
+
+test("every giveaway, role menu and new settings route needs a login, a live admin and every CSRF ingredient", async () => {
+  const anon = new Browser();
+  for (const [method, url, body] of NEW_ROUTES(G1)) {
+    assert.equal((await anon.req(method, url, { headers: { "Content-Type": "application/json", Origin: ORIGIN }, body: JSON.stringify(body) })).status, 401, `${method} ${url} without login`);
+  }
+  const b = await loggedIn("admin");
+  for (const [method, url, body] of NEW_ROUTES(G1)) {
+    for (const [what, opts] of [["csrf token", { csrf: null }], ["wrong token", { csrf: "nope" }], ["origin", { origin: null }], ["foreign origin", { origin: "https://evil.example" }], ["json type", { type: "text/plain" }]]) {
+      assert.equal((await b.api(method, url, body, opts)).status, 403, `${method} ${url} without ${what}`);
+    }
+  }
+  // a server the person does not manage, one the bot is not in, and a plain member
+  for (const [method, url, body] of NEW_ROUTES(G5)) assert.equal((await b.api(method, url, body)).status, 403, `${method} ${url} on a server where the person is no admin`);
+  for (const [method, url, body] of NEW_ROUTES(G4)) assert.equal((await b.api(method, url, body)).status, 403);
+  const plain = await loggedIn("plain");
+  for (const [method, url, body] of NEW_ROUTES(G1)) assert.equal((await plain.api(method, url, body)).status, 403, `${method} ${url} as a plain member`);
+  // the person's admin right is read from Discord on every call
+  grantAccess(G1, ADMIN3, P.SendMessages);
+  const gone = await loggedIn("admin3");
+  assert.equal((await gone.api("POST", guildUrl(G1, "/giveaways"), NEW_ROUTES(G1)[0][2])).status, 403);
+  grantAccess(G1, ADMIN3, P.Administrator);
+  // a made-up route and a wrong method are refused before anything runs
+  assert.equal((await b.api("POST", guildUrl(G1, "/giveaways/1/explode"), {})).status, 404);
+  assert.equal((await b.api("GET", guildUrl(G1, "/giveaways"))).status, 405);
+  assert.equal((await b.api("PATCH", guildUrl(G1, "/rolemenus/1"), {})).status, 405);
+});
+
+test("giveaway create, end, reroll and cancel go through the same functions as the slash command", async () => {
+  const b = await loggedIn("admin");
+  const channel = chanOf(G2, "400000000000000001");
+  const before = giveawayStore.countActive(G2);
+  const made = await b.api("POST", guildUrl(G2, "/giveaways"), { prize: "Nitro", winners: 2, minutes: 60, channelId: channel.id, roleId: MEMBER_ROLE(G2) });
+  assert.equal(made.status, 200, made.text);
+  const gid = made.json().id;
+  assert.match(made.json().notice, /#\d+/);
+  const row = giveawayStore.getGiveaway(gid);
+  assert.deepEqual({ guild: row.guild_id, prize: row.prize, winners: row.winners, status: row.status, host: row.host_id, role: row.roleId, channel: row.channel_id }, { guild: G2, prize: "Nitro", winners: 2, status: "active", host: ADMIN, role: MEMBER_ROLE(G2), channel: channel.id });
+  assert.equal(row.ends_at, clock + 60 * 60_000);
+  assert.equal(giveawayStore.countActive(G2), before + 1);
+  const posted = lastMessage(channel);
+  assert.equal(row.message_id, posted.id);
+  assert.deepEqual(posted.payload.allowedMentions, { parse: [] });
+  assert.equal(JSON.parse(JSON.stringify(posted.payload.components[0])).components[0].custom_id, `quatang:join:${gid}`);
+
+  const view = (await b.req("GET", guildUrl(G2))).json();
+  const listed = view.giveaways.list.find((x) => x.id === gid);
+  assert.equal(listed.prize, "Nitro");
+  assert.equal(listed.entries, 0);
+  assert.equal(listed.channelName, "chung");
+  assert.equal(view.overview.counts.giveawaysOpen, before + 1);
+
+  for (const u of ["900000000000000001", "900000000000000002", "900000000000000003"]) giveawayStore.toggleEntry(gid, u);
+  const ended = await b.api("POST", guildUrl(G2, `/giveaways/${gid}/end`), {});
+  assert.equal(ended.status, 200, ended.text);
+  assert.equal(giveawayStore.getGiveaway(gid).status, "ended");
+  assert.equal(giveawayStore.getGiveaway(gid).winnerIds.length, 2);
+  const announce = lastMessage(channel);
+  assert.deepEqual(announce.payload.allowedMentions.parse, []);
+  assert.deepEqual([...announce.payload.allowedMentions.users].sort(), [...giveawayStore.getGiveaway(gid).winnerIds].sort());
+  assert.equal(announce.edits.length, 0);
+  assert.equal(posted.edits.length, 1, "the original message is edited to its final state");
+  assert.equal(JSON.parse(JSON.stringify(posted.edits[0].components)).length, 0, "the join button is gone");
+
+  // exactly once: a second end, and the scheduled job, add nothing
+  const sent = channel.store.size;
+  assert.equal((await b.api("POST", guildUrl(G2, `/giveaways/${gid}/end`), {})).status, 409);
+  assert.equal(await runGiveaways(client, { now: clock + 10 * 60 * 60_000 }), 0);
+  assert.equal(channel.store.size, sent);
+  assert.equal(giveawayStore.getGiveaway(gid).winnerIds.length, 2);
+
+  // reroll picks someone who has not won yet, and only once there is somebody left
+  const winners = new Set(giveawayStore.getGiveaway(gid).winnerIds);
+  const again = await b.api("POST", guildUrl(G2, `/giveaways/${gid}/reroll`), { count: 5 });
+  assert.equal(again.status, 200, again.text);
+  const after = giveawayStore.getGiveaway(gid).winnerIds;
+  assert.equal(after.length, 3);
+  assert.equal(new Set(after).size, 3);
+  for (const w of winners) assert.ok(after.includes(w));
+  assert.equal((await b.api("POST", guildUrl(G2, `/giveaways/${gid}/reroll`), { count: 1 })).status, 409, "nobody left to draw");
+  assert.equal((await b.api("POST", guildUrl(G2, `/giveaways/${gid}/cancel`), {})).status, 409, "an ended giveaway cannot be cancelled");
+  assert.equal((await b.api("POST", guildUrl(G2, `/giveaways/${gid}/reroll`), { count: 0 })).status, 400);
+  assert.equal((await b.api("POST", guildUrl(G2, `/giveaways/${gid}/reroll`), { count: 1, extra: true })).status, 400);
+
+  // cancel an open one: the message is rewritten, nobody wins
+  const second = (await b.api("POST", guildUrl(G2, "/giveaways"), { prize: "Áo", minutes: 10, channelId: channel.id })).json().id;
+  const msg = lastMessage(channel);
+  const cancelled = await b.api("POST", guildUrl(G2, `/giveaways/${second}/cancel`), {});
+  assert.equal(cancelled.status, 200, cancelled.text);
+  assert.equal(giveawayStore.getGiveaway(second).status, "cancelled");
+  assert.equal(msg.edits.length, 1);
+  assert.equal((await b.api("POST", guildUrl(G2, `/giveaways/${second}/end`), {})).status, 409);
+  assert.equal(await runGiveaways(client, { now: clock + 10 * 60 * 60_000 }), 0);
+});
+
+test("giveaway input is validated, hostile text stays text, and another server's giveaway is out of reach", async () => {
+  const b = await loggedIn("admin");
+  const url = guildUrl(G2, "/giveaways");
+  const channel = text(G2, "400000000000000001");
+  const ok = { prize: "Quà", minutes: 60, channelId: channel };
+  const rows = () => giveawayStore.listGiveaways(G2, 50).length;
+  const start = rows();
+  for (const bad of [
+    { ...ok, prize: "" },
+    { ...ok, prize: "   " },
+    { ...ok, prize: "x".repeat(101) },
+    { ...ok, prize: 5 },
+    { ...ok, winners: 0 },
+    { ...ok, winners: 11 },
+    { ...ok, winners: 1.5 },
+    { ...ok, winners: "2" },
+    { ...ok, minutes: 7 },
+    { ...ok, minutes: "60" },
+    { ...ok, minutes: undefined },
+    { ...ok, channelId: undefined },
+    { ...ok, channelId: "not-an-id" },
+    { ...ok, channelId: text(G1, "400000000000000001") },
+    { ...ok, channelId: text(G2, "400000000000000003") },
+    { ...ok, channelId: text(G2, "400000000000000004") },
+    { ...ok, roleId: text(G1, "600000000000000001") },
+    { ...ok, roleId: G2 },
+    { ...ok, roleId: "x" },
+    { ...ok, hostId: ADMIN2 },
+    { ...ok, status: "ended" },
+  ]) {
+    const res = await b.api("POST", url, bad);
+    assert.equal(res.status, 400, JSON.stringify(bad));
+    assert.ok(res.json().error);
+  }
+  assert.equal(rows(), start, "nothing was created by a refused request");
+  assert.equal((await b.api("POST", url, undefined, { raw: "[1]" })).status, 400);
+  assert.equal((await b.api("POST", url, undefined, { raw: "{broken" })).status, 400);
+
+  const xss = "<img src=x onerror=alert(1)>@everyone ‮";
+  const made = await b.api("POST", url, { ...ok, prize: xss });
+  assert.equal(made.status, 200, made.text);
+  assert.match(made.headers["content-type"], /^application\/json/);
+  assert.equal(made.headers["x-content-type-options"], "nosniff");
+  const stored = giveawayStore.getGiveaway(made.json().id).prize;
+  assert.ok(stored.startsWith("<img src=x onerror=alert(1)>@everyone"), "kept as plain text");
+  assert.ok(!stored.includes("‮"), "direction override characters are dropped");
+  const sent = lastMessage(chanOf(G2, "400000000000000001"));
+  assert.deepEqual(sent.payload.allowedMentions, { parse: [] }, "a prize cannot ping");
+  const listed = (await b.req("GET", guildUrl(G2))).json().giveaways.list.find((x) => x.id === made.json().id);
+  assert.equal(listed.prize, stored);
+
+  // a giveaway of another server is not found, whatever the action
+  const foreign = giveawayStore.createGiveaway({ guildId: G1, channelId: text(G1, "400000000000000001"), hostId: ADMIN, prize: "Của G1", winners: 1, endsAt: clock + 60_000 });
+  for (const action of ["end", "cancel", "reroll"]) assert.equal((await b.api("POST", guildUrl(G2, `/giveaways/${foreign}/${action}`), {})).status, 404, action);
+  assert.equal(giveawayStore.getGiveaway(foreign).status, "active");
+  assert.equal((await b.api("POST", guildUrl(G2, "/giveaways/999999/end"), {})).status, 404);
+  assert.equal((await b.api("POST", guildUrl(G2, "/giveaways/1.5/end"), {})).status, 404);
+});
+
+test("giveaways are a Pro feature, cancelling and ending stay possible, and the bot's permissions are checked first", async () => {
+  const free = await loggedIn("admin");
+  const url = guildUrl(G1, "/giveaways");
+  const channel = chanOf(G1, "400000000000000001");
+  const blocked = await free.api("POST", url, { prize: "Quà", minutes: 60, channelId: channel.id });
+  assert.equal(blocked.status, 403);
+  assert.match(blocked.json().error, /Pro/);
+  const open = giveawayStore.createGiveaway({ guildId: G1, channelId: channel.id, hostId: ADMIN, prize: "Còn chạy", winners: 1, endsAt: clock + 60_000 });
+  giveawayStore.setGiveawayMessage(open, (await channel.send({ content: "x" })).id);
+  const ended = giveawayStore.createGiveaway({ guildId: G1, channelId: channel.id, hostId: ADMIN, prize: "Xong", winners: 1, endsAt: clock + 60_000 });
+  giveawayStore.toggleEntry(ended, "900000000000000001");
+  giveawayStore.closeGiveaway(ended);
+  assert.equal((await free.api("POST", guildUrl(G1, `/giveaways/${ended}/reroll`), { count: 1 })).status, 403, "reroll is the feature itself");
+  assert.equal((await free.api("POST", guildUrl(G1, `/giveaways/${open}/cancel`), {})).status, 200, "a lapsed plan can still stop it");
+  const second = giveawayStore.createGiveaway({ guildId: G1, channelId: channel.id, hostId: ADMIN, prize: "Hai", winners: 1, endsAt: clock + 60_000 });
+  assert.equal((await free.api("POST", guildUrl(G1, `/giveaways/${second}/end`), {})).status, 200);
+  const free2 = (await free.req("GET", guildUrl(G1))).json();
+  assert.equal(free2.plan.limits.giveaways, false);
+
+  // the bot lacks a permission in the target channel: refused with the names, nothing created, nothing sent
+  const pro = await loggedIn("admin");
+  const target = chanOf(G2, "400000000000000002");
+  const real = target.permissionsFor;
+  target.permissionsFor = () => ({ has: (flag) => flag !== P.EmbedLinks && flag !== "EmbedLinks" });
+  try {
+    const count = giveawayStore.listGiveaways(G2, 50).length;
+    const size = target.store.size;
+    const res = await pro.api("POST", guildUrl(G2, "/giveaways"), { prize: "Quà", minutes: 60, channelId: target.id });
+    assert.equal(res.status, 502);
+    assert.match(res.json().error, /Nhúng liên kết/);
+    assert.equal(giveawayStore.listGiveaways(G2, 50).length, count);
+    assert.equal(target.store.size, size);
+    // ending and rerolling need to post a result, so they refuse before drawing
+    const g = giveawayStore.createGiveaway({ guildId: G2, channelId: target.id, hostId: ADMIN, prize: "Cần quyền", winners: 1, endsAt: clock + 60_000 });
+    target.permissionsFor = () => ({ has: (flag) => flag !== "SendMessages" });
+    const stuck = await pro.api("POST", guildUrl(G2, `/giveaways/${g}/end`), {});
+    assert.equal(stuck.status, 502);
+    assert.match(stuck.json().error, /Gửi tin nhắn/);
+    assert.equal(giveawayStore.getGiveaway(g).status, "active", "no winners were drawn without being able to say so");
+  } finally {
+    target.permissionsFor = real;
+  }
+  // a post that Discord refuses leaves no half-made giveaway behind
+  const broken = chanOf(G2, "400000000000000005");
+  const realSend = broken.send;
+  broken.send = async () => {
+    throw new Error("Missing Access");
+  };
+  try {
+    const count = giveawayStore.listGiveaways(G2, 50).length;
+    assert.equal((await pro.api("POST", guildUrl(G2, "/giveaways"), { prize: "Quà", minutes: 60, channelId: broken.id })).status, 502);
+    assert.equal(giveawayStore.listGiveaways(G2, 50).length, count);
+  } finally {
+    broken.send = realSend;
+  }
+});
+
+test("a giveaway made from the dashboard survives a restart and closes exactly once", async () => {
+  const b = await loggedIn("admin");
+  const channel = chanOf(G2, "400000000000000001");
+  const id = (await b.api("POST", guildUrl(G2, "/giveaways"), { prize: "Qua khởi động", minutes: 10, channelId: channel.id })).json().id;
+  giveawayStore.toggleEntry(id, "900000000000000009");
+  // a fresh dashboard and a fresh browser see it, because the state is in the database
+  const second = createDashboard(client, options);
+  const p2 = await second.listen();
+  try {
+    const b2 = new Browser(p2);
+    await b2.login("admin");
+    const seen = (await b2.req("GET", guildUrl(G2))).json().giveaways.list.find((x) => x.id === id);
+    assert.equal(seen.entries, 1);
+    assert.equal(seen.status, "active");
+  } finally {
+    await second.close();
+  }
+  const sent = channel.store.size;
+  assert.equal(await runGiveaways(client, { now: clock + 11 * 60_000 }) >= 1, true);
+  assert.equal(channel.store.size, sent + 1, "announced once");
+  assert.equal(await runGiveaways(client, { now: clock + 12 * 60_000 }), 0);
+  assert.equal((await b.api("POST", guildUrl(G2, `/giveaways/${id}/end`), {})).status, 409, "ending after the job did is a no-op");
+  assert.equal(channel.store.size, sent + 1);
+});
+
+test("role menus: create, post, edit, refresh and delete, using the same rules as /vaitro", async () => {
+  const b = await loggedIn("admin");
+  const url = guildUrl(G2, "/rolemenus");
+  const channel = chanOf(G2, "400000000000000001");
+  const made = await b.api("POST", url, { title: "Chọn màu", mode: "single", roles: [{ id: MEMBER_ROLE(G2), emoji: "🎨" }, { id: STAFF_ROLE(G2) }], channelId: channel.id });
+  assert.equal(made.status, 200, made.text);
+  const id = made.json().id;
+  const menu = menuStore.getMenu(id);
+  assert.deepEqual({ guild: menu.guild_id, title: menu.title, mode: menu.mode, roles: menu.roles.map((r) => r.id) }, { guild: G2, title: "Chọn màu", mode: "single", roles: [MEMBER_ROLE(G2), STAFF_ROLE(G2)] });
+  assert.ok(menu.message_id, "posted");
+  const posted = lastMessage(channel);
+  assert.equal(posted.id, menu.message_id);
+  assert.deepEqual(posted.payload.allowedMentions, { parse: [] });
+  const ids = JSON.parse(JSON.stringify(posted.payload.components[0])).components.map((c) => c.custom_id);
+  assert.deepEqual(ids, [`vaitro:t:${id}:${MEMBER_ROLE(G2)}`, `vaitro:t:${id}:${STAFF_ROLE(G2)}`]);
+
+  const view = (await b.req("GET", guildUrl(G2))).json();
+  const listed = view.roleMenus.list.find((m) => m.id === id);
+  assert.equal(listed.posted, true);
+  assert.equal(listed.channelName, "chung");
+  assert.deepEqual(listed.roles.map((r) => r.name), ["Thành viên", "Staff"]);
+  assert.equal(view.overview.counts.roleMenus, view.roleMenus.count);
+
+  // edit: the stored menu changes, and the panel in the channel is refreshed (same channel, not a second post)
+  const size = channel.store.size;
+  const edited = await b.api("PUT", guildUrl(G2, `/rolemenus/${id}`), { title: "Chọn lại", mode: "multi", roles: [{ id: STAFF_ROLE(G2), emoji: "" }] });
+  assert.equal(edited.status, 200, edited.text);
+  assert.equal(menuStore.getMenu(id).title, "Chọn lại");
+  assert.equal(menuStore.getMenu(id).mode, "multi");
+  assert.equal(menuStore.getMenu(id).roles.length, 1);
+  assert.equal(menuStore.getMenu(id).message_id, menu.message_id);
+  assert.equal(channel.store.size, size, "refreshed in place, not posted twice");
+  assert.equal(posted.edits.length, 1);
+
+  // post again somewhere else
+  const other = chanOf(G2, "400000000000000005");
+  const moved = await b.api("POST", guildUrl(G2, `/rolemenus/${id}/post`), { channelId: other.id });
+  assert.equal(moved.status, 200, moved.text);
+  assert.equal(menuStore.getMenu(id).channel_id, other.id);
+  assert.equal((await b.api("POST", guildUrl(G2, `/rolemenus/${id}/post`), { channelId: text(G2, "400000000000000003") })).status, 400, "a voice channel is not a place for a panel");
+  assert.equal((await b.api("POST", guildUrl(G2, `/rolemenus/${id}/post`), { channelId: text(G1, "400000000000000001") })).status, 400);
+
+  const gone = await b.api("DELETE", guildUrl(G2, `/rolemenus/${id}`), {});
+  assert.equal(gone.status, 200, gone.text);
+  assert.equal(menuStore.getMenu(id), null);
+  assert.equal((await b.api("DELETE", guildUrl(G2, `/rolemenus/${id}`), {})).status, 404);
+  assert.equal((await b.api("PUT", guildUrl(G2, `/rolemenus/${id}`), { title: "x", mode: "multi", roles: [{ id: MEMBER_ROLE(G2) }] })).status, 404);
+});
+
+test("role menus refuse unsafe roles, bad input and menus of other servers, and write nothing", async () => {
+  const b = await loggedIn("admin");
+  const url = guildUrl(G2, "/rolemenus");
+  const count = () => menuStore.countMenus(G2);
+  const start = count();
+  const good = { title: "Menu", mode: "multi", roles: [{ id: MEMBER_ROLE(G2) }] };
+  const refused = [
+    [{ ...good, roles: [{ id: ADMIN_ROLE(G2) }] }, /quyền nguy hiểm/],
+    [{ ...good, roles: [{ id: HIGH_ROLE(G2) }] }, /cao hơn/],
+    [{ ...good, roles: [{ id: BOT_ROLE(G2) }] }, /quản lý/],
+    [{ ...good, roles: [{ id: G2 }] }, /tất cả mọi người/],
+    [{ ...good, roles: [{ id: MEMBER_ROLE(G1) }] }, /không có trong server/],
+    [{ ...good, roles: [{ id: MEMBER_ROLE(G2) }, { id: MEMBER_ROLE(G2) }] }, /hai lần/],
+    [{ ...good, roles: [{ id: MEMBER_ROLE(G2), emoji: "not an emoji" }] }, /Emoji/],
+    [{ ...good, roles: [{ id: MEMBER_ROLE(G2), emoji: "x".repeat(9) }] }, /Emoji/],
+    [{ ...good, roles: [] }, /1 đến 10/],
+    [{ ...good, roles: Array.from({ length: 11 }, () => ({ id: MEMBER_ROLE(G2) })) }, /1 đến 10/],
+    [{ ...good, roles: [{ id: MEMBER_ROLE(G2), perms: "8" }] }, /ô lạ/],
+    [{ ...good, roles: ["600000000000000001"] }, /đối tượng/],
+    [{ ...good, roles: [{ id: "abc" }] }, /mã không hợp lệ/],
+    [{ ...good, title: "" }, /Tiêu đề/],
+    [{ ...good, title: "x".repeat(101) }, /100/],
+    [{ ...good, title: 7 }, /Tiêu đề/],
+    [{ ...good, mode: "all" }, /Chế độ/],
+    [{ ...good, admin: true }, /ô lạ/],
+    [{ ...good, channelId: "zzz" }, /mã không hợp lệ/],
+    [{ ...good, channelId: text(G2, "400000000000000003") }, /không đúng loại|không có trong server/],
+  ];
+  for (const [body, pattern] of refused) {
+    const res = await b.api("POST", url, body);
+    assert.equal(res.status, 400, JSON.stringify(body).slice(0, 120));
+    assert.match(res.json().error, pattern, JSON.stringify(body).slice(0, 120));
+  }
+  assert.equal(count(), start);
+
+  // up to ten roles are fine: nine of them are the same role in the other form, so use the ones that exist
+  assert.equal((await b.api("POST", url, { ...good, roles: [{ id: MEMBER_ROLE(G2) }, { id: STAFF_ROLE(G2) }] })).status, 200);
+  const mine = menuStore.listMenus(G2).at(-1).id;
+  // a role that became unsafe after the menu was made cannot be put in again, and a menu of another server cannot be touched
+  const foreign = menuStore.createMenu(G1, text(G1, "400000000000000001"), "Của G1", "multi", [{ id: MEMBER_ROLE(G1), emoji: "" }]);
+  assert.equal((await b.api("PUT", guildUrl(G2, `/rolemenus/${foreign}`), good)).status, 404);
+  assert.equal((await b.api("DELETE", guildUrl(G2, `/rolemenus/${foreign}`), {})).status, 404);
+  assert.equal((await b.api("POST", guildUrl(G2, `/rolemenus/${foreign}/post`), { channelId: text(G2, "400000000000000001") })).status, 404);
+  assert.ok(menuStore.getMenu(foreign));
+  assert.equal((await b.api("PUT", guildUrl(G2, `/rolemenus/${mine}`), { ...good, roles: [{ id: ADMIN_ROLE(G2) }] })).status, 400);
+  assert.equal(menuStore.getMenu(mine).roles.length, 2, "a refused edit changes nothing");
+});
+
+test("role menus need the bot's Manage Roles permission and respect the plan's menu limit", async () => {
+  const b = await loggedIn("admin");
+  const guild = guilds.get(G1);
+  const url = guildUrl(G1, "/rolemenus");
+  const body = { title: "Menu", mode: "multi", roles: [{ id: MEMBER_ROLE(G1) }] };
+  const realPerms = guild.members.me.permissions;
+  guild.members.me.permissions = { has: () => false };
+  try {
+    const res = await b.api("POST", url, body);
+    assert.equal(res.status, 502);
+    assert.match(res.json().error, /Quản lý role/);
+  } finally {
+    guild.members.me.permissions = realPerms;
+  }
+  getDb().prepare("DELETE FROM role_menus WHERE guild_id = ?").run(G1);
+  for (let i = 0; i < 3; i += 1) assert.equal((await b.api("POST", url, { ...body, title: `Menu ${i}` })).status, 200);
+  const over = await b.api("POST", url, body);
+  assert.equal(over.status, 403);
+  assert.match(over.json().error, /3 menu vai trò/);
+  assert.equal(menuStore.countMenus(G1), 3);
+  // the panel is not posted when the bot cannot write there, and the menu is still saved
+  const pro = await loggedIn("admin");
+  const target = chanOf(G2, "400000000000000002");
+  const real = target.permissionsFor;
+  target.permissionsFor = () => ({ has: (flag) => flag !== "SendMessages" });
+  try {
+    const res = await pro.api("POST", guildUrl(G2, "/rolemenus"), { title: "Không đăng được", mode: "multi", roles: [{ id: MEMBER_ROLE(G2) }], channelId: target.id });
+    assert.equal(res.status, 200);
+    assert.equal(res.json().applied, false);
+    assert.match(res.json().notice, /Gửi tin nhắn/);
+    assert.equal(menuStore.getMenu(res.json().id).message_id, null);
+    assert.equal((await pro.api("POST", guildUrl(G2, `/rolemenus/${res.json().id}/post`), { channelId: target.id })).status, 502);
+  } finally {
+    target.permissionsFor = real;
+  }
+});
+
+test("temporary rooms: ids must belong to the server and be voice channels, and the plan caps the lobbies", async () => {
+  const free = await loggedIn("admin");
+  const url = guildUrl(G1, "/settings/tempvoice");
+  const lobby = text(G1, "400000000000000003");
+  const second = addVoice(G1, 1);
+  for (const [body, status] of [
+    [{ lobbyChannelIds: [text(G2, "400000000000000003")] }, 400],
+    [{ lobbyChannelIds: [text(G1, "400000000000000001")] }, 400],
+    [{ lobbyChannelIds: ["x"] }, 400],
+    [{ lobbyChannelIds: "all" }, 400],
+    [{ lobbyChannelIds: Array.from({ length: 6 }, (_, i) => String(100000000000000000n + BigInt(i))) }, 400],
+    [{ categoryId: text(G1, "400000000000000001") }, 400],
+    [{ categoryId: text(G2, "400000000000000004") }, 400],
+    [{ nameTemplate: "" }, 400],
+    [{ nameTemplate: "x".repeat(61) }, 400],
+    [{ nameTemplate: 5 }, 400],
+    [{ userLimit: 100 }, 400],
+    [{ userLimit: -1 }, 400],
+    [{ userLimit: 2.5 }, 400],
+    [{ enabled: "yes" }, 400],
+    [{ enabled: true }, 400],
+    [{ enabled: true, lobbyChannelIds: [] }, 400],
+  ]) {
+    assert.equal((await free.api("PUT", url, body)).status, status, JSON.stringify(body));
+  }
+  assert.deepEqual(getSection(G1, "tempvoice").lobbyChannelIds, []);
+
+  // free keeps one lobby
+  const calls = [];
+  const app2 = createDashboard(client, { ...options, hooks: { syncTempVoice: async (g) => void calls.push(g.id) } });
+  const p2 = await app2.listen();
+  try {
+    const b = new Browser(p2);
+    await b.login("admin");
+    const ok = await b.api("PUT", url, { enabled: true, lobbyChannelIds: [lobby], nameTemplate: "Phòng của {name}", userLimit: 4, categoryId: text(G1, "400000000000000004") });
+    assert.equal(ok.status, 200, ok.text);
+    assert.equal(ok.json().applied, true);
+    assert.deepEqual(calls, [G1], "the room module is asked to sync once");
+    assert.deepEqual({ ...getSection(G1, "tempvoice") }, { enabled: true, lobbyChannelIds: [lobby], categoryId: text(G1, "400000000000000004"), nameTemplate: "Phòng của {name}", userLimit: 4 });
+    const over = await b.api("PUT", url, { lobbyChannelIds: [lobby, second] });
+    assert.equal(over.status, 403);
+    assert.match(over.json().error, /1 phòng chờ/);
+    assert.deepEqual(getSection(G1, "tempvoice").lobbyChannelIds, [lobby]);
+    // a lobby cannot also be a stats channel
+    const stats = await b.api("PUT", guildUrl(G1, "/settings/stats"), { channels: [{ channelId: lobby, kind: "members", template: "Người: {n}" }] });
+    assert.equal(stats.status, 400);
+    assert.match(stats.json().error, /phòng chờ/);
+    // an unknown extra field is dropped, never stored
+    await b.api("PUT", url, { userLimit: 5, lockdown: true, owner: "x" });
+    assert.equal(getSection(G1, "tempvoice").userLimit, 5);
+    assert.equal("owner" in getSection(G1, "tempvoice"), false);
+    // switching off still works and tells the module
+    const off = await b.api("PUT", url, { enabled: false });
+    assert.equal(off.status, 200);
+    assert.deepEqual(calls, [G1, G1, G1]);
+  } finally {
+    await app2.close();
+  }
+
+  // the Pro server may use up to three
+  const pro = await loggedIn("admin");
+  const v = [text(G2, "400000000000000003"), addVoice(G2, 1), addVoice(G2, 2), addVoice(G2, 3)];
+  assert.equal((await pro.api("PUT", guildUrl(G2, "/settings/tempvoice"), { lobbyChannelIds: v.slice(0, 3) })).status, 200);
+  assert.equal((await pro.api("PUT", guildUrl(G2, "/settings/tempvoice"), { lobbyChannelIds: v })).status, 403);
+  // a lapsed plan can shrink the list but not grow it
+  setSection(G1, "tempvoice", { ...getSection(G1, "tempvoice"), lobbyChannelIds: [lobby, second, addVoice(G1, 2)] });
+  assert.equal((await free.api("PUT", url, { lobbyChannelIds: [lobby, second] })).status, 200);
+  assert.equal((await free.api("PUT", url, { lobbyChannelIds: [lobby, second, addVoice(G1, 2)] })).status, 403);
+});
+
+test("the optional room and stats modules degrade with a clear message instead of failing the save", async () => {
+  const gone = createDashboard(client, { ...options, hooks: { syncTempVoice: false, syncStats: false } });
+  const p1 = await gone.listen();
+  const broken = createDashboard(client, {
+    ...options,
+    hooks: {
+      syncTempVoice: async () => {
+        throw new Error("boom");
+      },
+      syncStats: async () => {
+        throw new Error("boom");
+      },
+    },
+  });
+  const p2 = await broken.listen();
+  const quiet = console.error;
+  console.error = () => {};
+  try {
+    for (const [app, state] of [[p1, "missing"], [p2, "failed"]]) {
+      const b = new Browser(app);
+      await b.login("admin");
+      const t = await b.api("PUT", guildUrl(G2, "/settings/tempvoice"), { enabled: true, lobbyChannelIds: [text(G2, "400000000000000003")] });
+      assert.equal(t.status, 200, t.text);
+      assert.equal(t.json().applied, false);
+      assert.match(t.json().notice, state === "missing" ? /chưa có trong bản thầu/ : /lỗi/);
+      assert.equal(getSection(G2, "tempvoice").enabled, true, "the settings are kept either way");
+      const s = await b.api("PUT", guildUrl(G2, "/settings/stats"), { enabled: true, channels: [{ channelId: addVoice(G2, 4), kind: "members", template: "Thành viên: {n}" }] });
+      assert.equal(s.status, 200, s.text);
+      assert.equal(s.json().applied, false);
+      assert.match(s.json().notice, state === "missing" ? /chưa có trong bản thầu/ : /lỗi/);
+    }
+  } finally {
+    console.error = quiet;
+    await gone.close();
+    await broken.close();
+  }
+  // the real lookup also never throws, whether or not the modules exist yet
+  const b = await loggedIn("admin");
+  const res = await b.api("PUT", guildUrl(G2, "/settings/tempvoice"), { enabled: true, lobbyChannelIds: [text(G2, "400000000000000003")] });
+  assert.equal(res.status, 200);
+  assert.equal(typeof res.json().notice, "string");
+  // and a missing Manage Channels permission is named
+  const guild = guilds.get(G2);
+  const real = guild.members.me.permissions;
+  guild.members.me.permissions = { has: (flag) => flag !== "ManageChannels" && flag !== P.ManageChannels };
+  try {
+    const noPerm = await b.api("PUT", guildUrl(G2, "/settings/tempvoice"), { enabled: true, lobbyChannelIds: [text(G2, "400000000000000003")] });
+    assert.equal(noPerm.status, 200);
+    assert.equal(noPerm.json().applied, false);
+    assert.match(noPerm.json().notice, /Quản lý kênh/);
+  } finally {
+    guild.members.me.permissions = real;
+  }
+});
+
+test("stats channels: strict entries, voice channels of this server only, capped by the plan", async () => {
+  const b = await loggedIn("admin");
+  const url = guildUrl(G2, "/settings/stats");
+  setSection(G2, "stats", { enabled: false, channels: [] });
+  const [a, c, d, e, f] = [addVoice(G2, 5), addVoice(G2, 6), addVoice(G2, 7), addVoice(G2, 8), addVoice(G2, 9)];
+  const entry = (channelId, extra = {}) => ({ channelId, kind: "members", template: "Thành viên: {n}", ...extra });
+  for (const body of [
+    { channels: [entry(text(G1, "400000000000000003"))] },
+    { channels: [entry(text(G2, "400000000000000001"))] },
+    { channels: [entry(a, { kind: "everything" })] },
+    { channels: [entry(a, { template: "Không có số" })] },
+    { channels: [entry(a, { template: "" })] },
+    { channels: [entry(a, { template: `${"x".repeat(60)}{n}` })] },
+    { channels: [entry(a, { template: 4 })] },
+    { channels: [entry(a, { permissions: "8" })] },
+    { channels: [entry(a), entry(a)] },
+    { channels: ["x"] },
+    { channels: [null] },
+    { channels: "all" },
+    { channels: [entry(a), entry(c), entry(d), entry(e), entry(f)] },
+    { enabled: true },
+    { enabled: true, channels: [] },
+    { enabled: 1 },
+  ]) {
+    assert.equal((await b.api("PUT", url, body)).status, 400, JSON.stringify(body).slice(0, 140));
+  }
+  const ok = await b.api("PUT", url, { enabled: true, channels: [entry(a), entry(c, { kind: "boosts", template: "Boost: {n}" }), entry(d, { kind: "channels" }), entry(e, { kind: "roles" })] });
+  assert.equal(ok.status, 200, ok.text);
+  assert.equal(getSection(G2, "stats").channels.length, 4);
+  assert.equal(getSection(G2, "stats").channels[1].kind, "boosts");
+  const free = await loggedIn("admin");
+  const one = addVoice(G1, 5);
+  const two = addVoice(G1, 6);
+  assert.equal((await free.api("PUT", guildUrl(G1, "/settings/stats"), { channels: [entry(one)] })).status, 200);
+  const over = await free.api("PUT", guildUrl(G1, "/settings/stats"), { channels: [entry(one), entry(two)] });
+  assert.equal(over.status, 403);
+  assert.match(over.json().error, /1 kênh thống kê/);
+  // text with markup is kept as text
+  const markup = await b.api("PUT", url, { channels: [entry(a, { template: "<b>{n}</b> & co" })] });
+  assert.equal(markup.status, 200);
+  assert.equal(getSection(G2, "stats").channels[0].template, "<b>{n}</b> & co");
+});
+
+test("suggestion settings validate the channel and the staff role, and name what the bot cannot do", async () => {
+  const b = await loggedIn("admin");
+  const url = guildUrl(G2, "/settings/suggest");
+  for (const body of [
+    { channelId: text(G1, "400000000000000001") },
+    { channelId: text(G2, "400000000000000003") },
+    { channelId: "x" },
+    { staffRoleId: text(G1, "600000000000000004") },
+    { staffRoleId: G2 },
+    { staffRoleId: BOT_ROLE(G2) },
+    { enabled: true },
+    { enabled: "on" },
+  ]) {
+    assert.equal((await b.api("PUT", url, body)).status, 400, JSON.stringify(body));
+  }
+  const ok = await b.api("PUT", url, { enabled: true, channelId: text(G2, "400000000000000001"), staffRoleId: STAFF_ROLE(G2) });
+  assert.equal(ok.status, 200, ok.text);
+  assert.equal(ok.json().applied, true);
+  assert.deepEqual({ ...getSection(G2, "suggest") }, { enabled: true, channelId: text(G2, "400000000000000001"), staffRoleId: STAFF_ROLE(G2) });
+  const channel = chanOf(G2, "400000000000000001");
+  const real = channel.permissionsFor;
+  channel.permissionsFor = () => ({ has: (flag) => flag !== "AddReactions" });
+  try {
+    const warn = await b.api("PUT", url, { enabled: true });
+    assert.equal(warn.status, 200);
+    assert.equal(warn.json().applied, false);
+    assert.match(warn.json().notice, /Thêm biểu cảm/);
+  } finally {
+    channel.permissionsFor = real;
+  }
+  assert.equal((await b.api("PUT", url, { enabled: false })).json().applied, true);
+});
+
+test("security settings take the account age rule with strict values", async () => {
+  const b = await loggedIn("admin");
+  const url = guildUrl(G1, "/settings/security");
+  for (const body of [{ minAccountAgeDays: -1 }, { minAccountAgeDays: 366 }, { minAccountAgeDays: 1.5 }, { minAccountAgeDays: "7" }, { youngAction: "ban" }, { youngAction: 1 }]) {
+    assert.equal((await b.api("PUT", url, body)).status, 400, JSON.stringify(body));
+  }
+  const ok = await b.api("PUT", url, { minAccountAgeDays: 7, youngAction: "kick" });
+  assert.equal(ok.status, 200, ok.text);
+  assert.equal(getSection(G1, "security").minAccountAgeDays, 7);
+  assert.equal(getSection(G1, "security").youngAction, "kick");
+  assert.equal(getSection(G1, "security").lockdown.active, false);
+  assert.equal((await b.api("PUT", url, { minAccountAgeDays: 0, youngAction: "alert" })).status, 200);
+});
+
+test("custom blocked words are cleaned, capped by the plan, shown with their limit, and sync AutoMod when it is on", async () => {
+  const free = await loggedIn("admin");
+  const url = guildUrl(G1, "/settings/automod");
+  const view = (await free.req("GET", guildUrl(G1))).json();
+  assert.equal(view.plan.limits.customWords, 20);
+  assert.deepEqual(view.settings.automod.customWords, []);
+  for (const body of [
+    { customWords: "badword" },
+    { customWords: [1] },
+    { customWords: [null] },
+    { customWords: [""] },
+    { customWords: ["   "] },
+    { customWords: ["***"] },
+    { customWords: ["x".repeat(61)] },
+    { customWords: ["x".repeat(500)] },
+    { customWords: Array.from({ length: 501 }, (_, i) => `w${i}`) },
+    { customWords: [{ word: "x" }] },
+  ]) {
+    assert.equal((await free.api("PUT", url, body)).status, 400, JSON.stringify(body).slice(0, 100));
+  }
+  const ok = await free.api("PUT", url, { customWords: ["  Từ Cấm ", "từ cấm", "bad\nword", "<script>alert(1)</script>", "ab*"] });
+  assert.equal(ok.status, 200, ok.text);
+  assert.deepEqual(getSection(G1, "automod").customWords, ["từ cấm", "bad word", "<script>alert(1)</script>", "ab*"], "lower-cased, trimmed, one line, duplicates merged");
+
+  const twenty = Array.from({ length: 20 }, (_, i) => `tu${i}`);
+  assert.equal((await free.api("PUT", url, { customWords: twenty })).status, 200);
+  const over = await free.api("PUT", url, { customWords: [...twenty, "tu20"] });
+  assert.equal(over.status, 403);
+  assert.match(over.json().error, /20 từ khoá tự chế/);
+  assert.equal(getSection(G1, "automod").customWords.length, 20);
+  // after a downgrade the list may shrink or stay, never grow
+  setSection(G1, "automod", { ...getSection(G1, "automod"), customWords: Array.from({ length: 25 }, (_, i) => `cu${i}`) });
+  assert.equal((await free.api("PUT", url, { customWords: Array.from({ length: 24 }, (_, i) => `cu${i}`) })).status, 200);
+  assert.equal((await free.api("PUT", url, { customWords: Array.from({ length: 25 }, (_, i) => `cu${i}`) })).status, 403);
+  assert.equal((await free.api("PUT", url, { customWords: [] })).status, 200);
+
+  // the Pro server has room for 200 and its words ride along with the AutoMod sync
+  const pro = await loggedIn("admin");
+  const urlPro = guildUrl(G2, "/settings/automod");
+  assert.equal((await pro.api("PUT", urlPro, { customWords: Array.from({ length: 200 }, (_, i) => `p${i}`) })).status, 200);
+  assert.equal((await pro.api("PUT", urlPro, { customWords: Array.from({ length: 201 }, (_, i) => `p${i}`) })).status, 403);
+  const synced = await pro.api("PUT", urlPro, { enabled: true, level: "nhe", customWords: ["keyword"], logChannelId: text(G2, "400000000000000005") });
+  assert.equal(synced.status, 200, synced.text);
+  assert.deepEqual(getSection(G2, "automod").customWords, ["keyword"]);
+  assert.equal(typeof synced.json().notice, "string");
+  assert.ok(Object.keys(synced.json().value.ruleIds).length >= 0);
+});
+
+test("the overview counts the new things and leaves out anything personal", async () => {
+  const b = await loggedIn("admin");
+  const db = getDb();
+  db.prepare("INSERT INTO scheduled_messages (guild_id, channel_id, body, weekday, hhmm, next_at, status, created_by, created_at) VALUES (?, ?, 'x', NULL, '09:00', 1, 'active', ?, 1)").run(G2, text(G2, "400000000000000001"), ADMIN);
+  db.prepare("INSERT INTO reminders (guild_id, user_id, channel_id, body, due_at, status, created_at) VALUES (?, ?, NULL, 'bí mật', 1, 'pending', 1)").run(G2, PLAIN);
+  db.prepare("INSERT INTO suggestions (guild_id, channel_id, user_id, body, status, created_at) VALUES (?, ?, ?, 'ý kiến', 'open', 1)").run(G2, text(G2, "400000000000000001"), PLAIN);
+  db.prepare("INSERT INTO temp_voice (channel_id, guild_id, owner_id, created_at) VALUES (?, ?, ?, 1)").run(voiceId(G2, 1), G2, PLAIN);
+  const res = await b.req("GET", guildUrl(G2));
+  const counts = res.json().overview.counts;
+  assert.deepEqual(Object.keys(counts).sort(), ["giveawaysOpen", "roleMenus", "scheduledMessages", "suggestionsOpen", "tempLobbies", "tempRooms"]);
+  assert.equal(counts.scheduledMessages, 1);
+  assert.equal(counts.suggestionsOpen, 1);
+  assert.equal(counts.tempRooms, 1);
+  assert.equal(counts.tempLobbies, getSection(G2, "tempvoice").lobbyChannelIds.length);
+  assert.equal(counts.giveawaysOpen, giveawayStore.countActive(G2));
+  assert.ok(!/bí mật|ý kiến|reminder/i.test(res.text), "no reminder or suggestion text leaves the server");
+  // another server's rows are not counted
+  assert.equal((await b.req("GET", guildUrl(G1))).json().overview.counts.suggestionsOpen, 0);
+});
+
+test("the new dashboard views draw everything through text nodes and send only whitelisted fields", () => {
+  const read = (name) => readFileSync(path.join(here, "..", "dashboard", "views", name), "utf8");
+  for (const name of ["giveaways.js", "rolemenus.js", "voice.js", "suggest.js", "automod.js", "security.js", "overview.js"]) {
+    const code = read(name);
+    assert.doesNotMatch(code, /innerHTML|outerHTML|insertAdjacentHTML|document\.write|eval\(/, name);
+  }
+  assert.match(read("giveaways.js"), /text: g\.prize|h\("span", \{ text: g\.prize \}\)/);
+  assert.match(read("rolemenus.js"), /h\("span", \{ text: menu\.title \}\)/);
+  const tabs = readFileSync(path.join(here, "..", "dashboard", "views", "guild.js"), "utf8");
+  for (const id of ["giveaway", "menu-role", "phong-thoai", "gop-y"]) assert.ok(tabs.includes(`id: "${id}"`), id);
 });

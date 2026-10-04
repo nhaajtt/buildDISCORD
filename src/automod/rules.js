@@ -5,13 +5,15 @@ import {
   AutoModerationRuleTriggerType as Trigger,
 } from "discord.js";
 import { blockMessages, ruleLabels } from "../humor/automod.js";
+import { KEY as CUSTOM_KEY, LIST_MAX } from "./words.js";
 
 // Pure description of the Discord AutoMod rules the bot wants and the plan to reach them. Nothing here talks to Discord.
 
 export const PREFIX = "Thầu: ";
+export { CUSTOM_KEY };
 
 // Discord's own limits
-export const LIMITS = { regexPerRule: 10, regexLength: 260, customMessage: 150, keywordRules: 6, exemptRoles: 20, timeoutSeconds: 60 };
+export const LIMITS = { keywordsPerRule: 1000, keywordLength: 60, regexPerRule: 10, regexLength: 260, customMessage: 150, keywordRules: 6, exemptRoles: 20, timeoutSeconds: 60 };
 
 const INVITE_PATTERNS = ["(?i)(?:discord(?:app)?\\.com/invite|discord\\.gg|dsc\\.gg)/[a-z0-9-]+"];
 const LINK_PATTERNS = ["(?i)https?://[^\\s]+", "(?i)\\bwww\\.[^\\s]+"];
@@ -41,7 +43,33 @@ function keywordRule(key, settings, patterns, exemptRoles) {
 
 // The rules a server should have for its settings. Without `full` (free plan) only the gentle level with invite blocking exists,
 // and exempt roles are ignored, whatever the stored settings say.
-export function buildRuleDefs(settings, { full = false } = {}) {
+// The server's own blocked words become one native keyword rule of their own, whatever the plan or level, and exist even when the
+// standard rules are off (settings.enabled false). `customLimit` is what the plan allows, so a lapsed plan keeps only that many.
+export function buildRuleDefs(settings, { full = false, customLimit = LIST_MAX } = {}) {
+  const custom = customDef(settings, full, customLimit);
+  if (settings.enabled === false) return custom ? [custom] : [];
+  const defs = standardDefs(settings, full);
+  return custom ? [...defs, custom] : defs;
+}
+
+function customDef(settings, full, customLimit) {
+  const words = [...new Set(settings.customWords ?? [])]
+    .filter((w) => w && w.length <= LIMITS.keywordLength)
+    .slice(0, Math.min(customLimit, LIMITS.keywordsPerRule));
+  if (!words.length) return null;
+  return {
+    key: CUSTOM_KEY,
+    name: `${PREFIX}${ruleLabels.custom}`,
+    eventType: AutoModerationRuleEventType.MessageSend,
+    triggerType: Trigger.Keyword,
+    triggerMetadata: { keywordFilter: words },
+    actions: actionsFor("custom", settings),
+    enabled: true,
+    exemptRoles: full ? settings.exemptRoleIds.slice(0, LIMITS.exemptRoles) : [],
+  };
+}
+
+function standardDefs(settings, full) {
   const level = full ? settings.level : "nhe";
   const exemptRoles = full ? settings.exemptRoleIds.slice(0, LIMITS.exemptRoles) : [];
   const defs = [];

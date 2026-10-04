@@ -48,6 +48,10 @@ export default {
         .addChannelOption((o) => o.setName("kenh").setDescription("Kênh nhận báo động (mặc định: kênh hệ thống)").addChannelTypes(...POSTABLE))
         .addBooleanOption((o) => o.setName("chongxoa").setDescription("Bật hoặc tắt chống xoá hàng loạt (gói Pro)"))
         .addIntegerOption((o) => o.setName("xoasolan").setDescription("Xoá bao nhiêu kênh hoặc role thì báo động (2 đến 10)").setMinValue(2).setMaxValue(10))
+        .addIntegerOption((o) => o.setName("tuoitaikhoan").setDescription("Tài khoản mới tạo dưới bao nhiêu ngày thì báo (0 là tắt, tối đa 365)").setMinValue(0).setMaxValue(365))
+        .addStringOption((o) =>
+          o.setName("hanhdongmoi").setDescription("Làm gì với tài khoản quá mới").addChoices({ name: "Chỉ báo động", value: "alert" }, { name: "Đuổi và báo động", value: "kick" }),
+        )
         .addIntegerOption((o) => o.setName("xoagiay").setDescription("Trong bao nhiêu giây (10 đến 600)").setMinValue(10).setMaxValue(600)),
     )
     .addSubcommand((s) =>
@@ -99,7 +103,7 @@ export default {
     if (sub === "trangthai") {
       const s = getSection(guildId, "security");
       const m = getSection(guildId, "modlog");
-      const lacking = [...new Set([...missingPerms(guild, ["ManageChannels", "ManageRoles", "ManageGuild"]), ...(s.nukeEnabled ? missingPerms(guild, ["ViewAuditLog", "ManageRoles"]) : [])])];
+      const lacking = [...new Set([...missingPerms(guild, ["ManageChannels", "ManageRoles", "ManageGuild"]), ...(s.nukeEnabled ? missingPerms(guild, ["ViewAuditLog", "ManageRoles"]) : []), ...(s.minAccountAgeDays > 0 && s.youngAction === "kick" ? missingPerms(guild, ["KickMembers"]) : [])])];
       const alertTo = s.alertChannelId ? `<#${s.alertChannelId}>` : lines.alertChannelNote;
       const locked = s.lockdown.active ? `🔒 đang khoá từ <t:${Math.floor(s.lockdown.since / 1000)}:R>, ${s.lockdown.channels.length} kênh` : "🔓 đang mở";
       const embed = new EmbedBuilder()
@@ -111,6 +115,7 @@ export default {
             `Chống raid: ${onOff(s.raidEnabled)}, ${s.raidJoins} người trong ${s.raidWindowSec} giây, hành động \`${s.raidAction}\`, tự mở sau ${s.lockMinutes} phút`,
             `Báo động gửi tới: ${alertTo}`,
             `Chống xoá hàng loạt: ${onOff(s.nukeEnabled)}, ${s.nukeThreshold} lần trong ${s.nukeWindowSec} giây`,
+            `Lọc tài khoản mới: ${s.minAccountAgeDays > 0 ? lines.youngStatus(s.minAccountAgeDays, s.youngAction) : lines.youngStatusOff}`,
             `Nhật ký kiểm duyệt: ${onOff(m.enabled)}${m.channelId ? `, <#${m.channelId}>` : ""}`,
             lacking.length ? `Thầu đang thiếu quyền: ${lacking.join(", ")}` : "Quyền của thầu đủ dùng.",
             lines.timeoutNote,
@@ -146,8 +151,13 @@ export default {
       take(nuke, "nukeEnabled");
       take(nukeCount, "nukeThreshold");
       take(nukeSeconds, "nukeWindowSec");
+      take(o.getInteger("tuoitaikhoan"), "minAccountAgeDays");
+      take(o.getString("hanhdongmoi"), "youngAction");
       patchSection(guildId, "security", patch);
-      return reply(lines.saved);
+      const after = getSection(guildId, "security");
+      const noKick = after.minAccountAgeDays > 0 && after.youngAction === "kick" ? missingPerms(guild, ["KickMembers"]) : [];
+      return reply(noKick.length ? `${lines.saved}
+${lines.youngKickWarn(noKick)}` : lines.saved);
     }
 
     // nhatky

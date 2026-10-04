@@ -1,8 +1,12 @@
 import { h, icon, toast } from "../dom.js";
-import { get, post, put } from "../api.js";
+import { get, post, put, request } from "../api.js";
 import { activityTab } from "./activity.js";
 import { automodTab } from "./automod.js";
 import { digestTab } from "./digest.js";
+import { giveawaysTab } from "./giveaways.js";
+import { menusTab } from "./rolemenus.js";
+import { suggestTab } from "./suggest.js";
+import { voiceTab } from "./voice.js";
 import { healthTab } from "./health.js";
 import { hoatdongTab } from "./hoatdong.js";
 import { modlogTab } from "./modlog.js";
@@ -19,6 +23,10 @@ export const TABS = [
   { id: "ticket", name: "Ticket", icon: "ticket", render: ticketsTab },
   { id: "bao-ve", name: "Bảo vệ", icon: "lock", render: securityTab },
   { id: "hoat-dong", name: "Điểm hoạt động", icon: "chart", render: activityTab },
+  { id: "giveaway", name: "Giveaway", icon: "gift", render: giveawaysTab },
+  { id: "menu-role", name: "Menu role", icon: "list", render: menusTab },
+  { id: "phong-thoai", name: "Phòng thoại", icon: "mic", render: voiceTab },
+  { id: "gop-y", name: "Góp ý", icon: "bulb", render: suggestTab },
   { id: "bao-cao", name: "Báo cáo tuần", icon: "clock", render: digestTab },
   { id: "nhat-ky", name: "Nhật ký quản trị", icon: "log", render: modlogTab },
   { id: "thong-ke", name: "Hoạt động", icon: "pulse", render: hoatdongTab },
@@ -51,6 +59,7 @@ export function guildView(id, tabId, detail, redraw) {
 
   const ctx = {
     detail,
+    redraw,
     save: (section, body) =>
       run(async () => {
         const result = await put(`${base}/settings/${section}`, body);
@@ -74,6 +83,16 @@ export function guildView(id, tabId, detail, redraw) {
         toast(result.notice, result.applied === false ? "warn" : "ok");
         Object.assign(detail, await loadGuild(id, { force: true }));
         redraw();
+      }),
+    // Giveaway and role menu actions: one call, the fresh list comes back in the answer
+    act: (method, path, body, key) =>
+      run(async () => {
+        const result = await request(method, `${base}${path}`, body);
+        if (key && result[key]) detail[key] = result[key];
+        toast(result.notice ?? "Xong rồi.", result.applied === false ? "warn" : "ok");
+        Object.assign(detail, await loadGuild(id, { force: true }));
+        redraw();
+        return result;
       }),
     previewDigest: () =>
       run(async () => {
